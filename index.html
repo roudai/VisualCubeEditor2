@@ -17,11 +17,11 @@
     </div>
     
     <div class="text-center">
-      <button type="submit" class="btn btn-primary mt-2" v-on:click="drawCube">submit</button>
+      <button type="submit" class="btn btn-primary mt-2" @click="drawCube">submit</button>
     </div>
 
     <!-- Algorithm -->
-    <div class="mb-2 top-10">
+    <div class="mb-2">
       <div>
         <label class="form-label" for="algorithm">Algorithm</label>
       </div>
@@ -32,6 +32,18 @@
       <div class="form-check form-check-inline mb-2">
         <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype">
         <label class="form-check-label" for="algorithmRadio2">Algorithm to solve case</label>
+      </div>
+      <div class="input-group form-inline mb-2">
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('U')">U</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('R')">R</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('F')">F</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('D')">D</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('L')">L</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('B')">B</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('x')">x</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('y')">y</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('z')">z</button>
+        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('\'')">'</button>
       </div>
       <input type="text" class="form-control" id="algorithm" v-model="algorithm">
     </div>
@@ -91,7 +103,7 @@
             <option value="ll">LL</option>
             <option value="cll">CLL</option>
             <option value="ell">ELL</option>
-            <option value="oll">oll</option>
+            <option value="oll">OLL</option>
             <option value="ocll">OCLL</option>
             <option value="oell">OELL</option>
             <option value="coll">COLL</option>
