@@ -74,6 +74,13 @@ const app = Vue.createApp({
         dist: this.dist,
       })
     },
+    addAlgorithm(text) {
+      if(text === '\'') {
+        this.algorithm = this.algorithm.trimEnd() + text + ' '
+      } else {
+        this.algorithm = this.algorithm + text + ' '
+      }
+    },
     incrementNumber(number, max, step) {
       return number < max && number + step <= max ? number + step : number
     },
