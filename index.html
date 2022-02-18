@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+  <title>VisualCube Editor 2.0</title>
+</head>
+<body>
+  <div class="container">
+    <div id="app">
+      <div class="text-center">
+        <div id="visualcube">
+      </div>
+    </div>
+    
+    <div class="text-center">
+      <button type="submit" class="btn btn-primary mt-2" v-on:click="drawCube">submit</button>
+    </div>
+
+    <!-- Algorithm -->
+    <div class="mb-2 top-10">
+      <div>
+        <label class="form-label" for="algorithm">Algorithm</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio1" value="alg" v-model="algtype">
+        <label class="form-check-label" for="algorithmRadio1">Algorithm to apply</label>
+      </div>
+      <div class="form-check form-check-inline mb-2">
+        <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype">
+        <label class="form-check-label" for="algorithmRadio2">Algorithm to solve case</label>
+      </div>
+      <input type="text" class="form-control" id="algorithm" v-model="algorithm">
+    </div>
+
+    <!-- Arrow Definition -->
+    <div class="mb-2">
+      <label class="form-label" for="arrows">Arrow Definition (Example:U0U2,U2U8,U8U0,R6R2R0-s8-i5-yellow)</label>
+      <input type="text" class="form-control" id="arrows" v-model="arrows">
+    </div>
+
+    <!-- Puzzle Type -->
+    <div class="mb-3">
+      <label class="form-label" for="cubeSize">Puzzle Type</label>
+      <div class="input-group">
+        <input type="text" inputmode="numeric" pattern="\d*" maxlength="2" class="form-control" id="cubeSize" v-model.number="cubeSize">
+        <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)"><i class="bi bi-dash"></i></button>
+        <button class="btn btn-outline-secondary" type="button" @click="cubeSize = incrementNumber(cubeSize,17,1)"><i class="bi bi-plus"></i></button>
+      </div>
+    </div>
+
+    <!-- Size of generated image -->
+    <div class="mb-2">
+      <label class="form-label" for="imageSize">Size of generated image</label>
+      <div class="input-group">
+        <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="imageSize" v-model.number="imageSize">
+        <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,10)">-10</button>
+        <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,1)">-1</button>
+        <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,1024,1)">+1</button>
+        <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,1024,10)">+10</button>
+      </div>
+    </div>
+    
+    <!-- Special View -->
+    <div class="mb-2">
+      <div>
+        <label class="form-label" for="specialView">Special View</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="viewRadioOptions" id="viewRadio1" value="normal" v-model="cubeView">
+        <label class="form-check-label" for="viewRadio1">Normal</label>
+      </div>
+      <div class="form-check form-check-inline mb-2">
+        <input class="form-check-input" type="radio" name="viewRadioOptions" id="viewRadio2" value="plan" v-model="cubeView">
+        <label class="form-check-label" for="viewRadio2">Plan</label>
+      </div>
+    </div>
+
+    <!-- Stage Mask / Mask Alg -->
+    <div class="mb-2">
+      <div class="row">
+        <div class="col-8">
+          <label class="form-label" for="stageMask">Stage Mask / Rotation on the mask</label>
+          <select class="form-select" id="stageMask" v-model="stageMask">
+            <option>-</option>
+            <option value="fl">FL</option>
+            <option value="f2l">F2L</option>
+            <option value="ll">LL</option>
+            <option value="cll">CLL</option>
+            <option value="ell">ELL</option>
+            <option value="oll">oll</option>
+            <option value="ocll">OCLL</option>
+            <option value="oell">OELL</option>
+            <option value="coll">COLL</option>
+            <option value="ocell">OCELL</option>
+            <option value="wv">WV</option>
+            <option value="vh">VH</option>
+            <option value="els">ELS</option>
+            <option value="cls">CLS</option>
+            <option value="cmll">CMLL</option>
+            <option value="cross">CROSS</option>
+            <option value="f2l_1">F2L#1</option>
+            <option value="f2l_2">F2L#2</option>
+            <option value="f2l_3">F2L#3</option>
+            <option value="f2l_sm">F2L SM</option>
+            <option value="f2b">F2B</option>
+            <option value="line">LINE</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label" for="maskAlg">-</label>
+          <select class="form-select" id="maskAlg" v-model="maskAlg">
+            <option>x</option>
+            <option>x'</option>
+            <option>x2</option>
+            <option>y</option>
+            <option>y'</option>
+            <option>y2</option>
+            <option>z</option>
+            <option>z'</option>
+            <option>z2</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Schemes -->
+    <div class="mb-2">
+      <div>
+        <label class="form-label" for="viewportRotations">Color Schemes</label>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 col-md-2">
+          <label class="form-label" for="faceU">U</label>
+          <input type="color" class="form-control" id="faceU" v-model="faceU">
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label class="form-label" for="faceR">R</label>
+          <input type="color" class="form-control" id="faceR" v-model="faceR">
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label class="form-label" for="faceF">F</label>
+          <input type="color" class="form-control" id="faceF" v-model="faceF">
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label class="form-label" for="faceD">D</label>
+          <input type="color" class="form-control" id="faceD" v-model="faceD">
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label class="form-label" for="faceL">L</label>
+          <input type="color" class="form-control" id="faceL" v-model="faceL">
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label class="form-label" for="faceB">B</label>
+          <input type="color" class="form-control" id="faceB" v-model="faceB">
+        </div>
+      </div>
+    </div>
+
+    <!-- Rotation Sequence -->
+    <div class="mb-2">
+      <div>
+        <label class="form-label" for="viewportRotations">Rotation Sequence</label>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 col-md-2">
+          <select class="form-select" id="rotateAxis1" v-model="rotateAxis1">
+            <option>x</option>
+            <option>y</option>
+            <option>z</option>
+          </select>
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <div class="input-group">
+            <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle1" v-model.number="rotateAngle1">
+            <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle1,-180,1)"><i class="bi bi-dash"></i></button>
+            <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle1,180,1)"><i class="bi bi-plus"></i></button>
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <select class="form-select" id="rotateAxis2" v-model="rotateAxis2">
+            <option>x</option>
+            <option>y</option>
+            <option>z</option>
+          </select>
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <div class="input-group">
+            <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle2" v-model.number="rotateAngle2">
+            <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle2,-180,1)"><i class="bi bi-dash"></i></button>
+            <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle2,180,1)"><i class="bi bi-plus"></i></button>
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <select class="form-select" id="rotateAxis3" v-model="rotateAxis3">
+            <option>x</option>
+            <option>y</option>
+            <option>z</option>
+          </select>
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <div class="input-group">
+            <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle3" v-model.number="rotateAngle3">
+            <button class="btn btn-outline-secondary" type="button" @click="rotateAngle3 = decrementNumber(rotateAngle3,-180,1)"><i class="bi bi-dash"></i></button>
+            <button class="btn btn-outline-secondary" type="button" @click="rotateAngle3 = incrementNumber(rotateAngle3,180,1)"><i class="bi bi-plus"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Color of image / Cube Color / Mask Color -->
+    <div class="mb-2">
+      <div class="row">
+        <div class="col-xs-12 col-md-4">
+          <label class="form-label" for="backgroundColor">Background Color of image</label>
+          <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor">
+        </div>
+        <div class="col-xs-12 col-md-4">
+          <label class="form-label" for="cubeColor">Cube Color</label>
+          <input type="color" class="form-control" id="cubeColor" v-model="cubeColor">
+        </div>
+        <div class="col-xs-12 col-md-4">
+          <label class="form-label" for="maskColor">Mask Color</label>
+          <input type="color" class="form-control" id="maskColor" v-model="maskColor">
+        </div>
+      </div>
+    </div>
+
+    <!-- Cube Opacity / Sticker Opacity / Projection Distance -->
+    <div class="mb-2">
+      <div class="row">
+        <div class="col-xs-12 col-md-4">
+          <label class="form-label" for="cubeOpacity">Cube Opacity</label>
+          <div class="input-group">
+            <input type="text" inputmode="numeric" pattern="\d*" maxlength="3" class="form-control" id="cubeOpacity" v-model.number="cubeOpacity">
+            <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = decrementNumber(cubeOpacity,0,1)"><i class="bi bi-dash"></i></button>
+            <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = incrementNumber(cubeOpacity,100,1)"><i class="bi bi-plus"></i></button>
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-4">
+          <label class="form-label" for="stickerOpacity">Sticker Opacity</label>
+          <div class="input-group">
+            <input type="text" inputmode="numeric" pattern="\d*" maxlength="3" class="form-control" id="stickerOpacity" v-model.number="stickerOpacity">
+            <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = decrementNumber(stickerOpacity,0,1)"><i class="bi bi-dash"></i></button>
+            <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = incrementNumber(stickerOpacity,100,1)"><i class="bi bi-plus"></i></button>
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-4">
+          <label class="form-label" for="dist">Projection Distance</label>
+          <div class="input-group">
+            <input type="text" inputmode="numeric" pattern="\d*" maxlength="3" class="form-control" id="dist" v-model.number="dist">
+            <button class="btn btn-outline-secondary" type="button" @click="dist = decrementNumber(dist,1,1)"><i class="bi bi-dash"></i></button>
+            <button class="btn btn-outline-secondary" type="button" @click="dist = incrementNumber(dist,100,1)"><i class="bi bi-plus"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
+  <script src="library/srVisualizer.min.js"></script>
+  <script src="https://unpkg.com/vue@3.1.5"></script>
+  <script src="js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
