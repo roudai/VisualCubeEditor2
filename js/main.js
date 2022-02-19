@@ -2,6 +2,13 @@ const app = Vue.createApp({
   data: () => ({
     algtype: 'alg',
     algorithm: '',
+    arrowFace: 'U',
+    arrowFrom: '0',
+    arrowPass: '',
+    arrowTo: '2',
+    arrowScale: '',
+    arrowInfluence: '',
+    arrowColor: '#808080',
     arrows: '',
     cubeSize: 3,
     imageSize: 128,
@@ -83,6 +90,28 @@ const app = Vue.createApp({
       } else {
         this.algorithm = this.algorithm + text + ' '
       }
+    },
+    addArrow() {
+      let addText
+      if(this.arrowPass === '') {
+        addText = this.arrowFace + this.arrowFrom + this.arrowFace + this.arrowTo
+      } else {
+        addText = this.arrowFace + this.arrowFrom + this.arrowFace + this.arrowPass + this.arrowFace + this.arrowTo
+      }
+      if(this.arrowScale !== '') addText = addText + '-s' + this.arrowScale
+      if(this.arrowInfluence !== '') addText = addText + '-i' + this.arrowInfluence
+      if(this.arrowColor !== '#808080') addText = addText + '-' + this.arrowColor.replace('#','')
+      
+      this.arrows === '' ? this.arrows = addText : this.arrows = this.arrows + ',' + addText
+    },
+    clearArrow() {
+      this.arrowFace = 'U'
+      this.arrowFrom = '0'
+      this.arrowPass = ''
+      this.arrowTo = '2'
+      this.arrowScale = ''
+      this.arrowInfluence = ''
+      this.arrowColor = '#808080'
     },
     incrementNumber(number, max, step) {
       return number < max && number + step <= max ? number + step : number
