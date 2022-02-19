@@ -39,9 +39,12 @@ const app = Vue.createApp({
       }else if(this.algtype === 'case') {
         caseData = this.algorithm
       }
-      if(this.cubeView === 'normal') this.cubeView = ''
       if(this.stageMask === '-') this.stageMask = ''
       if(this.maskAlg === '-') this.maskAlg = ''
+
+      if(this.imageSize > window.innerWidth * 0.8) {
+        this.imageSize = window.innerWidth * 0.8
+      }
 
       SRVisualizer.cubePNG(element, {
         algorithm: algorithmData,
