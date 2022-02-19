@@ -58,7 +58,10 @@
         <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('y')">y</button>
         <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('z')">z</button>
       </div>
-      <input type="text" class="form-control" id="algorithm" v-model="algorithm">
+      <div class="input-group form-inline mb-2">
+        <input type="text" class="form-control" id="algorithm" v-model="algorithm">
+        <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithm">Clear</button>
+      </div>
     </div>
 
     <!-- Arrow Definition -->
@@ -141,11 +144,15 @@
         </select>
         <label class="me-1 mb-1" for="arrowColor">Color</label>
         <input class="me-3 mb-1" type="color" id="arrowColor" v-model="arrowColor">
-        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="addArrow">Add</button>
-        <button type="submit" class="btn btn-secondary btn-sm mb-1" @click="clearArrow">Clear</button>
-      </div>
 
-      <input type="text" class="form-control" id="arrows" v-model="arrows">
+        <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" id="addArrow" @click="addArrow">Add</button>
+        <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" id="resetArrow" @click="resetArrow">Reset</button>
+      </div>
+      
+      <div class="input-group form-inline mb-2">
+        <input type="text" class="form-control" id="arrows" v-model="arrows">
+        <button class="btn btn-outline-secondary btn-sm" type="button" id="clearArrows" @click="clearArrows">Clear</button>
+      </div>
     </div>
 
     <!-- Puzzle Type -->
@@ -239,10 +246,10 @@
         <label class="form-label" for="viewportRot ations">Color Schemes</label>
       </div>
       <div class="input-group form-inline">
-        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="rotateX">x</button>
-        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="rotateY">y</button>
-        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="rotateZ">z</button>
-        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="resetColor">Reset</button>
+        <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" @click="rotateX">x</button>
+        <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" @click="rotateY">y</button>
+        <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" @click="rotateZ">z</button>
+        <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" @click="resetColor">Reset</button>
       </div>
       <div class="row">
         <div class="col-md-6 col-lg-2">
@@ -328,15 +335,24 @@
       <div class="row">
         <div class="col-xs-12 col-md-4">
           <label class="form-label" for="backgroundColor">Background Color of image</label>
-          <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor">
+          <div class="input-group form-inline mb-2">
+            <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor">
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="resetBackground" @click="resetBackground">Reset</button>
+          </div>
         </div>
         <div class="col-xs-12 col-md-4">
           <label class="form-label" for="cubeColor">Cube Color</label>
-          <input type="color" class="form-control" id="cubeColor" v-model="cubeColor">
+          <div class="input-group form-inline mb-2">
+            <input type="color" class="form-control" id="cubeColor" v-model="cubeColor">
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="resetCubecolor" @click="resetCubecolor">Reset</button>
+          </div>
         </div>
         <div class="col-xs-12 col-md-4">
           <label class="form-label" for="maskColor">Mask Color</label>
-          <input type="color" class="form-control" id="maskColor" v-model="maskColor">
+          <div class="input-group form-inline mb-2">
+            <input type="color" class="form-control" id="maskColor" v-model="maskColor">
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="resetMaskcolor" @click="resetMaskcolor">Reset</button>
+          </div>
         </div>
       </div>
     </div>

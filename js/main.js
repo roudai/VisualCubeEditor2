@@ -104,7 +104,7 @@ const app = Vue.createApp({
       
       this.arrows === '' ? this.arrows = addText : this.arrows = this.arrows + ',' + addText
     },
-    clearArrow() {
+    resetArrow() {
       this.arrowFace = 'U'
       this.arrowFrom = '0'
       this.arrowPass = ''
@@ -136,6 +136,21 @@ const app = Vue.createApp({
     decrementNumber(number, min, step) {
       return number > min && number - step >= min ? number - step : number
     },
+    clearAlgorithm() {
+      this.algorithm = ''
+    },
+    clearArrows() {
+      this.arrows = ''
+    },
+    resetBackground() {
+      this.backgroundColor = '#ffffff'
+    },
+    resetCubecolor() {
+      this.cubeColor = '#000000'
+    },
+    resetMaskcolor() {
+      this.maskColor = '#404040'
+    },
     axisEnum: function(axis) {
       switch(axis) {
         case 'x': return 0
@@ -161,4 +176,3 @@ const app = Vue.createApp({
   },
 })
 const vm = app.mount('#app')
-
