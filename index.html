@@ -34,16 +34,29 @@
         <label class="form-check-label" for="algorithmRadio2">Algorithm to solve case</label>
       </div>
       <div class="input-group form-inline mb-2">
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('U')">U</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('R')">R</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('F')">F</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('D')">D</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('L')">L</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('B')">B</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('x')">x</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('y')">y</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('z')">z</button>
-        <button class="btn btn-outline-secondary" type="button" @click="addAlgorithm('\'')">'</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('U')">U</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('R')">R</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('F')">F</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('D')">D</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('L')">L</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('B')">B</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('M')">M</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('E')">E</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('S')">S</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('\'')">'</button>
+      </div>
+      <div class="input-group form-inline mb-2">
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('u')">u</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('r')">r</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('f')">f</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('d')">d</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('l')">l</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('b')">b</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('w')">w</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('2')">2</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('x')">x</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('y')">y</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('z')">z</button>
       </div>
       <input type="text" class="form-control" id="algorithm" v-model="algorithm">
     </div>
@@ -142,30 +155,30 @@
     <!-- Color Schemes -->
     <div class="mb-2">
       <div>
-        <label class="form-label" for="viewportRotations">Color Schemes</label>
+        <label class="form-label" for="viewportRot ations">Color Schemes</label>
       </div>
       <div class="row">
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <label class="form-label" for="faceU">U</label>
           <input type="color" class="form-control" id="faceU" v-model="faceU">
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <label class="form-label" for="faceR">R</label>
           <input type="color" class="form-control" id="faceR" v-model="faceR">
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <label class="form-label" for="faceF">F</label>
           <input type="color" class="form-control" id="faceF" v-model="faceF">
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <label class="form-label" for="faceD">D</label>
           <input type="color" class="form-control" id="faceD" v-model="faceD">
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <label class="form-label" for="faceL">L</label>
           <input type="color" class="form-control" id="faceL" v-model="faceL">
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <label class="form-label" for="faceB">B</label>
           <input type="color" class="form-control" id="faceB" v-model="faceB">
         </div>
@@ -178,42 +191,42 @@
         <label class="form-label" for="viewportRotations">Rotation Sequence</label>
       </div>
       <div class="row">
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <select class="form-select" id="rotateAxis1" v-model="rotateAxis1">
             <option>x</option>
             <option>y</option>
             <option>z</option>
           </select>
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <div class="input-group">
             <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle1" v-model.number="rotateAngle1">
             <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle1,-180,1)"><i class="bi bi-dash"></i></button>
             <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle1,180,1)"><i class="bi bi-plus"></i></button>
           </div>
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <select class="form-select" id="rotateAxis2" v-model="rotateAxis2">
             <option>x</option>
             <option>y</option>
             <option>z</option>
           </select>
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <div class="input-group">
             <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle2" v-model.number="rotateAngle2">
             <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle2,-180,1)"><i class="bi bi-dash"></i></button>
             <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle2,180,1)"><i class="bi bi-plus"></i></button>
           </div>
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <select class="form-select" id="rotateAxis3" v-model="rotateAxis3">
             <option>x</option>
             <option>y</option>
             <option>z</option>
           </select>
         </div>
-        <div class="col-xs-12 col-md-2">
+        <div class="col-md-6 col-lg-2">
           <div class="input-group">
             <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle3" v-model.number="rotateAngle3">
             <button class="btn btn-outline-secondary" type="button" @click="rotateAngle3 = decrementNumber(rotateAngle3,-180,1)"><i class="bi bi-dash"></i></button>

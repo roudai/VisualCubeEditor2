@@ -75,7 +75,7 @@ const app = Vue.createApp({
       })
     },
     addAlgorithm(text) {
-      if(text === '\'') {
+      if(text === '\'' || text === 'w' || text === '2') {
         this.algorithm = this.algorithm.trimEnd() + text + ' '
       } else {
         this.algorithm = this.algorithm + text + ' '
