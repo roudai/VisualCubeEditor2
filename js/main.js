@@ -96,7 +96,7 @@ const app = Vue.createApp({
       if(this.arrowPass === '') {
         addText = this.arrowFace + this.arrowFrom + this.arrowFace + this.arrowTo
       } else {
-        addText = this.arrowFace + this.arrowFrom + this.arrowFace + this.arrowPass + this.arrowFace + this.arrowTo
+        addText = this.arrowFace + this.arrowFrom + this.arrowFace + this.arrowTo + this.arrowFace + this.arrowPass
       }
       if(this.arrowScale !== '') addText = addText + '-s' + this.arrowScale
       if(this.arrowInfluence !== '') addText = addText + '-i' + this.arrowInfluence
@@ -112,6 +112,23 @@ const app = Vue.createApp({
       this.arrowScale = ''
       this.arrowInfluence = ''
       this.arrowColor = '#808080'
+    },
+    rotateX() {
+      [this.faceU, this.faceB, this.faceD, this.faceF] = [this.faceF, this.faceU, this.faceB, this.faceD]
+    },
+    rotateY() {
+      [this.faceF, this.faceL, this.faceB, this.faceR] = [this.faceR, this.faceF, this.faceL, this.faceB]
+    },
+    rotateZ() {
+      [this.faceU, this.faceR, this.faceD, this.faceL] = [this.faceL, this.faceU, this.faceR, this.faceD]
+    },
+    resetColor() {
+      this.faceU = '#fefe00'
+      this.faceR = '#ee0000'
+      this.faceF = '#0000f2'
+      this.faceD = '#ffffff'
+      this.faceL = '#ffa100'
+      this.faceB = '#00d800'
     },
     incrementNumber(number, max, step) {
       return number < max && number + step <= max ? number + step : number

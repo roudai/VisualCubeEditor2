@@ -65,8 +65,8 @@
     <div class="mb-2">
       <label class="form-label" for="arrows">Arrow Definition</label>
       <div class="input-group form-inline">
-        <label class="me-1" for="arrowFace">Face</label>
-        <select class="me-2" id="arrowFace" v-model="arrowFace">
+        <label class="me-1 mb-1" for="arrowFace">Face</label>
+        <select class="me-2 mb-1" id="arrowFace" v-model="arrowFace">
           <option value="U">U</option>
           <option value="R">R</option>
           <option value="F">F</option>
@@ -74,8 +74,8 @@
           <option value="L">L</option>
           <option value="B">B</option>
         </select>
-        <label class="me-1" for="arrowFrom">From</label>
-        <select class="me-2" id="arrowForm" v-model="arrowFrom">
+        <label class="me-1 mb-1" for="arrowFrom">From</label>
+        <select class="me-2 mb-1" id="arrowForm" v-model="arrowFrom">
           <option value="0">0</option>
           <option value="1">1</option>
           <option value="2">2</option>
@@ -86,8 +86,8 @@
           <option value="7">7</option>
           <option value="8">8</option>
         </select>
-        <label class="me-1" for="arrowPass">Pass</label>
-        <select class="me-2" id="arrowPass" v-model="arrowPass">
+        <label class="me-1 mb-1" for="arrowTo">To</label>
+        <select class="me-2 mb-1" id="arrowTo" v-model="arrowTo">
           <option value="0">0</option>
           <option value="1">1</option>
           <option value="2">2</option>
@@ -98,8 +98,8 @@
           <option value="7">7</option>
           <option value="8">8</option>
         </select>
-        <label class="me-1" for="arrowTo">To</label>
-        <select class="me-2" id="arrowTo" v-model="arrowTo">
+        <label class="me-1 mb-1" for="arrowPass">Pass</label>
+        <select class="me-2 mb-1" id="arrowPass" v-model="arrowPass">
           <option value="0">0</option>
           <option value="1">1</option>
           <option value="2">2</option>
@@ -113,8 +113,8 @@
       </div>
 
       <div class="input-group form-inline mb-2">
-        <label class="me-1" for="arrowScale">Scale</label>
-        <select class="me-2" id="arrowScale" v-model="arrowScale">
+        <label class="me-1 mb-1" for="arrowScale">Scale</label>
+        <select class="me-2 mb-1" id="arrowScale" v-model="arrowScale">
           <option value="0">0</option>
           <option value="1">1</option>
           <option value="2">2</option>
@@ -126,8 +126,8 @@
           <option value="8">8</option>
           <option value="9">9</option>
         </select>
-        <label class="me-1" for="arrowInfluence">Influence</label>
-        <select class="me-2" id="arrowInfluence" v-model="arrowInfluence">
+        <label class="me-1 mb-1" for="arrowInfluence">Influence</label>
+        <select class="me-2 mb-1" id="arrowInfluence" v-model="arrowInfluence">
           <option value="0">0</option>
           <option value="1">1</option>
           <option value="2">2</option>
@@ -139,12 +139,12 @@
           <option value="8">8</option>
           <option value="9">9</option>
         </select>
-        <label class="me-1" for="arrowColor">Color</label>
-        <input class="me-3" type="color" id="arrowColor" v-model="arrowColor">
-        <button type="submit" class="btn btn-secondary btn-sm me-1" @click="addArrow">Add</button>
-        <button type="submit" class="btn btn-secondary btn-sm" @click="clearArrow">Clear</button>
+        <label class="me-1 mb-1" for="arrowColor">Color</label>
+        <input class="me-3 mb-1" type="color" id="arrowColor" v-model="arrowColor">
+        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="addArrow">Add</button>
+        <button type="submit" class="btn btn-secondary btn-sm mb-1" @click="clearArrow">Clear</button>
       </div>
-      
+
       <input type="text" class="form-control" id="arrows" v-model="arrows">
     </div>
 
@@ -237,6 +237,12 @@
     <div class="mb-2">
       <div>
         <label class="form-label" for="viewportRot ations">Color Schemes</label>
+      </div>
+      <div class="input-group form-inline">
+        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="rotateX">x</button>
+        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="rotateY">y</button>
+        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="rotateZ">z</button>
+        <button type="submit" class="btn btn-secondary btn-sm me-1 mb-1" @click="resetColor">Reset</button>
       </div>
       <div class="row">
         <div class="col-md-6 col-lg-2">
