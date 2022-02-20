@@ -9,6 +9,7 @@ const app = Vue.createApp({
     arrowScale: '',
     arrowInfluence: '',
     arrowColor: '#808080',
+    arrowNumber: 9,
     arrows: '',
     cubeSize: 3,
     imageSize: 128,
@@ -33,6 +34,14 @@ const app = Vue.createApp({
     cubeOpacity: 100,
     stickerOpacity: 100,
     dist: 5,
+    stageMaskList: {
+      FL:'fl', F2L:'f2l' , LL:'ll', CLL:'cll', ELL:'ell', OLL:'oll', OCLL:'ocll', 
+      OCELL:'ocell', WM:'wm', VH:'vh', ELS:'els', CLS:'cls', CMLL:'cmll', CROSS:'cross', 
+      'F2L#1':'f2l_1', 'F2L#2':'f2l_2', 'F2L#3':'f2l_3', 'F2L SM':'f2l_sm', F2B:'f2b', LINE:'line'
+    },
+    maskAlgList: [
+      'x', 'x\'', 'x2', 'y', 'y\'', 'y2', 'z', 'z\'', 'z2',
+    ],
   }),
   methods: {
     drawCube: function() {
@@ -174,5 +183,10 @@ const app = Vue.createApp({
     let element = document.getElementById('visualcube')
     SRVisualizer.cubePNG(element)
   },
+  watch: {
+    cubeSize: function(newValue) {
+      this.arrowNumber = newValue * newValue
+    }
+  }
 })
 const vm = app.mount('#app')

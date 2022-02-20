@@ -88,68 +88,26 @@
         </select>
         <label class="me-1 mb-1" for="arrowFrom">From</label>
         <select class="me-2 mb-1" id="arrowForm" v-model="arrowFrom">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
+          <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
         </select>
         <label class="me-1 mb-1" for="arrowTo">To</label>
         <select class="me-2 mb-1" id="arrowTo" v-model="arrowTo">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
+          <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
         </select>
         <label class="me-1 mb-1" for="arrowPass">Pass</label>
         <select class="me-2 mb-1" id="arrowPass" v-model="arrowPass">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
+          <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
         </select>
       </div>
 
       <div class="input-group form-inline mb-2">
         <label class="me-1 mb-1" for="arrowScale">Scale</label>
         <select class="me-2 mb-2" id="arrowScale" v-model="arrowScale">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
+          <option v-for="n in 9" v-bind:value="n">{{ n }}</option>
         </select>
         <label class="me-1 mb-1" for="arrowInfluence">Influence</label>
         <select class="me-2 mb-2" id="arrowInfluence" v-model="arrowInfluence">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
+          <option v-for="n in 9" v-bind:value="n">{{ n }}</option>
         </select>
         <label class="me-1 mb-1" for="arrowColor">Color</label>
         <input class="me-3 mb-1" type="color" id="arrowColor" v-model="arrowColor">
@@ -207,43 +165,13 @@
         <div class="col-8">
           <label class="form-label" for="stageMask">Stage Mask</label>
           <select class="form-select" id="stageMask" v-model="stageMask">
-            <option>-</option>
-            <option value="fl">FL</option>
-            <option value="f2l">F2L</option>
-            <option value="ll">LL</option>
-            <option value="cll">CLL</option>
-            <option value="ell">ELL</option>
-            <option value="oll">OLL</option>
-            <option value="ocll">OCLL</option>
-            <option value="oell">OELL</option>
-            <option value="coll">COLL</option>
-            <option value="ocell">OCELL</option>
-            <option value="wv">WV</option>
-            <option value="vh">VH</option>
-            <option value="els">ELS</option>
-            <option value="cls">CLS</option>
-            <option value="cmll">CMLL</option>
-            <option value="cross">CROSS</option>
-            <option value="f2l_1">F2L#1</option>
-            <option value="f2l_2">F2L#2</option>
-            <option value="f2l_3">F2L#3</option>
-            <option value="f2l_sm">F2L SM</option>
-            <option value="f2b">F2B</option>
-            <option value="line">LINE</option>
+            <option v-for="(value, name) in stageMaskList" v-bind:value="value">{{ name }}</option>
           </select>
         </div>
         <div class="col-4">
           <label class="form-label" for="maskAlg">-</label>
           <select class="form-select" id="maskAlg" v-model="maskAlg">
-            <option>x</option>
-            <option>x'</option>
-            <option>x2</option>
-            <option>y</option>
-            <option>y'</option>
-            <option>y2</option>
-            <option>z</option>
-            <option>z'</option>
-            <option>z2</option>
+            <option v-for="value in maskAlgList">{{ value }}</option>
           </select>
         </div>
       </div>
