@@ -2,6 +2,12 @@ const app = Vue.createApp({
   data: () => ({
     algtype: 'alg',
     algorithm: '',
+    algorithm3: false,
+    algorithm4: false,
+    algorithm5: false,
+    algorithm6: false,
+    algorithm7: false,
+    algorithm8: false,
     arrowFace: 'U',
     arrowFrom: '0',
     arrowPass: '',
@@ -186,7 +192,21 @@ const app = Vue.createApp({
   watch: {
     cubeSize: function(newValue) {
       this.arrowNumber = newValue * newValue
-    }
+
+      if(newValue >= 6) this.algorithm3 = true
+      if(newValue >= 8) this.algorithm4 = true
+      if(newValue >= 10) this.algorithm5 = true
+      if(newValue >= 12) this.algorithm6 = true
+      if(newValue >= 14) this.algorithm7 = true
+      if(newValue >= 16) this.algorithm8 = true
+
+      if(newValue < 6) this.algorithm3 = false
+      if(newValue < 8) this.algorithm4 = false
+      if(newValue < 10) this.algorithm5 = false
+      if(newValue < 12) this.algorithm6 = false
+      if(newValue < 14) this.algorithm7 = false
+      if(newValue < 16) this.algorithm8 = false
+    },
   }
 })
 const vm = app.mount('#app')
