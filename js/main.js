@@ -1,5 +1,6 @@
 const app = Vue.createApp({
   data: () => ({
+    parameter: {},
     algtype: 'alg',
     algorithm: '',
     algorithm3: false,
@@ -54,29 +55,28 @@ const app = Vue.createApp({
       const element = document.getElementById('visualcube')
       element.removeChild(element.lastElementChild)
 
-      let parameter = {}
       if(this.algorithm !== '') {
         if(this.algtype === 'alg') {
-          parameter.algorithm = this.algorithm.trim()
+          this.parameter.algorithm = this.algorithm.trim()
         }else if(this.algtype === 'case') {
-          parameter.case = this.algorithm.trim()
+          this.parameter.case = this.algorithm.trim()
         }
       }
-      if(this.arrows)  parameter.arrows = this.arrows.trim()
-      if(this.cubeSize !== 3) parameter.cubeSize = this.cubeSize
+      if(this.arrows)  this.parameter.arrows = this.arrows.trim()
+      if(this.cubeSize !== 3) this.parameter.cubeSize = this.cubeSize
       if(this.imageSize !== 128) {
         if(this.imageSize > window.innerWidth * 0.8) {
           this.imageSize = window.innerWidth * 0.8
         }
-        parameter.width = this.imageSize
-        parameter.height = this.imageSize
+        this.parameter.width = this.imageSize
+        this.parameter.height = this.imageSize
       }
-      if(this.cubeView !== 'normal') parameter.view = this.cubeView
-      if(this.stageMask !== '') parameter.mask = this.stageMask
-      if(this.maskAlg !== '') parameter.maskAlg = this.maskAlg
+      if(this.cubeView !== 'normal') this.parameter.view = this.cubeView
+      if(this.stageMask !== '') this.parameter.mask = this.stageMask
+      if(this.maskAlg !== '') this.parameter.maskAlg = this.maskAlg
       if(!(this.faceU === '#fefe00' && this.faceR === '#ee0000' && this.faceF === '#0000f2'
         && this.faceD === '#ffffff' && this.faceL === '#ffa100' && this.faceB === '#00d800')) {
-          parameter.colorScheme = {
+          this.parameter.colorScheme = {
             [this.faceEnum("faceU")]: this.faceU,
             [this.faceEnum("faceR")]: this.faceR,
             [this.faceEnum("faceF")]: this.faceF,
@@ -87,21 +87,22 @@ const app = Vue.createApp({
       }
       if(!(this.rotateAxis1 === 'y' && this.rotateAxis2 === 'x' && this.rotateAxis3 === 'z'
         && this.rotateAngle1 === 45 && this.rotateAngle2 === -34 && this.rotateAngle3 === 0)) {
-          parameter.viewportRotations = [
+          this.parameter.viewportRotations = [
             [this.axisEnum(this.rotateAxis1), this.rotateAngle1],
             [this.axisEnum(this.rotateAxis2), this.rotateAngle2],
             [this.axisEnum(this.rotateAxis3), this.rotateAngle3],
           ]
       }
-      if(this.backgroundColor !== '#ffffff') parameter.backgroundColor = this.backgroundColor
-      if(this.cubeColor !== '#000000') parameter.cubeColor = this.cubeColor
-      if(this.maskColor !== '#404040') parameter.maskColor = this.maskColor
-      if(this.cubeOpacity != 100) parameter.cubeOpacity = this.cubeOpacity
-      if(this.stickerOpacity != 100) parameter.stickerOpacity = this.stickerOpacity
-      if(this.dist != 5) parameter.dist = this.dist
+      if(this.backgroundColor !== '#ffffff') this.parameter.backgroundColor = this.backgroundColor
+      if(this.cubeColor !== '#000000') this.parameter.cubeColor = this.cubeColor
+      if(this.maskColor !== '#404040') this.parameter.maskColor = this.maskColor
+      if(this.cubeOpacity != 100) this.parameter.cubeOpacity = this.cubeOpacity
+      if(this.stickerOpacity != 100) this.parameter.stickerOpacity = this.stickerOpacity
+      if(this.dist != 5) this.parameter.dist = this.dist
 
+      console.log(this.parameter)
       const SRVisualizer = window['sr-visualizer'];
-      SRVisualizer.cubePNG(element, parameter)
+      SRVisualizer.cubePNG(element, this.parameter)
     },
     addAlgorithm(text) {
       if(text === '\'' || text === 'w' || text === '2') {

@@ -34,10 +34,21 @@
       </div>
     </div>
     
-    <div class="text-center">
+    <div class="text-center mb-2">
       <button type="submit" class="btn btn-primary mt-2" @click="drawCube">submit</button>
     </div>
-    
+  
+    <p>
+      <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+        Show Parameter
+      </button>
+    </p>
+    <div class="collapse" id="collapseExample">
+      <div class="card card-body">
+        {{ parameter }}
+      </div>
+    </div>
+
     <!-- Algorithm -->
     <div class="mb-2">
       <div>
