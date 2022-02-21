@@ -136,7 +136,6 @@ const app = Vue.createApp({
       SRVisualizer.cubePNG(element, this.parameter)
     },
     addAlgorithm(text) {
-      console.log(isNaN(text))
       if(this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
         this.algorithm = this.algorithm + text
       } else if (text === '\'' || text === 'w' || !isNaN(text)) {
