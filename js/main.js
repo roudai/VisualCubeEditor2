@@ -230,24 +230,28 @@ const app = Vue.createApp({
   },
   watch: {
     cubeSize: function(newValue) {
+      if(newValue === '') {
+        this.cubeSize = 3
+        return
+      }
       this.arrowNumber = newValue * newValue
       if(newValue > 17) this.cubeSize = 17
       if(newValue < 1) this.cubeSize = 1
-      if(newValue === '') this.cubeSize = 3
-
+      
       if(newValue >= 6) this.algorithm3 = true
       if(newValue >= 8) this.algorithm4 = true
       if(newValue >= 10) this.algorithm5 = true
       if(newValue >= 12) this.algorithm6 = true
       if(newValue >= 14) this.algorithm7 = true
       if(newValue >= 16) this.algorithm8 = true
-
+      
       if(newValue < 6) this.algorithm3 = false
       if(newValue < 8) this.algorithm4 = false
       if(newValue < 10) this.algorithm5 = false
       if(newValue < 12) this.algorithm6 = false
       if(newValue < 14) this.algorithm7 = false
       if(newValue < 16) this.algorithm8 = false
+      this.drawCube()
     },
     imageSize: function(newValue) {
       if(newValue > window.innerWidth * 0.8) this.imageSize = Math.floor(window.innerWidth * 0.8)

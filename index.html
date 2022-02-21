@@ -47,6 +47,16 @@
         <button type="submit" class="btn btn-primary mt-2" @click="drawCube">submit</button>
       </div>
     
+      <!-- Puzzle Type -->
+      <div class="mb-2">
+        <label class="form-label" for="cubeSize">Puzzle Type</label>
+        <div class="input-group">
+          <input type="text" inputmode="numeric" pattern="\d*" maxlength="2" class="form-control" id="cubeSize" v-model.number="cubeSize">
+          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)"><i class="bi bi-dash"></i></button>
+          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = incrementNumber(cubeSize,17,1)"><i class="bi bi-plus"></i></button>
+        </div>
+      </div>
+            
       <p>
         <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
           Show Parameter
@@ -158,16 +168,6 @@
         <div class="input-group form-inline mb-2">
           <input type="text" class="form-control" id="arrows" v-model="arrows">
           <button class="btn btn-outline-secondary btn-sm" type="button" id="clearArrows" @click="clearArrows">Clear</button>
-        </div>
-      </div>
-
-      <!-- Puzzle Type -->
-      <div class="mb-2">
-        <label class="form-label" for="cubeSize">Puzzle Type</label>
-        <div class="input-group">
-          <input type="text" inputmode="numeric" pattern="\d*" maxlength="2" class="form-control" id="cubeSize" v-model.number="cubeSize">
-          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)"><i class="bi bi-dash"></i></button>
-          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = incrementNumber(cubeSize,17,1)"><i class="bi bi-plus"></i></button>
         </div>
       </div>
 
