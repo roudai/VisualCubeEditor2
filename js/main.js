@@ -10,13 +10,14 @@ const app = Vue.createApp({
     algorithm6: false,
     algorithm7: false,
     algorithm8: false,
-    faceletsU: ['u','r','u','u','u','u','u','u','u'],
+    faceletsU: ['u','u','u','u','u','u','u','u','u'],
     faceletsR: ['r','r','r','r','r','r','r','r','r'],
     faceletsF: ['f','f','f','f','f','f','f','f','f'],
     faceletsD: ['d','d','d','d','d','d','d','d','d'],
     faceletsL: ['l','l','l','l','l','l','l','l','l'],
     faceletsB: ['b','b','b','b','b','b','b','b','b'],
     showFacelets: false,
+    algorithmDisabled: false,
     arrowFace: 'U',
     arrowFrom: '0',
     arrowPass: '',
@@ -49,6 +50,9 @@ const app = Vue.createApp({
     cubeOpacity: 100,
     stickerOpacity: 100,
     dist: 5,
+    cubeStateList: [
+      'u', 'r', 'f', 'd', 'l', 'b', 'n', 'o', 't'
+    ],
     stageMaskList: {
       FL:'fl', F2L:'f2l' , LL:'ll', CLL:'cll', ELL:'ell', OLL:'oll', OCLL:'ocll', 
       OCELL:'ocell', WM:'wm', VH:'vh', ELS:'els', CLS:'cls', CMLL:'cmll', CROSS:'cross', 
@@ -146,6 +150,14 @@ const app = Vue.createApp({
         this.algorithm = this.algorithm + text + ' '
       }
     },
+    resetState() {
+      this.faceletsU = ['u','u','u','u','u','u','u','u','u']
+      this.faceletsR = ['r','r','r','r','r','r','r','r','r']
+      this.faceletsF = ['f','f','f','f','f','f','f','f','f']
+      this.faceletsD = ['d','d','d','d','d','d','d','d','d']
+      this.faceletsL = ['l','l','l','l','l','l','l','l','l']
+      this.faceletsB = ['b','b','b','b','b','b','b','b','b']
+    },
     addArrow() {
       let addText
       if(this.arrowPass === '') {
@@ -239,6 +251,13 @@ const app = Vue.createApp({
       if(newValue > 17) this.cubeSize = 17
       if(newValue < 1) this.cubeSize = 1
       
+      if(newValue === 3) {
+        this.algorithmDisabled = false
+       } else {
+        this.algorithmDisabled = true
+        if(this.algtype === 'state') this.algtype = 'alg'
+       }
+
       if(newValue >= 6) this.algorithm3 = true
       if(newValue >= 8) this.algorithm4 = true
       if(newValue >= 10) this.algorithm5 = true

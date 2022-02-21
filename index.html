@@ -77,14 +77,14 @@
           <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio1" value="alg" v-model="algtype">
           <label class="form-check-label" for="algorithmRadio1">Algorithm to apply</label>
         </div>
-        <div class="form-check form-check-inline mb-2">
+        <div class="form-check form-check-inline">
           <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype">
           <label class="form-check-label" for="algorithmRadio2">Algorithm to solve case</label>
         </div>
-        <!-- <div class="form-check form-check-inline mb-2">
-          <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype">
+        <div class="form-check form-check-inline mb-2">
+          <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled">
           <label class="form-check-label" for="algorithmRadio3">Defines the cube state</label>
-        </div> -->
+        </div>
         <div class="input-group form-inline mb-2" v-show="!showFacelets">
           <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('U')">U</button>
           <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('R')">R</button>
@@ -119,6 +119,57 @@
         <div class="input-group form-inline mb-2" v-show="!showFacelets">
           <input type="text" class="form-control" id="algorithm" v-model="algorithm">
           <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithm">Clear</button>
+        </div>
+
+        <div v-show="showFacelets">
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsU[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsR[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsF[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsD[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsL[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsB[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="resetState" @click="resetState">Reset</button>
+          <p class="ms-3">
+            n : This is a blank face (coloured grey) <br>
+            o : This is an 'oriented' face (coloured silver) <br>
+            t : This is a transparent face, and will not appear on the cube
+          </p>
         </div>
       </div>
 
