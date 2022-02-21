@@ -196,12 +196,14 @@
         <div class="col-8">
           <label class="form-label" for="stageMask">Stage Mask</label>
           <select class="form-select" id="stageMask" v-model="stageMask">
+            <option value=""></option>
             <option v-for="(value, name) in stageMaskList" v-bind:value="value">{{ name }}</option>
           </select>
         </div>
         <div class="col-4">
           <label class="form-label" for="maskAlg">-</label>
           <select class="form-select" id="maskAlg" v-model="maskAlg">
+            <option value=""></option>
             <option v-for="value in maskAlgList">{{ value }}</option>
           </select>
         </div>
