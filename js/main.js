@@ -136,7 +136,10 @@ const app = Vue.createApp({
       SRVisualizer.cubePNG(element, this.parameter)
     },
     addAlgorithm(text) {
-      if(text === '\'' || text === 'w' || text === '2') {
+      console.log(isNaN(text))
+      if(this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
+        this.algorithm = this.algorithm + text
+      } else if (text === '\'' || text === 'w' || !isNaN(text)) {
         this.algorithm = this.algorithm.trimEnd() + text + ' '
       } else {
         this.algorithm = this.algorithm + text + ' '
@@ -230,6 +233,7 @@ const app = Vue.createApp({
       this.arrowNumber = newValue * newValue
       if(newValue > 17) this.cubeSize = 17
       if(newValue < 1) this.cubeSize = 1
+      if(newValue === '') this.cubeSize = 3
 
       if(newValue >= 6) this.algorithm3 = true
       if(newValue >= 8) this.algorithm4 = true
@@ -252,12 +256,12 @@ const app = Vue.createApp({
     rotateAngle1: function(newValue){
       if(newValue > 180) this.rotateAngle1 = 180
       if(newValue < -180) this.rotateAngle1 = -180
-      if(newValue === '') this.rotateAngle1 = 0
+      if(newValue === '') this.rotateAngle1 = 45
     },
     rotateAngle2: function(newValue){
       if(newValue > 180) this.rotateAngle2 = 180
       if(newValue < -180) this.rotateAngle2 = -180
-      if(newValue === '') this.rotateAngle2 = 0
+      if(newValue === '') this.rotateAngle2 = -34
     },
     rotateAngle3: function(newValue){
       if(newValue > 180) this.rotateAngle3 = 180
@@ -267,14 +271,17 @@ const app = Vue.createApp({
     cubeOpacity: function(newValue) {
       if(newValue > 100) this.cubeOpacity = 100 
       if(newValue < 0 || newValue === '') this.cubeOpacity = 0
+      if(newValue === '') this.cubeOpacity = 100
     },
     stickerOpacity: function(newValue) {
       if(newValue > 100) this.stickerOpacity = 100 
       if(newValue < 0 || newValue === '') this.stickerOpacity = 0
+      if(newValue === '') this.stickerOpacity = 100
     },
     dist: function(newValue) {
       if(newValue > 100) this.dist = 100 
       if(newValue < 1) this.dist = 1
+      if(newValue === '') this.dist = 5
     },
     algtype: function(newValue) {
       if(newValue === 'state'){
