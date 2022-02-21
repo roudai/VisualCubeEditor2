@@ -55,27 +55,37 @@ const app = Vue.createApp({
       const element = document.getElementById('visualcube')
       element.removeChild(element.lastElementChild)
 
-      if(this.algorithm !== '') {
+      if(this.algorithm) {
         if(this.algtype === 'alg') {
           this.parameter.algorithm = this.algorithm.trim()
+          delete this.parameter.case
         }else if(this.algtype === 'case') {
           this.parameter.case = this.algorithm.trim()
+          delete this.parameter.algorithm
         }
+      } else {
+        delete this.parameter.algorithm
+        delete this.parameter.case
       }
-      if(this.arrows)  this.parameter.arrows = this.arrows.trim()
-      if(this.cubeSize !== 3) this.parameter.cubeSize = this.cubeSize
-      if(this.imageSize !== 128) {
+      this.arrows ? this.parameter.arrows = this.arrows.trim() : delete this.parameter.arrows
+      this.cubeSize === 3 ? delete this.parameter.cubeSize : this.parameter.cubeSize = this.cubeSize
+      if(this.imageSize === 128) {
+        delete this.parameter.width
+        delete this.parameter.height
+      } else {  
         if(this.imageSize > window.innerWidth * 0.8) {
           this.imageSize = window.innerWidth * 0.8
         }
         this.parameter.width = this.imageSize
         this.parameter.height = this.imageSize
       }
-      if(this.cubeView !== 'normal') this.parameter.view = this.cubeView
-      if(this.stageMask !== '') this.parameter.mask = this.stageMask
-      if(this.maskAlg !== '') this.parameter.maskAlg = this.maskAlg
-      if(!(this.faceU === '#fefe00' && this.faceR === '#ee0000' && this.faceF === '#0000f2'
-        && this.faceD === '#ffffff' && this.faceL === '#ffa100' && this.faceB === '#00d800')) {
+      this.cubeView === 'normal' ? delete this.parameter.view : this.parameter.view = this.cubeView
+      this.stageMask === '' ? delete this.parameter.mask : this.parameter.mask = this.stageMask
+      this.maskAlg === '' ? delete this.parameter.maskAlg : this.parameter.maskAlg = this.maskAlg
+      if((this.faceU === '#fefe00' && this.faceR === '#ee0000' && this.faceF === '#0000f2'
+       && this.faceD === '#ffffff' && this.faceL === '#ffa100' && this.faceB === '#00d800')) {
+          delete this.parameter.colorScheme
+      } else {
           this.parameter.colorScheme = {
             [this.faceEnum("faceU")]: this.faceU,
             [this.faceEnum("faceR")]: this.faceR,
@@ -85,22 +95,23 @@ const app = Vue.createApp({
             [this.faceEnum("faceB")]: this.faceB,
           }
       }
-      if(!(this.rotateAxis1 === 'y' && this.rotateAxis2 === 'x' && this.rotateAxis3 === 'z'
-        && this.rotateAngle1 === 45 && this.rotateAngle2 === -34 && this.rotateAngle3 === 0)) {
-          this.parameter.viewportRotations = [
-            [this.axisEnum(this.rotateAxis1), this.rotateAngle1],
-            [this.axisEnum(this.rotateAxis2), this.rotateAngle2],
-            [this.axisEnum(this.rotateAxis3), this.rotateAngle3],
-          ]
+      if((this.rotateAxis1 === 'y' && this.rotateAxis2 === 'x' && this.rotateAxis3 === 'z'
+         && this.rotateAngle1 === 45 && this.rotateAngle2 === -34 && this.rotateAngle3 === 0)) {
+          delete this.parameter.viewportRotations
+      } else {
+        this.parameter.viewportRotations = [
+          [this.axisEnum(this.rotateAxis1), this.rotateAngle1],
+          [this.axisEnum(this.rotateAxis2), this.rotateAngle2],
+          [this.axisEnum(this.rotateAxis3), this.rotateAngle3],
+        ]
       }
-      if(this.backgroundColor !== '#ffffff') this.parameter.backgroundColor = this.backgroundColor
-      if(this.cubeColor !== '#000000') this.parameter.cubeColor = this.cubeColor
-      if(this.maskColor !== '#404040') this.parameter.maskColor = this.maskColor
-      if(this.cubeOpacity != 100) this.parameter.cubeOpacity = this.cubeOpacity
-      if(this.stickerOpacity != 100) this.parameter.stickerOpacity = this.stickerOpacity
-      if(this.dist != 5) this.parameter.dist = this.dist
+      this.backgroundColor === '#ffffff' ? delete this.parameter.backgroundColor : this.parameter.backgroundColor = this.backgroundColor
+      this.cubeColor === '#000000' ? delete this.parameter.cubeColor : this.parameter.cubeColor = this.cubeColor
+      this.maskColor === '#404040' ? delete this.parameter.maskColor : this.parameter.maskColor = this.maskColor
+      this.cubeOpacity === 100 ? delete this.parameter.cubeOpacity : this.parameter.cubeOpacity = this.cubeOpacity
+      this.stickerOpacity === 100 ? delete this.parameter.stickerOpacity : this.parameter.stickerOpacity = this.stickerOpacity
+      this.dist === 5 ? delete this.parameter.dist : this.parameter.dist = this.dist
 
-      console.log(this.parameter)
       const SRVisualizer = window['sr-visualizer'];
       SRVisualizer.cubePNG(element, this.parameter)
     },
