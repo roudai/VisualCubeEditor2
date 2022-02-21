@@ -59,9 +59,6 @@ const app = Vue.createApp({
   }),
   methods: {
     drawCube: function() {
-      const element = document.getElementById('visualcube')
-      element.removeChild(element.lastElementChild)
-
       if(this.algorithm) {
         if(this.algtype === 'alg') {
           this.parameter.algorithm = this.algorithm.trim()
@@ -132,8 +129,10 @@ const app = Vue.createApp({
       this.stickerOpacity === 100 ? delete this.parameter.stickerOpacity : this.parameter.stickerOpacity = this.stickerOpacity
       this.dist === 5 ? delete this.parameter.dist : this.parameter.dist = this.dist
 
+      const element = document.getElementById('visualcube')
       const SRVisualizer = window['sr-visualizer'];
       SRVisualizer.cubePNG(element, this.parameter)
+      element.removeChild(element.lastElementChild)
     },
     addAlgorithm(text) {
       if(this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
