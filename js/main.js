@@ -1,6 +1,7 @@
 const app = Vue.createApp({
   data: () => ({
     parameter: {},
+    imageHeight: 128,
     algtype: 'alg',
     algorithm: '',
     algorithm3: false,
@@ -59,6 +60,7 @@ const app = Vue.createApp({
   }),
   methods: {
     drawCube: function() {
+      this.imageHeight = this.imageSize
       if(this.algorithm) {
         if(this.algtype === 'alg') {
           this.parameter.algorithm = this.algorithm.trim()
@@ -131,8 +133,8 @@ const app = Vue.createApp({
 
       const element = document.getElementById('visualcube')
       const SRVisualizer = window['sr-visualizer'];
-      SRVisualizer.cubePNG(element, this.parameter)
       element.removeChild(element.lastElementChild)
+      SRVisualizer.cubePNG(element, this.parameter)
     },
     addAlgorithm(text) {
       if(this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
