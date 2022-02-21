@@ -9,6 +9,13 @@ const app = Vue.createApp({
     algorithm6: false,
     algorithm7: false,
     algorithm8: false,
+    faceletsU: ['u','r','u','u','u','u','u','u','u'],
+    faceletsR: ['r','r','r','r','r','r','r','r','r'],
+    faceletsF: ['f','f','f','f','f','f','f','f','f'],
+    faceletsD: ['d','d','d','d','d','d','d','d','d'],
+    faceletsL: ['l','l','l','l','l','l','l','l','l'],
+    faceletsB: ['b','b','b','b','b','b','b','b','b'],
+    showFacelets: false,
     arrowFace: 'U',
     arrowFrom: '0',
     arrowPass: '',
@@ -67,6 +74,19 @@ const app = Vue.createApp({
         delete this.parameter.algorithm
         delete this.parameter.case
       }
+      if(this.showFacelets) {
+        delete this.parameter.algorithm
+        delete this.parameter.case
+        this.parameter.facelets = []
+        for (let i = 0; i < this.faceletsU.length; i++) { this.parameter.facelets.push(this.faceletsU[i]) }
+        for (let i = 0; i < this.faceletsR.length; i++) { this.parameter.facelets.push(this.faceletsR[i]) }
+        for (let i = 0; i < this.faceletsF.length; i++) { this.parameter.facelets.push(this.faceletsF[i]) }
+        for (let i = 0; i < this.faceletsD.length; i++) { this.parameter.facelets.push(this.faceletsD[i]) }
+        for (let i = 0; i < this.faceletsL.length; i++) { this.parameter.facelets.push(this.faceletsL[i]) }
+        for (let i = 0; i < this.faceletsB.length; i++) { this.parameter.facelets.push(this.faceletsB[i]) }
+      } else {
+        delete this.parameter.facelets
+      }
       this.arrows ? this.parameter.arrows = this.arrows.trim() : delete this.parameter.arrows
       this.cubeSize === 3 ? delete this.parameter.cubeSize : this.parameter.cubeSize = this.cubeSize
       if(this.imageSize === 128) {
@@ -74,7 +94,7 @@ const app = Vue.createApp({
         delete this.parameter.height
       } else {  
         if(this.imageSize > window.innerWidth * 0.8) {
-          this.imageSize = window.innerWidth * 0.8
+          this.imageSize = Math.floor(window.innerWidth * 0.8)
         }
         this.parameter.width = this.imageSize
         this.parameter.height = this.imageSize
@@ -208,6 +228,8 @@ const app = Vue.createApp({
   watch: {
     cubeSize: function(newValue) {
       this.arrowNumber = newValue * newValue
+      if(newValue > 17) this.cubeSize = 17
+      if(newValue < 1) this.cubeSize = 1
 
       if(newValue >= 6) this.algorithm3 = true
       if(newValue >= 8) this.algorithm4 = true
@@ -223,6 +245,44 @@ const app = Vue.createApp({
       if(newValue < 14) this.algorithm7 = false
       if(newValue < 16) this.algorithm8 = false
     },
+    imageSize: function(newValue) {
+      if(newValue > window.innerWidth * 0.8) this.imageSize = Math.floor(window.innerWidth * 0.8)
+      if(newValue < 1) this.imageSize = 1
+    },
+    rotateAngle1: function(newValue){
+      if(newValue > 180) this.rotateAngle1 = 180
+      if(newValue < -180) this.rotateAngle1 = -180
+      if(newValue === '') this.rotateAngle1 = 0
+    },
+    rotateAngle2: function(newValue){
+      if(newValue > 180) this.rotateAngle2 = 180
+      if(newValue < -180) this.rotateAngle2 = -180
+      if(newValue === '') this.rotateAngle2 = 0
+    },
+    rotateAngle3: function(newValue){
+      if(newValue > 180) this.rotateAngle3 = 180
+      if(newValue < -180) this.rotateAngle3 = -180
+      if(newValue === '') this.rotateAngle3 = 0
+    },
+    cubeOpacity: function(newValue) {
+      if(newValue > 100) this.cubeOpacity = 100 
+      if(newValue < 0 || newValue === '') this.cubeOpacity = 0
+    },
+    stickerOpacity: function(newValue) {
+      if(newValue > 100) this.stickerOpacity = 100 
+      if(newValue < 0 || newValue === '') this.stickerOpacity = 0
+    },
+    dist: function(newValue) {
+      if(newValue > 100) this.dist = 100 
+      if(newValue < 1) this.dist = 1
+    },
+    algtype: function(newValue) {
+      if(newValue === 'state'){
+        this.showFacelets = true
+      } else {
+        this.showFacelets = false
+      }
+    }
   }
 })
 const vm = app.mount('#app')
