@@ -62,6 +62,7 @@ const app = Vue.createApp({
     drawCube: function() {
       this.imageHeight = this.imageSize
       if(this.algorithm) {
+        this.algorithm = this.algorithm.replace(/’/g,'\'').trim()
         if(this.algtype === 'alg') {
           this.parameter.algorithm = this.algorithm.trim()
           delete this.parameter.case
