@@ -124,43 +124,79 @@
         <div v-show="showFacelets">
           <div class="row">
             <div class="input-group form-inline mb-2">
-              <div class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsU[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsU4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsU3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsU2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
-              <div class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsR[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsR4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsR3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsR2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
-              <div class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsF[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsF4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsF3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsF2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
-              <div class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsD[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsD4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsD3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsD2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
-              <div class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsL[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsL4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsL3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsL2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
-              <div class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsB[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsB4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsB3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsB2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
               </div>
             </div>
           </div>

@@ -10,12 +10,24 @@ const app = Vue.createApp({
     algorithm6: false,
     algorithm7: false,
     algorithm8: false,
-    faceletsU: ['u','u','u','u','u','u','u','u','u'],
-    faceletsR: ['r','r','r','r','r','r','r','r','r'],
-    faceletsF: ['f','f','f','f','f','f','f','f','f'],
-    faceletsD: ['d','d','d','d','d','d','d','d','d'],
-    faceletsL: ['l','l','l','l','l','l','l','l','l'],
-    faceletsB: ['b','b','b','b','b','b','b','b','b'],
+    faceletsU4: ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u'],
+    faceletsR4: ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r'],
+    faceletsF4: ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f'],
+    faceletsD4: ['d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d'],
+    faceletsL4: ['l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l'],
+    faceletsB4: ['b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b'],
+    faceletsU3: ['u','u','u','u','u','u','u','u','u'],
+    faceletsR3: ['r','r','r','r','r','r','r','r','r'],
+    faceletsF3: ['f','f','f','f','f','f','f','f','f'],
+    faceletsD3: ['d','d','d','d','d','d','d','d','d'],
+    faceletsL3: ['l','l','l','l','l','l','l','l','l'],
+    faceletsB3: ['b','b','b','b','b','b','b','b','b'],
+    faceletsU2: ['u','u','u','u'],
+    faceletsR2: ['r','r','r','r'],
+    faceletsF2: ['f','f','f','f'],
+    faceletsD2: ['d','d','d','d'],
+    faceletsL2: ['l','l','l','l'],
+    faceletsB2: ['b','b','b','b'],
     showFacelets: false,
     algorithmDisabled: false,
     arrowFace: 'U',
@@ -78,16 +90,32 @@ const app = Vue.createApp({
         delete this.parameter.algorithm
         delete this.parameter.case
       }
-      if(this.showFacelets && this.cubeSize === 3) {
+      if(this.showFacelets && (this.cubeSize === 4 || this.cubeSize === 3 || this.cubeSize === 2)) {
         delete this.parameter.algorithm
         delete this.parameter.case
         this.parameter.facelets = []
-        for (let i = 0; i < this.faceletsU.length; i++) { this.parameter.facelets.push(this.faceletsU[i]) }
-        for (let i = 0; i < this.faceletsR.length; i++) { this.parameter.facelets.push(this.faceletsR[i]) }
-        for (let i = 0; i < this.faceletsF.length; i++) { this.parameter.facelets.push(this.faceletsF[i]) }
-        for (let i = 0; i < this.faceletsD.length; i++) { this.parameter.facelets.push(this.faceletsD[i]) }
-        for (let i = 0; i < this.faceletsL.length; i++) { this.parameter.facelets.push(this.faceletsL[i]) }
-        for (let i = 0; i < this.faceletsB.length; i++) { this.parameter.facelets.push(this.faceletsB[i]) }
+        if(this.cubeSize === 4) {
+          for (let i = 0; i < this.faceletsU4.length; i++) { this.parameter.facelets.push(this.faceletsU4[i]) }
+          for (let i = 0; i < this.faceletsR4.length; i++) { this.parameter.facelets.push(this.faceletsR4[i]) }
+          for (let i = 0; i < this.faceletsF4.length; i++) { this.parameter.facelets.push(this.faceletsF4[i]) }
+          for (let i = 0; i < this.faceletsD4.length; i++) { this.parameter.facelets.push(this.faceletsD4[i]) }
+          for (let i = 0; i < this.faceletsL4.length; i++) { this.parameter.facelets.push(this.faceletsL4[i]) }
+          for (let i = 0; i < this.faceletsB4.length; i++) { this.parameter.facelets.push(this.faceletsB4[i]) }
+        } else if(this.cubeSize === 3) {
+          for (let i = 0; i < this.faceletsU3.length; i++) { this.parameter.facelets.push(this.faceletsU3[i]) }
+          for (let i = 0; i < this.faceletsR3.length; i++) { this.parameter.facelets.push(this.faceletsR3[i]) }
+          for (let i = 0; i < this.faceletsF3.length; i++) { this.parameter.facelets.push(this.faceletsF3[i]) }
+          for (let i = 0; i < this.faceletsD3.length; i++) { this.parameter.facelets.push(this.faceletsD3[i]) }
+          for (let i = 0; i < this.faceletsL3.length; i++) { this.parameter.facelets.push(this.faceletsL3[i]) }
+          for (let i = 0; i < this.faceletsB3.length; i++) { this.parameter.facelets.push(this.faceletsB3[i]) }
+        } else if(this.cubeSize === 2) {
+          for (let i = 0; i < this.faceletsU2.length; i++) { this.parameter.facelets.push(this.faceletsU2[i]) }
+          for (let i = 0; i < this.faceletsR2.length; i++) { this.parameter.facelets.push(this.faceletsR2[i]) }
+          for (let i = 0; i < this.faceletsF2.length; i++) { this.parameter.facelets.push(this.faceletsF2[i]) }
+          for (let i = 0; i < this.faceletsD2.length; i++) { this.parameter.facelets.push(this.faceletsD2[i]) }
+          for (let i = 0; i < this.faceletsL2.length; i++) { this.parameter.facelets.push(this.faceletsL2[i]) }
+          for (let i = 0; i < this.faceletsB2.length; i++) { this.parameter.facelets.push(this.faceletsB2[i]) }
+        }
       } else {
         delete this.parameter.facelets
       }
@@ -251,7 +279,7 @@ const app = Vue.createApp({
       if(newValue > 17) this.cubeSize = 17
       if(newValue < 1) this.cubeSize = 1
       
-      if(newValue === 3) {
+      if(newValue === 4 || newValue === 3 || newValue === 2) {
         this.algorithmDisabled = false
        } else {
         this.algorithmDisabled = true
