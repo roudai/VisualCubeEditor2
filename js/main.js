@@ -78,7 +78,7 @@ const app = Vue.createApp({
         delete this.parameter.algorithm
         delete this.parameter.case
       }
-      if(this.showFacelets) {
+      if(this.showFacelets && this.cubeSize === 3) {
         delete this.parameter.algorithm
         delete this.parameter.case
         this.parameter.facelets = []
