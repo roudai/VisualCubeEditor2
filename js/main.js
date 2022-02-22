@@ -62,9 +62,12 @@ const app = Vue.createApp({
     cubeOpacity: 100,
     stickerOpacity: 100,
     dist: 5,
-    cubeStateList: [
-      'u', 'r', 'f', 'd', 'l', 'b', 'n', 'o', 't'
-    ],
+    faceN: 'grey',
+    faceO: 'silver',
+    faceT: 'black',
+    cubeStateList: {
+      u:'#fefe00', r:'#ee0000', f:'#0000f2', d:'#ffffff', l:'#ffa100', b:'#00d800', n:'grey', o:'silver', t:'black'
+    },
     stageMaskList: {
       FL:'fl', F2L:'f2l' , LL:'ll', CLL:'cll', ELL:'ell', OLL:'oll', OCLL:'ocll', 
       OCELL:'ocell', WM:'wm', VH:'vh', ELS:'els', CLS:'cls', CMLL:'cmll', CROSS:'cross', 
@@ -358,7 +361,25 @@ const app = Vue.createApp({
       } else {
         this.showFacelets = false
       }
-    }
+    },
+    faceU: function(newValue) {
+      this.cubeStateList['u'] = newValue
+    },
+    faceR: function(newValue) {
+      this.cubeStateList['r'] = newValue
+    },
+    faceF: function(newValue) {
+      this.cubeStateList['f'] = newValue
+    },
+    faceD: function(newValue) {
+      this.cubeStateList['d'] = newValue
+    },
+    faceL: function(newValue) {
+      this.cubeStateList['l'] = newValue
+    },
+    faceB: function(newValue) {
+      this.cubeStateList['b'] = newValue
+    },
   }
 })
 const vm = app.mount('#app')

@@ -15,16 +15,10 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-80YNQQ03WY');
   </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3099989327540541"
-  crossorigin="anonymous"></script>
-  <style>
-    [v-cloak] {
-      display: none;
-    }
-  </style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3099989327540541" crossorigin="anonymous"></script>
+  <style>[v-cloak] { display: none; }</style>
   <title>VisualCube Editor 2.0</title>
 </head>
 <body style="visibility:hidden" onLoad="document.body.style.visibility='visible'">
@@ -46,7 +40,7 @@
       <div class="text-center mb-2">
         <button type="submit" class="btn btn-primary mt-2" @click="drawCube">submit</button>
       </div>
-    
+
       <!-- Puzzle Type -->
       <div class="mb-2">
         <label class="form-label" for="cubeSize">Puzzle Type</label>
@@ -125,78 +119,78 @@
           <div class="row">
             <div class="input-group form-inline mb-2">
               <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
-                <select class="form-select" id="cubeState" v-model="faceletsU4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsU4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsU3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsU3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
-                <select class="form-select" id="cubeState" v-model="faceletsU2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsU2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
               <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
-                <select class="form-select" id="cubeState" v-model="faceletsR4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsR4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsR3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsR3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
-                <select class="form-select" id="cubeState" v-model="faceletsR2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsR2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
               <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
-                <select class="form-select" id="cubeState" v-model="faceletsF4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsF4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsF3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsF3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
-                <select class="form-select" id="cubeState" v-model="faceletsF2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsF2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
               <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
-                <select class="form-select" id="cubeState" v-model="faceletsD4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsD4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsD3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsD3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
-                <select class="form-select" id="cubeState" v-model="faceletsD2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsD2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
               <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
-                <select class="form-select" id="cubeState" v-model="faceletsL4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsL4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsL3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsL3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
-                <select class="form-select" id="cubeState" v-model="faceletsL2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsL2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
             </div>
           </div>
           <div class="row">
             <div class="input-group form-inline mb-2">
               <div v-if="cubeSize === 4" class="col-3" v-for="n in 16" >
-                <select class="form-select" id="cubeState" v-model="faceletsB4[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsB4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
-                <select class="form-select" id="cubeState" v-model="faceletsB3[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsB3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
               <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
-                <select class="form-select" id="cubeState" v-model="faceletsB2[n-1]"><option v-for="value in cubeStateList">{{ value }}</option></select>
+                <select class="form-select" id="cubeState" v-model="faceletsB2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
               </div>
             </div>
           </div>
@@ -456,7 +450,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.1.2/svg.min.js"></script>
   <script src="library/srVisualizer.min.js"></script>
-  <script src="https://unpkg.com/vue@3.1.5"></script>
+  <script src="https://unpkg.com/vue@3.2.29"></script>
   <script src="js/main.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
