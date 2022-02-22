@@ -274,7 +274,6 @@ const app = Vue.createApp({
       this.drawCube()
     },
     imageSize: function(newValue) {
-      this.imageSize = String(newValue).replace(/\D/g, '')
       if(newValue > window.innerWidth * 0.8) this.imageSize = Math.floor(window.innerWidth * 0.8)
       if(newValue < 1) this.imageSize = 1
       if(newValue === '') this.imageSize = 128
@@ -295,19 +294,16 @@ const app = Vue.createApp({
       if(newValue === '') this.rotateAngle3 = 0
     },
     cubeOpacity: function(newValue) {
-      this.cubeOpacity = String(newValue).replace(/\D/g, '')
       if(newValue > 100) this.cubeOpacity = 100 
       if(newValue < 0 || newValue === '') this.cubeOpacity = 0
       if(newValue === '') this.cubeOpacity = 100
     },
     stickerOpacity: function(newValue) {
-      this.stickerOpacity = String(newValue).replace(/\D/g, '')
       if(newValue > 100) this.stickerOpacity = 100 
       if(newValue < 0 || newValue === '') this.stickerOpacity = 0
       if(newValue === '') this.stickerOpacity = 100
     },
     dist: function(newValue) {
-      this.dist = String(newValue).replace(/\D/g, '')
       if(newValue > 100) this.dist = 100 
       if(newValue < 1) this.dist = 1
       if(newValue === '') this.dist = 5
