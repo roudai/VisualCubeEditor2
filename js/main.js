@@ -66,7 +66,7 @@ const app = Vue.createApp({
     faceO: '#c0c0c0',
     faceT: '#000000',
     cubeStateList: {
-      u:'#fefe00', r:'#ee0000', f:'#0000f2', d:'#ffffff', l:'#ffa100', b:'#00d800', n:'grey', o:'silver', t:'black'
+      u:'#fefe00', r:'#ee0000', f:'#0000f2', d:'#ffffff', l:'#ffa100', b:'#00d800', n:'#808080', o:'#c0c0c0', t:'#000000'
     },
     stageMaskList: {
       FL:'fl', F2L:'f2l' , LL:'ll', CLL:'cll', ELL:'ell', OLL:'oll', OCLL:'ocll', 
