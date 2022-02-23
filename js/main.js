@@ -10,6 +10,12 @@ const app = Vue.createApp({
     algorithm6: false,
     algorithm7: false,
     algorithm8: false,
+    faceletsU5: ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u'],
+    faceletsR5: ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r'],
+    faceletsF5: ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f'],
+    faceletsD5: ['d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d'],
+    faceletsL5: ['l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l'],
+    faceletsB5: ['b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b'],
     faceletsU4: ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u'],
     faceletsR4: ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r'],
     faceletsF4: ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f'],
@@ -93,11 +99,18 @@ const app = Vue.createApp({
         delete this.parameter.algorithm
         delete this.parameter.case
       }
-      if(this.showFacelets && (this.cubeSize === 4 || this.cubeSize === 3 || this.cubeSize === 2)) {
+      if(this.showFacelets && (this.cubeSize === 5 || this.cubeSize === 4 || this.cubeSize === 3 || this.cubeSize === 2)) {
         delete this.parameter.algorithm
         delete this.parameter.case
         this.parameter.facelets = []
-        if(this.cubeSize === 4) {
+        if(this.cubeSize === 5) {
+          for (let i = 0; i < this.faceletsU5.length; i++) { this.parameter.facelets.push(this.faceletsU5[i]) }
+          for (let i = 0; i < this.faceletsR5.length; i++) { this.parameter.facelets.push(this.faceletsR5[i]) }
+          for (let i = 0; i < this.faceletsF5.length; i++) { this.parameter.facelets.push(this.faceletsF5[i]) }
+          for (let i = 0; i < this.faceletsD5.length; i++) { this.parameter.facelets.push(this.faceletsD5[i]) }
+          for (let i = 0; i < this.faceletsL5.length; i++) { this.parameter.facelets.push(this.faceletsL5[i]) }
+          for (let i = 0; i < this.faceletsB5.length; i++) { this.parameter.facelets.push(this.faceletsB5[i]) }
+        } else if(this.cubeSize === 4) {
           for (let i = 0; i < this.faceletsU4.length; i++) { this.parameter.facelets.push(this.faceletsU4[i]) }
           for (let i = 0; i < this.faceletsR4.length; i++) { this.parameter.facelets.push(this.faceletsR4[i]) }
           for (let i = 0; i < this.faceletsF4.length; i++) { this.parameter.facelets.push(this.faceletsF4[i]) }
@@ -182,7 +195,14 @@ const app = Vue.createApp({
       }
     },
     resetState() {
-      if(this.cubeSize === 4) {
+      if(this.cubeSize === 5) {
+        this.faceletsU5 = ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u']
+        this.faceletsR5 = ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r']
+        this.faceletsF5 = ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f']
+        this.faceletsD5 = ['d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d']
+        this.faceletsL5 = ['l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l']
+        this.faceletsB5 = ['b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b']
+      } else if(this.cubeSize === 4) {
         this.faceletsU4 = ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u']
         this.faceletsR4 = ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r']
         this.faceletsF4 = ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f']
@@ -304,7 +324,7 @@ const app = Vue.createApp({
       }
       this.arrowNumber = newValue * newValue
       
-      if(newValue === 4 || newValue === 3 || newValue === 2) {
+      if(newValue === 5 || newValue === 4 || newValue === 3 || newValue === 2) {
         this.algorithmDisabled = false
        } else {
         this.algorithmDisabled = true
