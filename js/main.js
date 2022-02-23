@@ -62,9 +62,9 @@ const app = Vue.createApp({
     cubeOpacity: 100,
     stickerOpacity: 100,
     dist: 5,
-    faceN: 'grey',
-    faceO: 'silver',
-    faceT: 'black',
+    faceN: '#808080',
+    faceO: '#c0c0c0',
+    faceT: '#000000',
     cubeStateList: {
       u:'#fefe00', r:'#ee0000', f:'#0000f2', d:'#ffffff', l:'#ffa100', b:'#00d800', n:'grey', o:'silver', t:'black'
     },
@@ -380,6 +380,9 @@ const app = Vue.createApp({
     faceB: function(newValue) {
       this.cubeStateList['b'] = newValue
     },
+    cubeColor: function(newValue) {
+      this.cubeStateList['t'] = newValue
+    }
   }
 })
 const vm = app.mount('#app')
