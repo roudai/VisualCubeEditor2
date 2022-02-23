@@ -294,9 +294,15 @@ const app = Vue.createApp({
         this.cubeSize = 3
         return
       }
+      if(newValue > 17) {
+        this.cubeSize = 17
+        return
+      }
+      if(newValue < 1) {
+        this.cubeSize = 1
+        return
+      }
       this.arrowNumber = newValue * newValue
-      if(newValue > 17) this.cubeSize = 17
-      if(newValue < 1) this.cubeSize = 1
       
       if(newValue === 4 || newValue === 3 || newValue === 2) {
         this.algorithmDisabled = false
