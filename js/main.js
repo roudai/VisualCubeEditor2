@@ -10,6 +10,12 @@ const app = Vue.createApp({
     algorithm6: false,
     algorithm7: false,
     algorithm8: false,
+    faceletsU6: ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u'],
+    faceletsR6: ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r'],
+    faceletsF6: ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f'],
+    faceletsD6: ['d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d'],
+    faceletsL6: ['l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l'],
+    faceletsB6: ['b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b'],
     faceletsU5: ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u'],
     faceletsR5: ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r'],
     faceletsF5: ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f'],
@@ -99,11 +105,18 @@ const app = Vue.createApp({
         delete this.parameter.algorithm
         delete this.parameter.case
       }
-      if(this.showFacelets && (this.cubeSize === 5 || this.cubeSize === 4 || this.cubeSize === 3 || this.cubeSize === 2)) {
+      if(this.showFacelets && (this.cubeSize === 6 || this.cubeSize === 5 || this.cubeSize === 4 || this.cubeSize === 3 || this.cubeSize === 2)) {
         delete this.parameter.algorithm
         delete this.parameter.case
         this.parameter.facelets = []
-        if(this.cubeSize === 5) {
+        if(this.cubeSize === 6) {
+          for (let i = 0; i < this.faceletsU6.length; i++) { this.parameter.facelets.push(this.faceletsU6[i]) }
+          for (let i = 0; i < this.faceletsR6.length; i++) { this.parameter.facelets.push(this.faceletsR6[i]) }
+          for (let i = 0; i < this.faceletsF6.length; i++) { this.parameter.facelets.push(this.faceletsF6[i]) }
+          for (let i = 0; i < this.faceletsD6.length; i++) { this.parameter.facelets.push(this.faceletsD6[i]) }
+          for (let i = 0; i < this.faceletsL6.length; i++) { this.parameter.facelets.push(this.faceletsL6[i]) }
+          for (let i = 0; i < this.faceletsB6.length; i++) { this.parameter.facelets.push(this.faceletsB6[i]) }
+        } else if(this.cubeSize === 5) {
           for (let i = 0; i < this.faceletsU5.length; i++) { this.parameter.facelets.push(this.faceletsU5[i]) }
           for (let i = 0; i < this.faceletsR5.length; i++) { this.parameter.facelets.push(this.faceletsR5[i]) }
           for (let i = 0; i < this.faceletsF5.length; i++) { this.parameter.facelets.push(this.faceletsF5[i]) }
@@ -195,7 +208,14 @@ const app = Vue.createApp({
       }
     },
     resetState() {
-      if(this.cubeSize === 5) {
+      if(this.cubeSize === 6) {
+        this.faceletsU6 = ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u']
+        this.faceletsR6 = ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r']
+        this.faceletsF6 = ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f']
+        this.faceletsD6 = ['d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d','d']
+        this.faceletsL6 = ['l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l','l']
+        this.faceletsB6 = ['b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b','b']
+      } else if(this.cubeSize === 5) {
         this.faceletsU5 = ['u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u','u']
         this.faceletsR5 = ['r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r','r']
         this.faceletsF5 = ['f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f','f']
@@ -324,7 +344,7 @@ const app = Vue.createApp({
       }
       this.arrowNumber = newValue * newValue
       
-      if(newValue === 5 || newValue === 4 || newValue === 3 || newValue === 2) {
+      if(newValue === 6 || newValue === 5 || newValue === 4 || newValue === 3 || newValue === 2) {
         this.algorithmDisabled = false
        } else {
         this.algorithmDisabled = true
