@@ -5,7 +5,6 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" media="print" onload="this.media='all'">
   <link rel="shortcut icon" href="favicon/icon.ico">
   <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="favicon/android-chrome-192×192.png">
@@ -27,7 +26,7 @@
       <div class="container-fluid">
         <a class="navbar-brand">VisualCube Editor 2.0</a>
         <span class="navbar-text">
-          <a href="https://github.com/roudai/VisualCubeEditor2"><i class="bi bi-github"></i></a>
+          <a href="https://github.com/roudai/VisualCubeEditor2"><img src="icon/github.svg"></a>
         </span>
       </div>
     </nav>
@@ -46,8 +45,8 @@
         <label class="form-label" for="cubeSize">Puzzle Type</label>
         <div class="input-group">
           <input type="text" inputmode="numeric" pattern="\d*" maxlength="2" class="form-control" id="cubeSize" v-model.number="cubeSize">
-          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)"><i class="bi bi-dash"></i></button>
-          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = incrementNumber(cubeSize,17,1)"><i class="bi bi-plus"></i></button>
+          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)">-</button>
+          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = incrementNumber(cubeSize,17,1)">+</button>
         </div>
       </div>
             
@@ -354,8 +353,8 @@
           <div class="col-md-6 col-lg-2">
             <div class="input-group">
               <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle1" v-model.number="rotateAngle1">
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle1,-180,1)"><i class="bi bi-dash"></i></button>
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle1,180,1)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle1,-180,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle1,180,1)">+</button>
             </div>
           </div>
           <div class="col-md-6 col-lg-2">
@@ -368,8 +367,8 @@
           <div class="col-md-6 col-lg-2">
             <div class="input-group">
               <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle2" v-model.number="rotateAngle2">
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle2,-180,1)"><i class="bi bi-dash"></i></button>
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle2,180,1)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle2,-180,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle2,180,1)">+</button>
             </div>
           </div>
           <div class="col-md-6 col-lg-2">
@@ -382,8 +381,8 @@
           <div class="col-md-6 col-lg-2">
             <div class="input-group">
               <input type="text" inputmode="numeric" pattern="\d*" maxlength="4" class="form-control" id="rotateAngle3" v-model.number="rotateAngle3">
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle3 = decrementNumber(rotateAngle3,-180,1)"><i class="bi bi-dash"></i></button>
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle3 = incrementNumber(rotateAngle3,180,1)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle3 = decrementNumber(rotateAngle3,-180,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle3 = incrementNumber(rotateAngle3,180,1)">+</button>
             </div>
           </div>
         </div>
@@ -423,24 +422,24 @@
             <label class="form-label" for="cubeOpacity">Cube Opacity</label>
             <div class="input-group">
               <input type="text" inputmode="numeric" pattern="\d*" maxlength="3" class="form-control" id="cubeOpacity" v-model.number="cubeOpacity">
-              <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = decrementNumber(cubeOpacity,0,1)"><i class="bi bi-dash"></i></button>
-              <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = incrementNumber(cubeOpacity,100,1)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = decrementNumber(cubeOpacity,0,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = incrementNumber(cubeOpacity,100,1)">+</button>
             </div>
           </div>
           <div class="col-xs-12 col-md-4">
             <label class="form-label" for="stickerOpacity">Sticker Opacity</label>
             <div class="input-group">
               <input type="text" inputmode="numeric" pattern="\d*" maxlength="3" class="form-control" id="stickerOpacity" v-model.number="stickerOpacity">
-              <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = decrementNumber(stickerOpacity,0,1)"><i class="bi bi-dash"></i></button>
-              <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = incrementNumber(stickerOpacity,100,1)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = decrementNumber(stickerOpacity,0,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = incrementNumber(stickerOpacity,100,1)">+</button>
             </div>
           </div>
           <div class="col-xs-12 col-md-4">
             <label class="form-label" for="dist">Projection Distance</label>
             <div class="input-group">
               <input type="text" inputmode="numeric" pattern="\d*" maxlength="3" class="form-control" id="dist" v-model.number="dist">
-              <button class="btn btn-outline-secondary" type="button" @click="dist = decrementNumber(dist,1,1)"><i class="bi bi-dash"></i></button>
-              <button class="btn btn-outline-secondary" type="button" @click="dist = incrementNumber(dist,100,1)"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-outline-secondary" type="button" @click="dist = decrementNumber(dist,1,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="dist = incrementNumber(dist,100,1)">+</button>
             </div>
           </div>
         </div>
