@@ -367,7 +367,7 @@ const app = Vue.createApp({
       this.drawCube()
     },
     algorithm: function(newValue) {
-      this.algorithm = newValue.replace(/[^URFDLBMESurfdlbwxyz2-8\'\s]/,'')
+      this.algorithm = newValue.replace(/[^URFDLBMESurfdlbwxyz2-8\'\’\s]/,'')
     },
     imageSize: function(newValue) {
       if(newValue > window.innerWidth * 0.8) this.imageSize = Math.floor(window.innerWidth * 0.8)
