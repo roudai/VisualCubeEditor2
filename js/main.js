@@ -53,6 +53,7 @@ const app = Vue.createApp({
     arrows: '',
     cubeSize: 3,
     imageSize: 128,
+    imageMax: Math.min(Math.round(window.innerWidth * 0.8 / 100, 0) * 100, 1000),
     cubeView: 'normal',
     stageMask: '',
     maskAlg: '',
@@ -154,9 +155,6 @@ const app = Vue.createApp({
         delete this.parameter.width
         delete this.parameter.height
       } else {  
-        if(this.imageSize > window.innerWidth * 0.8) {
-          this.imageSize = Math.floor(window.innerWidth * 0.8)
-        }
         this.parameter.width = this.imageSize
         this.parameter.height = this.imageSize
       }
@@ -284,6 +282,15 @@ const app = Vue.createApp({
       this.faceL = '#ffa100'
       this.faceB = '#00d800'
     },
+    restRotateAngle1() {
+      this.rotateAngle1 = 45
+    },
+    restRotateAngle2() {
+      this.rotateAngle2 = -34
+    },
+    restRotateAngle3() {
+      this.rotateAngle3 = 0
+    },
     incrementNumber(number, max, step) {
       return number < max && number + step <= max ? number + step : number
     },
@@ -304,6 +311,15 @@ const app = Vue.createApp({
     },
     resetMaskcolor() {
       this.maskColor = '#404040'
+    },
+    restCubeOpacity() {
+      this.cubeOpacity = 100
+    },
+    resetStickerOpacity() {
+      this.stickerOpacity = 100
+    },
+    resetDist() {
+      this.dist = 5
     },
     axisEnum: function(axis) {
       switch(axis) {
@@ -368,26 +384,6 @@ const app = Vue.createApp({
     },
     algorithm: function(newValue) {
       this.algorithm = newValue.replace(/[^URFDLBMESurfdlbwxyz2-8\'\’\s]/,'')
-    },
-    imageSize: function(newValue) {
-      if(newValue > window.innerWidth * 0.8) this.imageSize = Math.floor(window.innerWidth * 0.8)
-      if(newValue < 1) this.imageSize = 1
-      if(newValue === '') this.imageSize = 128
-    },
-    rotateAngle1: function(newValue){
-      if(newValue > 180) this.rotateAngle1 = 180
-      if(newValue < -180) this.rotateAngle1 = -180
-      if(newValue === '') this.rotateAngle1 = 45
-    },
-    rotateAngle2: function(newValue){
-      if(newValue > 180) this.rotateAngle2 = 180
-      if(newValue < -180) this.rotateAngle2 = -180
-      if(newValue === '') this.rotateAngle2 = -34
-    },
-    rotateAngle3: function(newValue){
-      if(newValue > 180) this.rotateAngle3 = 180
-      if(newValue < -180) this.rotateAngle3 = -180
-      if(newValue === '') this.rotateAngle3 = 0
     },
     cubeOpacity: function(newValue) {
       if(newValue > 100) this.cubeOpacity = 100 
