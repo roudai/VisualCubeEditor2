@@ -89,6 +89,7 @@ const app = Vue.createApp({
     maskAlgList: [
       'x', 'x\'', 'x2', 'y', 'y\'', 'y2', 'z', 'z\'', 'z2',
     ],
+    drawFlag: true,
   }),
   methods: {
     drawCube: function() {
@@ -269,12 +270,15 @@ const app = Vue.createApp({
     },
     rotateX() {
       [this.faceU, this.faceB, this.faceD, this.faceF] = [this.faceF, this.faceU, this.faceB, this.faceD]
+      this.drawRotate = true
     },
     rotateY() {
       [this.faceF, this.faceL, this.faceB, this.faceR] = [this.faceR, this.faceF, this.faceL, this.faceB]
+      this.drawRotate = true
     },
     rotateZ() {
       [this.faceU, this.faceR, this.faceD, this.faceL] = [this.faceL, this.faceU, this.faceR, this.faceD]
+      this.drawRotate = true
     },
     resetColor() {
       this.faceU = '#fefe00'
@@ -340,11 +344,6 @@ const app = Vue.createApp({
         case 'faceB': return 5
       }
     },
-  },
-  mounted() {
-    let SRVisualizer = window['sr-visualizer'];
-    let element = document.getElementById('visualcube')
-    SRVisualizer.cubePNG(element)
   },
   watch: {
     cubeSize: function(newValue) {
@@ -430,27 +429,45 @@ const app = Vue.createApp({
     maskAlg: function() { this.drawCube() },
     faceU: function(newValue) {
       this.cubeStateList['u'] = newValue
-      this.drawCube()
+      if(this.drawFlag) {
+        this.drawCube()
+        this.drawFlag = false
+      }
     },
     faceR: function(newValue) {
       this.cubeStateList['r'] = newValue
-      this.drawCube()
+      if(this.drawFlag) {
+        this.drawCube()
+        this.drawFlag = false
+      }
     },
     faceF: function(newValue) {
       this.cubeStateList['f'] = newValue
-      this.drawCube()
+      if(this.drawFlag) {
+        this.drawCube()
+        this.drawFlag = false
+      }
     },
     faceD: function(newValue) {
       this.cubeStateList['d'] = newValue
-      this.drawCube()
+      if(this.drawFlag) {
+        this.drawCube()
+        this.drawFlag = false
+      }
     },
     faceL: function(newValue) {
       this.cubeStateList['l'] = newValue
-      this.drawCube()
+      if(this.drawFlag) {
+        this.drawCube()
+        this.drawFlag = false
+      }
     },
     faceB: function(newValue) {
       this.cubeStateList['b'] = newValue
-      this.drawCube()
+      if(this.drawFlag) {
+        this.drawCube()
+        this.drawFlag = false
+      }
     },
     rotateAxis1: function() { this.drawCube() },
     rotateAxis2: function() { this.drawCube() },
@@ -483,6 +500,14 @@ const app = Vue.createApp({
     dist: _.debounce(function() {
       this.drawCube()
     }, 100),
+  },
+  mounted() {
+    let SRVisualizer = window['sr-visualizer'];
+    let element = document.getElementById('visualcube')
+    SRVisualizer.cubePNG(element)
+  },
+  updated() {
+    this.drawFlag = true
   }
 })
 app.mount('#app')
