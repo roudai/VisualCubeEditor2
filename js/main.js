@@ -366,6 +366,7 @@ const app = Vue.createApp({
        } else {
         this.algorithmDisabled = true
         if(this.algtype === 'state') this.algtype = 'alg'
+        this.drawFlag = false
        }
 
       if(newValue >= 6) this.algorithm3 = true
@@ -389,7 +390,9 @@ const app = Vue.createApp({
       } else {
         this.showFacelets = false
       }
-      this.drawCube()
+      if(this.drawFlag) {
+        this.drawCube()
+      }
     },
     faceletsU6: { handler: function() { this.drawCube() }, deep: true },
     faceletsR6: { handler: function() { this.drawCube() }, deep: true },
