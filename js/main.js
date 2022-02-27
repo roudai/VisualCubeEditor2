@@ -53,7 +53,7 @@ const app = Vue.createApp({
     arrows: '',
     cubeSize: 3,
     imageSize: 128,
-    imageMax: Math.min(Math.round(window.innerWidth * 0.6 / 100, 0) * 100, 1000),
+    imageMax: Math.min(Math.round(window.innerWidth * 0.8 / 100, 0) * 100, 1000),
     cubeView: 'normal',
     stageMask: '',
     maskAlg: '',
