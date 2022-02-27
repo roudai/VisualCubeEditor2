@@ -450,8 +450,8 @@
           <div class="col-md-4">
             <div class="input-group">
               <input type="text" class="form-control" id="rotateAngle2" v-model.number="rotateAngle2" disabled>
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle1,-180,1)">-</button>
-              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle1,180,1)">+</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle2,-180,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle2,180,1)">+</button>
               <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle2" @click="restRotateAngle2">Reset</button>
             </div>
           </div>
