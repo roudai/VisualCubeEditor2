@@ -70,8 +70,8 @@
               <input type="text" class="form-control" id="imageSize" v-model.number="imageSize" disabled>
               <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,10)">-10</button>
               <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,1)">-1</button>
-              <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,1024,1)">+1</button>
-              <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,1024,10)">+10</button>
+              <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,imageMax,1)">+1</button>
+              <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,imageMax,10)">+10</button>
               <button type="submit" class="btn btn-outline-secondary" @click="resetSize">Reset</button>
             </div>
           </div>
