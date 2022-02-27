@@ -53,7 +53,7 @@ const app = Vue.createApp({
     arrows: '',
     cubeSize: 3,
     imageSize: 128,
-    imageMax: Math.min(Math.round(window.innerWidth * 0.8 / 100, 0) * 100, 1000),
+    imageMax: Math.min(Math.round(window.innerWidth * 0.6 / 100, 0) * 100, 1000),
     cubeView: 'normal',
     stageMask: '',
     maskAlg: '',
@@ -83,7 +83,7 @@ const app = Vue.createApp({
     },
     stageMaskList: {
       FL:'fl', F2L:'f2l' , LL:'ll', CLL:'cll', ELL:'ell', OLL:'oll', OCLL:'ocll', 
-      OCELL:'ocell', WM:'wm', VH:'vh', ELS:'els', CLS:'cls', CMLL:'cmll', CROSS:'cross', 
+      OCELL:'ocell', WV:'wv', VH:'vh', ELS:'els', CLS:'cls', CMLL:'cmll', CROSS:'cross', 
       'F2L#1':'f2l_1', 'F2L#2':'f2l_2', 'F2L#3':'f2l_3', 'F2L SM':'f2l_sm', F2B:'f2b', LINE:'line'
     },
     maskAlgList: [
@@ -94,7 +94,6 @@ const app = Vue.createApp({
     drawCube: function() {
       this.imageHeight = this.imageSize
       if(this.algorithm) {
-        this.algorithm = this.algorithm.replace(/’/g,'\'').trim()
         if(this.algtype === 'alg') {
           this.parameter.algorithm = this.algorithm.trim()
           delete this.parameter.case
@@ -195,6 +194,9 @@ const app = Vue.createApp({
       const SRVisualizer = window['sr-visualizer'];
       element.removeChild(element.lastElementChild)
       SRVisualizer.cubePNG(element, this.parameter)
+    },
+    resetSize() {
+      this.imageSize = 128
     },
     addAlgorithm(text) {
       if(this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
@@ -382,52 +384,105 @@ const app = Vue.createApp({
       if(newValue < 16) this.algorithm8 = false
       this.drawCube()
     },
-    algorithm: function(newValue) {
-      this.algorithm = newValue.replace(/[^URFDLBMESurfdlbwxyz2-8\'\’\s]/,'')
-    },
-    cubeOpacity: function(newValue) {
-      if(newValue > 100) this.cubeOpacity = 100 
-      if(newValue < 0 || newValue === '') this.cubeOpacity = 0
-      if(newValue === '') this.cubeOpacity = 100
-    },
-    stickerOpacity: function(newValue) {
-      if(newValue > 100) this.stickerOpacity = 100 
-      if(newValue < 0 || newValue === '') this.stickerOpacity = 0
-      if(newValue === '') this.stickerOpacity = 100
-    },
-    dist: function(newValue) {
-      if(newValue > 100) this.dist = 100 
-      if(newValue < 1) this.dist = 1
-      if(newValue === '') this.dist = 5
-    },
     algtype: function(newValue) {
       if(newValue === 'state'){
         this.showFacelets = true
       } else {
         this.showFacelets = false
       }
+      this.drawCube()
     },
+    faceletsU6: { handler: function() { this.drawCube() }, deep: true },
+    faceletsR6: { handler: function() { this.drawCube() }, deep: true },
+    faceletsF6: { handler: function() { this.drawCube() }, deep: true },
+    faceletsD6: { handler: function() { this.drawCube() }, deep: true },
+    faceletsL6: { handler: function() { this.drawCube() }, deep: true },
+    faceletsB6: { handler: function() { this.drawCube() }, deep: true },
+    faceletsU5: { handler: function() { this.drawCube() }, deep: true },
+    faceletsR5: { handler: function() { this.drawCube() }, deep: true },
+    faceletsF5: { handler: function() { this.drawCube() }, deep: true },
+    faceletsD5: { handler: function() { this.drawCube() }, deep: true },
+    faceletsL5: { handler: function() { this.drawCube() }, deep: true },
+    faceletsB5: { handler: function() { this.drawCube() }, deep: true },
+    faceletsU4: { handler: function() { this.drawCube() }, deep: true },
+    faceletsR4: { handler: function() { this.drawCube() }, deep: true },
+    faceletsF4: { handler: function() { this.drawCube() }, deep: true },
+    faceletsD4: { handler: function() { this.drawCube() }, deep: true },
+    faceletsL4: { handler: function() { this.drawCube() }, deep: true },
+    faceletsB4: { handler: function() { this.drawCube() }, deep: true },
+    faceletsU3: { handler: function() { this.drawCube() }, deep: true },
+    faceletsR3: { handler: function() { this.drawCube() }, deep: true },
+    faceletsF3: { handler: function() { this.drawCube() }, deep: true },
+    faceletsD3: { handler: function() { this.drawCube() }, deep: true },
+    faceletsL3: { handler: function() { this.drawCube() }, deep: true },
+    faceletsB3: { handler: function() { this.drawCube() }, deep: true },
+    faceletsU2: { handler: function() { this.drawCube() }, deep: true },
+    faceletsR2: { handler: function() { this.drawCube() }, deep: true },
+    faceletsF2: { handler: function() { this.drawCube() }, deep: true },
+    faceletsD2: { handler: function() { this.drawCube() }, deep: true },
+    faceletsL2: { handler: function() { this.drawCube() }, deep: true },
+    faceletsB2: { handler: function() { this.drawCube() }, deep: true },
+    algorithm: _.debounce(function(newValue) { this.drawCube() }, 500),
+    arrows: function() { this.drawCube() },
+    imageSize: _.debounce(function() { this.drawCube() }, 100),
+    cubeView: function() { this.drawCube() },
+    stageMask: function() { this.drawCube() },
+    maskAlg: function() { this.drawCube() },
     faceU: function(newValue) {
       this.cubeStateList['u'] = newValue
+      this.drawCube()
     },
     faceR: function(newValue) {
       this.cubeStateList['r'] = newValue
+      this.drawCube()
     },
     faceF: function(newValue) {
       this.cubeStateList['f'] = newValue
+      this.drawCube()
     },
     faceD: function(newValue) {
       this.cubeStateList['d'] = newValue
+      this.drawCube()
     },
     faceL: function(newValue) {
       this.cubeStateList['l'] = newValue
+      this.drawCube()
     },
     faceB: function(newValue) {
       this.cubeStateList['b'] = newValue
+      this.drawCube()
+    },
+    rotateAxis1: function() { this.drawCube() },
+    rotateAxis2: function() { this.drawCube() },
+    rotateAxis3: function() { this.drawCube() },
+    rotateAngle1: _.debounce(function() {
+      this.drawCube()
+    }, 100),
+    rotateAngle2: _.debounce(function() {
+      this.drawCube()
+    }, 100),
+    rotateAngle3: _.debounce(function() {
+      this.drawCube()
+    }, 100),
+    backgroundColor: function() {
+      this.drawCube()
     },
     cubeColor: function(newValue) {
       this.cubeStateList['t'] = newValue
-    }
+      this.drawCube()
+    },
+    maskColor: function() {
+      this.drawCube()
+    },
+    cubeOpacity: _.debounce(function() {
+      this.drawCube()
+    }, 100),
+    stickerOpacity: _.debounce(function() {
+      this.drawCube()
+    }, 100),
+    dist: _.debounce(function() {
+      this.drawCube()
+    }, 100),
   }
 })
-const vm = app.mount('#app')
+app.mount('#app')
