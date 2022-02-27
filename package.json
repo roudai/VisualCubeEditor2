@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "sr-visualizer": "^1.0.12",
+    "vue": "^3.2.31"
+  }
+}

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" media="print" onload="this.media='all'">
+  <link rel="shortcut icon" href="favicon/icon.ico">
+  <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="favicon/android-chrome-192×192.png">
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-80YNQQ03WY"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-80YNQQ03WY');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3099989327540541" crossorigin="anonymous"></script> -->
+  <style>[v-cloak] { display: none; }</style>
+  <title>VisualCube Editor 2.0</title>
+</head>
+<body>
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand">VisualCube Editor 2.0</a>
+        <span class="navbar-text">
+          <a href="https://github.com/roudai/VisualCubeEditor2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+          </a>
+        </span>
+      </div>
+    </nav>
+    
+    <div id="app" v-cloak>
+      <div class="text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: imageHeight + 'px' }">
+        <div id="visualcube"></div>
+      </div>
+
+      <p>
+        <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+          Show Parameter
+        </button>
+      </p>
+      <div class="collapse" id="collapseExample">
+        <div class="card card-body">
+          {{ parameter }}
+        </div>
+      </div>
+
+      <!-- Puzzle Type -->
+      <div class="mb-2">
+        <label class="form-label" for="cubeSize">Puzzle Type</label>
+        <div class="input-group">
+          <input type="text" inputmode="numeric" pattern="\d*" maxlength="2" class="form-control" id="cubeSize" v-model.number="cubeSize">
+          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)">-</button>
+          <button class="btn btn-outline-secondary" type="button" @click="cubeSize = incrementNumber(cubeSize,17,1)">+</button>
+        </div>
+      </div>
+
+      <!-- Size of generated image -->
+      <div class="mb-2">
+        <label class="form-label" for="imageSize">Size of generated image</label>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="input-group">
+              <input type="text" class="form-control" id="imageSize" v-model.number="imageSize" disabled>
+              <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,10)">-10</button>
+              <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,1)">-1</button>
+              <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,1024,1)">+1</button>
+              <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,1024,10)">+10</button>
+              <button type="submit" class="btn btn-outline-secondary" @click="resetSize">Reset</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <input type="range" class="form-range" min="1" v-bind:max="imageMax" step="1" id="imageSize" v-model="imageSize">
+          </div>
+        </div>
+      </div>
+
+      <!-- Algorithm -->
+      <div class="mb-2">
+        <div>
+          <label class="form-label" for="algorithm">Algorithm</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio1" value="alg" v-model="algtype">
+          <label class="form-check-label" for="algorithmRadio1">Algorithm to apply</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype">
+          <label class="form-check-label" for="algorithmRadio2">Algorithm to solve case</label>
+        </div>
+        <div class="form-check form-check-inline mb-2">
+          <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled">
+          <label class="form-check-label" for="algorithmRadio3">Defines the cube state</label>
+        </div>
+        <div class="input-group form-inline mb-2" v-show="!showFacelets">
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('U')">U</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('R')">R</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('F')">F</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('D')">D</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('L')">L</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('B')">B</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('M')">M</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('E')">E</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('S')">S</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('\'')">'</button>
+        </div>
+        <div class="input-group form-inline mb-2" v-show="!showFacelets">
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('u')">u</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('r')">r</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('f')">f</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('d')">d</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('l')">l</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('b')">b</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('w')">w</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('2')">2</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('3')" v-show="algorithm3">3</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('4')" v-show="algorithm4">4</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('5')" v-show="algorithm5">5</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('6')" v-show="algorithm6">6</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('7')" v-show="algorithm7">7</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('8')" v-show="algorithm8">8</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('x')">x</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('y')">y</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('z')">z</button>
+        </div>
+        <div class="input-group form-inline mb-2" v-show="!showFacelets">
+          <input type="text" class="form-control" id="algorithm" v-model="algorithm">
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithm">Clear</button>
+        </div>
+
+        <div v-show="showFacelets">
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div v-if="cubeSize === 6" class="col-2" v-for="n in 36" >
+                <select class="form-select" id="cubeState" v-model="faceletsU6[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU6[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 5" class="col-12">
+                <div class="row" v-for="n in 5" >
+                  <div class="col-1 px-0"></div>
+                  <div class="col-2 px-0" v-for="m in 5">
+                    <select class="form-select" id="cubeState" v-model="faceletsU5[(n-1)*5+(m-1)]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU5[(n-1)*5+(m-1)]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+                  </div>
+                  <div class="col-1 px-0"></div>
+                </div>
+              </div>
+              <div v-else-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsU4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsU3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsU2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsU2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div v-if="cubeSize === 6" class="col-2" v-for="n in 36" >
+                <select class="form-select" id="cubeState" v-model="faceletsR6[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR6[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 5" class="col-12">
+                <div class="row" v-for="n in 5" >
+                  <div class="col-1 px-0"></div>
+                  <div class="col-2 px-0" v-for="m in 5">
+                    <select class="form-select" id="cubeState" v-model="faceletsR5[(n-1)*5+(m-1)]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR5[(n-1)*5+(m-1)]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+                  </div>
+                  <div class="col-1 px-0"></div>
+                </div>
+              </div>
+              <div v-else-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsR4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsR3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsR2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsR2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div v-if="cubeSize === 6" class="col-2" v-for="n in 36" >
+                <select class="form-select" id="cubeState" v-model="faceletsF6[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF6[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 5" class="col-12">
+                <div class="row" v-for="n in 5" >
+                  <div class="col-1 px-0"></div>
+                  <div class="col-2 px-0" v-for="m in 5">
+                    <select class="form-select" id="cubeState" v-model="faceletsF5[(n-1)*5+(m-1)]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF5[(n-1)*5+(m-1)]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+                  </div>
+                  <div class="col-1 px-0"></div>
+                </div>
+              </div>
+              <div v-else-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsF4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsF3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsF2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsF2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div v-if="cubeSize === 6" class="col-2" v-for="n in 36" >
+                <select class="form-select" id="cubeState" v-model="faceletsD6[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD6[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 5" class="col-12">
+                <div class="row" v-for="n in 5" >
+                  <div class="col-1 px-0"></div>
+                  <div class="col-2 px-0" v-for="m in 5">
+                    <select class="form-select" id="cubeState" v-model="faceletsD5[(n-1)*5+(m-1)]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD5[(n-1)*5+(m-1)]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+                  </div>
+                  <div class="col-1 px-0"></div>
+                </div>
+              </div>
+              <div v-else-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsD4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsD3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsD2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsD2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div v-if="cubeSize === 6" class="col-2" v-for="n in 36" >
+                <select class="form-select" id="cubeState" v-model="faceletsL6[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL6[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 5" class="col-12">
+                <div class="row" v-for="n in 5" >
+                  <div class="col-1 px-0"></div>
+                  <div class="col-2 px-0" v-for="m in 5">
+                    <select class="form-select" id="cubeState" v-model="faceletsL5[(n-1)*5+(m-1)]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL5[(n-1)*5+(m-1)]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+                  </div>
+                  <div class="col-1 px-0"></div>
+                </div>
+              </div>
+              <div v-else-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsL4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsL3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsL2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsL2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-group form-inline mb-2">
+              <div v-if="cubeSize === 6" class="col-2" v-for="n in 36" >
+                <select class="form-select" id="cubeState" v-model="faceletsB6[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB6[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 5" class="col-12">
+                <div class="row" v-for="n in 5" >
+                  <div class="col-1 px-0"></div>
+                  <div class="col-2 px-0" v-for="m in 5">
+                    <select class="form-select" id="cubeState" v-model="faceletsB5[(n-1)*5+(m-1)]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB5[(n-1)*5+(m-1)]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+                  </div>
+                  <div class="col-1 px-0"></div>
+                </div>
+              </div>
+              <div v-else-if="cubeSize === 4" class="col-3" v-for="n in 16" >
+                <select class="form-select" id="cubeState" v-model="faceletsB4[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB4[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 3" class="col-4" v-for="n in 9" >
+                <select class="form-select" id="cubeState" v-model="faceletsB3[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB3[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+              <div v-else-if="cubeSize === 2" class="col-6" v-for="n in 4" >
+                <select class="form-select" id="cubeState" v-model="faceletsB2[n-1]" v-bind:style="{ backgroundColor: cubeStateList[faceletsB2[n-1]] }"><option v-for="(key,value) in cubeStateList" v-bind:style="{ backgroundColor: key }">{{ value }}</option></select>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="resetState" @click="resetState">Reset</button>
+          <p class="ms-3">
+            n : a blank face (gray) <br>
+            o : an 'oriented' face (silver) <br>
+            t : a transparent face (cube color)
+          </p>
+        </div>
+      </div>
+
+      <!-- Arrow Definition -->
+      <div class="mb-2">
+        <label class="form-label" for="arrows">Arrow Definition</label>
+        <div class="input-group form-inline">
+          <label class="me-1 mb-1" for="arrowFace">Face</label>
+          <select class="me-2 mb-1" id="arrowFace" v-model="arrowFace">
+            <option value="U">U</option>
+            <option value="R">R</option>
+            <option value="F">F</option>
+            <option value="D">D</option>
+            <option value="L">L</option>
+            <option value="B">B</option>
+          </select>
+          <label class="me-1 mb-1" for="arrowFrom">From</label>
+          <select class="me-2 mb-1" id="arrowForm" v-model="arrowFrom">
+            <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
+          </select>
+          <label class="me-1 mb-1" for="arrowTo">To</label>
+          <select class="me-2 mb-1" id="arrowTo" v-model="arrowTo">
+            <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
+          </select>
+          <label class="me-1 mb-1" for="arrowPass">Pass</label>
+          <select class="me-2 mb-1" id="arrowPass" v-model="arrowPass">
+            <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
+          </select>
+        </div>
+
+        <div class="input-group form-inline mb-2">
+          <label class="me-1 mb-1" for="arrowScale">Scale</label>
+          <select class="me-2 mb-2" id="arrowScale" v-model="arrowScale">
+            <option v-for="n in 9" v-bind:value="n">{{ n }}</option>
+          </select>
+          <label class="me-1 mb-1" for="arrowInfluence">Influence</label>
+          <select class="me-2 mb-2" id="arrowInfluence" v-model="arrowInfluence">
+            <option v-for="n in 9" v-bind:value="n">{{ n }}</option>
+          </select>
+          <label class="me-1 mb-1" for="arrowColor">Color</label>
+          <input class="me-3 mb-1" type="color" id="arrowColor" v-model="arrowColor">
+
+          <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" id="addArrow" @click="addArrow">Add</button>
+          <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" id="resetArrow" @click="resetArrow">Reset</button>
+        </div>
+        
+        <div class="input-group form-inline mb-2">
+          <input type="text" class="form-control" id="arrows" v-model="arrows">
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="clearArrows" @click="clearArrows">Clear</button>
+        </div>
+      </div>
+      
+      <!-- Special View -->
+      <div class="mb-2">
+        <div>
+          <label class="form-label" for="specialView">Special View</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="viewRadioOptions" id="viewRadio1" value="normal" v-model="cubeView">
+          <label class="form-check-label" for="viewRadio1">Normal</label>
+        </div>
+        <div class="form-check form-check-inline mb-2">
+          <input class="form-check-input" type="radio" name="viewRadioOptions" id="viewRadio2" value="plan" v-model="cubeView">
+          <label class="form-check-label" for="viewRadio2">Plan</label>
+        </div>
+      </div>
+
+      <!-- Stage Mask / Mask Alg -->
+      <div class="mb-2">
+        <div class="row">
+          <div class="col-8">
+            <label class="form-label" for="stageMask">Stage Mask</label>
+            <select class="form-select" id="stageMask" v-model="stageMask">
+              <option value=""></option>
+              <option v-for="(value, name) in stageMaskList" v-bind:value="value">{{ name }}</option>
+            </select>
+          </div>
+          <div class="col-4">
+            <label class="form-label" for="maskAlg">-</label>
+            <select class="form-select" id="maskAlg" v-model="maskAlg">
+              <option value=""></option>
+              <option v-for="value in maskAlgList">{{ value }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Schemes -->
+      <div class="mb-2">
+        <div>
+          <label class="form-label" for="viewportRot ations">Color Schemes</label>
+        </div>
+        <div class="input-group form-inline">
+          <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateX">x</button>
+          <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateY">y</button>
+          <button type="submit" class="btn btn-outline-secondary btn-sm me-2 mb-1" @click="rotateZ">z</button>
+          <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="resetColor">Reset</button>
+        </div>
+        <div class="row">
+          <div class="col-md-6 col-lg-2">
+            <label class="form-label" for="faceU">U</label>
+            <input type="color" class="form-control" id="faceU" v-model="faceU">
+          </div>
+          <div class="col-md-6 col-lg-2">
+            <label class="form-label" for="faceR">R</label>
+            <input type="color" class="form-control" id="faceR" v-model="faceR">
+          </div>
+          <div class="col-md-6 col-lg-2">
+            <label class="form-label" for="faceF">F</label>
+            <input type="color" class="form-control" id="faceF" v-model="faceF">
+          </div>
+          <div class="col-md-6 col-lg-2">
+            <label class="form-label" for="faceD">D</label>
+            <input type="color" class="form-control" id="faceD" v-model="faceD">
+          </div>
+          <div class="col-md-6 col-lg-2">
+            <label class="form-label" for="faceL">L</label>
+            <input type="color" class="form-control" id="faceL" v-model="faceL">
+          </div>
+          <div class="col-md-6 col-lg-2">
+            <label class="form-label" for="faceB">B</label>
+            <input type="color" class="form-control" id="faceB" v-model="faceB">
+          </div>
+        </div>
+      </div>
+
+      <!-- Rotation Sequence -->
+      <div class="mb-2">
+        <label class="form-label" for="rotation">Rotation Sequence</label>
+        <div class="row">
+          <div class="col-md-2">
+            <select class="form-select" id="rotateAxis1" v-model="rotateAxis1">
+              <option>x</option>
+              <option>y</option>
+              <option>z</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <div class="input-group">
+              <input type="text" class="form-control" id="rotateAngle1" v-model.number="rotateAngle1" disabled>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle1,-180,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle1,180,1)">+</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle1" @click="restRotateAngle1">Reset</button>
+            </div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center">
+            <input type="range" class="form-range" min="-180" max="180" step="1" id="rotateAngle1" v-model="rotateAngle1">
+          </div>
+
+          <div class="col-md-2">
+            <select class="form-select" id="rotateAxis2" v-model="rotateAxis2">
+              <option>x</option>
+              <option>y</option>
+              <option>z</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <div class="input-group">
+              <input type="text" class="form-control" id="rotateAngle2" v-model.number="rotateAngle2" disabled>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle1,-180,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle1,180,1)">+</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle2" @click="restRotateAngle2">Reset</button>
+            </div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center">
+            <input type="range" class="form-range" min="-180" max="180" step="1" id="rotateAngle2" v-model="rotateAngle2">
+          </div>
+
+          <div class="col-md-2">
+            <select class="form-select" id="rotateAxis3" v-model="rotateAxis3">
+              <option>x</option>
+              <option>y</option>
+              <option>z</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <div class="input-group">
+              <input type="text" class="form-control" id="rotateAngle3" v-model.number="rotateAngle3" disabled>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle3,-180,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle3,180,1)">+</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle3" @click="restRotateAngle3">Reset</button>
+            </div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center">
+            <input type="range" class="form-range" min="-180" max="180" step="1" id="rotateAngle3" v-model="rotateAngle3">
+          </div>
+        </div>
+      </div>
+
+      <!-- Background Color of image / Cube Color / Mask Color -->
+      <div class="mb-2">
+        <div class="row">
+          <div class="col-xs-12 col-md-4">
+            <label class="form-label" for="backgroundColor">Background Color of image</label>
+            <div class="input-group form-inline mb-2">
+              <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor">
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="resetBackground" @click="resetBackground">Reset</button>
+            </div>
+          </div>
+          <div class="col-xs-12 col-md-4">
+            <label class="form-label" for="cubeColor">Cube Color</label>
+            <div class="input-group form-inline mb-2">
+              <input type="color" class="form-control" id="cubeColor" v-model="cubeColor">
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="resetCubecolor" @click="resetCubecolor">Reset</button>
+            </div>
+          </div>
+          <div class="col-xs-12 col-md-4">
+            <label class="form-label" for="maskColor">Mask Color</label>
+            <div class="input-group form-inline mb-2">
+              <input type="color" class="form-control" id="maskColor" v-model="maskColor">
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="resetMaskcolor" @click="resetMaskcolor">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cube Opacity / Sticker Opacity / Projection Distance -->
+      <div class="mb-5">
+        <div class="row">
+          <label class="form-label" for="cubeOpacity">Cube Opacity</label>
+          <div class="col-md-6">
+            <div class="input-group">
+              <input type="text" class="form-control" id="cubeOpacity" v-model.number="cubeOpacity" disabled>
+              <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = decrementNumber(cubeOpacity,0,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = incrementNumber(cubeOpacity,100,1)">+</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="resetCubeOpacity" @click="restCubeOpacity">Reset</button>
+            </div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center">
+            <input type="range" class="form-range" min="0" max="100" step="1" id="cubeOpacity" v-model="cubeOpacity">
+          </div>
+          <label class="form-label" for="stickerOpacity">Sticker Opacity</label>
+          <div class="col-md-6">
+            <div class="input-group">
+              <input type="text" class="form-control" id="stickerOpacity" v-model.number="stickerOpacity" disabled>
+              <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = decrementNumber(stickerOpacity,0,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = incrementNumber(stickerOpacity,100,1)">+</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="resetStickerOpacity" @click="resetStickerOpacity">Reset</button>
+            </div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center">
+            <input type="range" class="form-range" min="0" max="100" step="1" id="stickerOpacity" v-model="stickerOpacity">
+          </div>
+          <label class="form-label" for="dist">Projection Distance</label>
+          <div class="col-md-6">
+            <div class="input-group">
+              <input type="text" class="form-control" id="dist" v-model.number="dist" disabled>
+              <button class="btn btn-outline-secondary" type="button" @click="dist = decrementNumber(dist,1,1)">-</button>
+              <button class="btn btn-outline-secondary" type="button" @click="dist = incrementNumber(dist,100,1)">+</button>
+              <button class="btn btn-outline-secondary btn-sm" type="button" id="resetDist" @click="resetDist">Reset</button>
+            </div>
+          </div>
+          <div class="col-md-6 d-flex align-items-center">
+            <input type="range" class="form-range" min="1" max="100" step="1" id="dist" v-model="dist">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./node_modules/lodash/lodash.min.js"></script>
+  <script src="./node_modules/sr-visualizer/dist/bundle/srVisualizer.min.js"></script>
+  <script src="./node_modules/vue/dist/vue.global.prod.js"></script>
+  <script src="js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
