@@ -40,6 +40,12 @@ const app = Vue.createApp({
     faceletsD2: ['d','d','d','d'],
     faceletsL2: ['l','l','l','l'],
     faceletsB2: ['b','b','b','b'],
+    faceletsU1: ['u'],
+    faceletsR1: ['r'],
+    faceletsF1: ['f'],
+    faceletsD1: ['d'],
+    faceletsL1: ['l'],
+    faceletsB1: ['b'],
     showFacelets: false,
     algorithmDisabled: false,
     arrowFace: 'U',
@@ -106,7 +112,7 @@ const app = Vue.createApp({
         delete this.parameter.algorithm
         delete this.parameter.case
       }
-      if(this.showFacelets && (this.cubeSize === 6 || this.cubeSize === 5 || this.cubeSize === 4 || this.cubeSize === 3 || this.cubeSize === 2)) {
+      if(this.showFacelets && (this.cubeSize <= 6)) {
         delete this.parameter.algorithm
         delete this.parameter.case
         this.parameter.facelets = []
@@ -145,6 +151,13 @@ const app = Vue.createApp({
           for (let i = 0; i < this.faceletsD2.length; i++) { this.parameter.facelets.push(this.faceletsD2[i]) }
           for (let i = 0; i < this.faceletsL2.length; i++) { this.parameter.facelets.push(this.faceletsL2[i]) }
           for (let i = 0; i < this.faceletsB2.length; i++) { this.parameter.facelets.push(this.faceletsB2[i]) }
+        } else if(this.cubeSize === 1) {
+          this.parameter.facelets.push(this.faceletsU1[0])
+          this.parameter.facelets.push(this.faceletsR1[0])
+          this.parameter.facelets.push(this.faceletsF1[0])
+          this.parameter.facelets.push(this.faceletsD1[0])
+          this.parameter.facelets.push(this.faceletsL1[0])
+          this.parameter.facelets.push(this.faceletsB1[0])
         }
       } else {
         delete this.parameter.facelets
@@ -244,6 +257,13 @@ const app = Vue.createApp({
         this.faceletsD2 = ['d','d','d','d']
         this.faceletsL2 = ['l','l','l','l']
         this.faceletsB2 = ['b','b','b','b']
+      } else if(this.cubeSize === 1) {
+        this.faceletsU2 = ['u']
+        this.faceletsR2 = ['r']
+        this.faceletsF2 = ['f']
+        this.faceletsD2 = ['d']
+        this.faceletsL2 = ['l']
+        this.faceletsB2 = ['b']
       }
     },
     addArrow() {
@@ -361,7 +381,7 @@ const app = Vue.createApp({
       }
       this.arrowNumber = newValue * newValue
       
-      if(newValue === 6 || newValue === 5 || newValue === 4 || newValue === 3 || newValue === 2) {
+      if(newValue <= 6) {
         this.algorithmDisabled = false
        } else {
         this.algorithmDisabled = true
@@ -424,6 +444,12 @@ const app = Vue.createApp({
     faceletsD2: { handler: function() { this.drawCube() }, deep: true },
     faceletsL2: { handler: function() { this.drawCube() }, deep: true },
     faceletsB2: { handler: function() { this.drawCube() }, deep: true },
+    faceletsU1: { handler: function() { this.drawCube() }, deep: true },
+    faceletsR1: { handler: function() { this.drawCube() }, deep: true },
+    faceletsF1: { handler: function() { this.drawCube() }, deep: true },
+    faceletsD1: { handler: function() { this.drawCube() }, deep: true },
+    faceletsL1: { handler: function() { this.drawCube() }, deep: true },
+    faceletsB1: { handler: function() { this.drawCube() }, deep: true },
     algorithm: _.debounce(function(newValue) { this.drawCube() }, 500),
     arrows: function() { this.drawCube() },
     imageSize: _.debounce(function() { this.drawCube() }, 100),
