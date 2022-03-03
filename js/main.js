@@ -88,7 +88,7 @@ const app = Vue.createApp({
       u:'#fefe00', r:'#ee0000', f:'#0000f2', d:'#ffffff', l:'#ffa100', b:'#00d800', n:'#808080', o:'#c0c0c0', t:'#000000'
     },
     stageMaskList: {
-      FL:'fl', F2L:'f2l' , LL:'ll', CLL:'cll', ELL:'ell', OLL:'oll', OCLL:'ocll', 
+      FL:'fl', F2L:'f2l' , LL:'ll', CLL:'cll', ELL:'ell', OLL:'oll', OCLL:'ocll', OELL:'oell', COLL:'coll',
       OCELL:'ocell', WV:'wv', VH:'vh', ELS:'els', CLS:'cls', CMLL:'cmll', CROSS:'cross', 
       'F2L#1':'f2l_1', 'F2L#2':'f2l_2', 'F2L#3':'f2l_3', 'F2L SM':'f2l_sm', F2B:'f2b', LINE:'line'
     },
