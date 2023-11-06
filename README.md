@@ -5,7 +5,7 @@ This is a tool for making Rubik's Cube images with GUI.
 
 URL : https://visualcube.roudai.net/
 
-Vue.js - 3.2.45  
+Vue.js - 3.3.7  
 Lodash - 4.17.21  
-VisualCube TS - 1.0.12  
-Bootstrap - 5.0.2
+VisualCube TS - 1.0.13  
+Bootstrap - 5.3.0
