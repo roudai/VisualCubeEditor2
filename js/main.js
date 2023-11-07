@@ -298,8 +298,10 @@ const app = Vue.createApp({
     addAlgorithm(text) {
       if (this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
         this.algorithm = this.algorithm + text
-      } else if (text === "'" || text === 'w' || !isNaN(text)) {
+      } else if (text === "'" || text === 'w' || text === ')' || !isNaN(text)) {
         this.algorithm = this.algorithm.trimEnd() + text + ' '
+      } else if (text === '(') {
+        this.algorithm = this.algorithm + text
       } else {
         this.algorithm = this.algorithm + text + ' '
       }
