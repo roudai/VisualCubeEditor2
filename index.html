@@ -52,8 +52,9 @@
       <b-container class="d-flex justify-content-end text-muted small">presented by&nbsp;<a href="https://roudai.net" style="text-decoration: none">roudai.net</a></b-container>
 
       <div id="app" v-cloak>
-        <div class="text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: imageHeight + 'px' }">
+        <div class="text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: imageHeight + 30 + 'px' }">
           <div id="visualcube"></div>
+          {{ algorithm }}
         </div>
 
         <p>
@@ -121,6 +122,8 @@
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('E')">E</button>
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('S')">S</button>
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('\'')">'</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('(')">(</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm(')')">)</button>
           </div>
           <div class="input-group form-inline mb-2" v-show="!showFacelets">
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('u')">u</button>
