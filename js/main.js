@@ -121,8 +121,18 @@ const app = Vue.createApp({
     },
     maskAlgList: ['x', "x'", 'x2', 'y', "y'", 'y2', 'z', "z'", 'z2'],
     drawFlag: true,
+    lang: window.I18N.lang, // 今の言語（js/i18n.js）。切り替えると t() を使っている場所が描き直される
   }),
+  created() {
+    window.I18N.onChange((lang) => {
+      this.lang = lang
+    })
+  },
   methods: {
+    // 訳した文（js/i18n.js）。テンプレートでは {{ t('editor.algorithm') }} のように使う
+    t: function (key, params) {
+      return this.lang ? window.I18N.t(key, params) : key
+    },
     drawCube: function () {
       this.imageHeight = this.imageSize
       if (this.algorithm) {
