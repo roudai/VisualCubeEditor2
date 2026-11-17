@@ -22,7 +22,7 @@ MegaminxImageEditor の `reference/PLL_SPEC.md` を 3x3 用に書き直したも
 - キーは 1〜21 の通し番号（並び順）。`name`：ケース名。`group`：グループ名。`algset`：`"PLL"`（生成物には入れない）
 - `a`：そのケースを解く手順（1本の文字列）。Algorithm to solve case で入力欄に入る
 - `s`：揃った状態から回すとそのケースになる手順。Algorithm to apply で入力欄に入る
-- 手順は、スピードキューブで広く使われている標準的なもの（一覧は下の表）
+- 手順・名前・図の向きは roudai.net の PLL 手順（https://roudai.net/pll/pll/）に準拠する（一覧は下の表。下の「出典」）
 
 ### グループと並び（5グループ・21ケース）
 
@@ -37,6 +37,17 @@ MegaminxImageEditor の `reference/PLL_SPEC.md` を 3x3 用に書き直したも
 `js/pll-groups.js` は `window.CASE_GROUP_NOTES.pll`（グループ名 → 説明の文字列。移植元の `js/case-groups.js` の `pll` と同じ持ち方で、
 英語の文字列だけ）。OLL は `js/oll-groups.js` が `CASE_GROUP_NOTES.oll` を足す（読み込む順は問わない）。node では `require` で PLL の分が返る。
 画面では「Edges only (EPLL)」のように括弧付きで添える。
+
+### 出典（roudai.net）
+
+- `a` は、そのページで各ケースの**最初に載っている手順**（両手）。記号はそのまま写し、書き方だけそろえる（`R2′` → `R2`、`U'2` → `U2`、`R'2` → `R2`、`U'w` → `Uw'`）。
+  ページの2本目以降の手順は `test/pll-data.test.js` の `SITE_ALGS` に置き、同じケースになることを確かめる
+  （ページの Jb の片手 `R U'2 R' U' R U'2` は途中で切れていて揃わず、Na の片手・最少 `L U' R U'2 L' U L R' U' R U2 L U R'` も揃わないので入れていない）
+- **図の向き**：そのページの図は、最初の手順をそのまま `case` に渡して描いている（sr-visualizer の Plan 表示）。
+  ここでも同じ状態になるように `s` を作る（下の「AUF」）。手順の最初・最後の `U`（Jb の最後の `U'`、Gb の最初の `U'` など）も、そのページのとおり手順に含める
+- **名前**：ページの名前（`U.a` → `Ua`）を使う。国際的に多い呼び方とは、**Ua⇔Ub・Aa⇔Ab・Ra⇔Rb・Ga⇔Gd・Gb⇔Gc が入れ替わっている**
+  （例：ここでの Ua は `R2 U R U R' U' R' U' R' U R'` で、3エッジが時計回り）。J・N・ほかは同じ
+- 並びとグループは前と同じ（ページの並び `Ua Ub Aa Ab Z H E T V F Ra Rb Jb Ja Y Ga Gb Gd Gc Nb Na` ではなく、下のグループ順）
 
 ### 記法
 
@@ -54,15 +65,17 @@ s = [AUF] setup [AUF]
 ```
 
 - AUF は `(U)` `(U2)` `(U')` のいずれか（括弧で囲む）、または無し。**4通り**（Megaminx は5通り）
-- **`a` の最後の AUF は付けない**。例：Jb の `R U R' F' R U R' U' R' F R2 U' R'` は回し終わると上の層が 90° ずれているが、`(U')` は書かない
-- **`a` の最後の持ち替え**は、`x … x'` のように手順全体でセンターが元の位置に戻るものだけ書いてよい（Aa・Ab・E・Ja）。
+- **`a` の最後に括弧付きの AUF（`(U)` など）は付けない**（確認でエラー）。出典の手順の最後に括弧の無い `U` があれば（Jb の `… R' U'` など）、
+  それは手順の一部としてそのまま書き、そのぶん図の向き（`s`）もそれを含めて揃う状態にする
+- **`a` の最後の持ち替え**は、`x … x'` のように手順全体でセンターが元の位置に戻るものだけ書いてよい（Aa・Ab・E）。
   向きを戻さない持ち替え（回し終わってから `y` するだけ、など）は付けない
 - 手順の途中の持ち替え・2層回し・中層回しで完成後の向きが変わっても、揃ったとみなす（V の `y`、Ua・Ub・H・Z の `M`）。
   Algorithm to solve case の表示と確認では、センターが動いたぶんを自動で打ち消す（`CubeState.applyAlg` の `cancelRotation`）
-- **`s` はセンターを動かさない**。素の面回し（`U R F D L B`）と括弧付きの AUF だけで書く。
-  `a` に持ち替え・2層回し・中層回しがあるケースは、`a` の逆手順そのままではなく、同じケースになる面回しだけの手順を書く
-  （Ua・Ub・H・Z は R と U だけの手順、Aa・Ab・E は `x` を外して面を読み替えたもの、Ja・V は持ち替えの無い別の手順の逆）。
-  それ以外のケースの `s` は `a` の逆手順そのもの
+- **`s` はセンターを動かさない**。素の面回し（`U R F D L B`）と括弧付きの AUF だけで書く。`a` の逆手順と**ちょうど同じ状態**（＝出典の図と同じ）になるようにする
+  - `a` が面回しだけなら、`s` は `a` の逆手順そのもの
+  - 持ち替え・2層回しがあれば、逆手順を面回しに直す（`r` は `L` ＋持ち替え、`Fw` は `B` ＋持ち替え、`x y z` は持ち替えだけとみなし、持ち替えのぶん後ろの面を読み替える）。例：Aa の `s` は `R2 F2 R' B' R F2 R' B R'`
+  - 中層回し（`M`）がある H・Z は、面回しに直すと長くなるので、出典の2本目以降の中層回しの無い手順の逆から作る（H は `R2 U2 R U2 R2 U2 R2 U2 R U2 R2`、Z は `R' U' R U' R U R U' R' U R U R2 U' R'` 系）。同じ状態になるよう前後の AUF を付けて合わせる
+  - 出典の図と同じになることは、作るときにブラウザで sr-visualizer の `case: a` と `algorithm: s` の描画（Plan 表示）を全ケースで比べて確かめた（21 ケースとも一致）
 - 満たすべき条件（生成スクリプトが確認する。`js/case-check.js` の `check('pll', a, s)`）
   - `s` の状態に `a` を回すと、最後の AUF を除いて揃う
   - `a` を Algorithm to solve case で表示した状態（`a` の逆手順）と、`s` を Algorithm to apply で表示した状態が一致する
@@ -71,38 +84,37 @@ s = [AUF] setup [AUF]
 
 ### 標準の向きと前AUF
 
-前AUFは「手順を、そのケースの標準の向きから回し始められるようにする」ために付ける。標準の向きは、その手順が載っている一般的な
-PLL 表の図の向き（＝その手順を回し始める向き）とし、下の表のピースの動きで決める。**今の21ケースは、どれも前AUFなしで標準の向きから始まる**
-（前AUFが付くのは、標準の向きとは違う向きから始める手順に差し替えたとき）。
+標準の向きは、出典（roudai.net）の図の向き（＝そのケースの最初の手順で揃う状態）とし、下の表のピースの動きで決める。
+今の21ケースは、どれも括弧付きの前AUFを使っていない（Gb・Gd の最初の `U'`・`U` は出典の手順のとおりで、括弧は付けない）。
 
 表の「ピースの動き」は、解くとピースがどう動くか。`UR>UL>UF` は「UR のピースが UL へ、UL のが UF へ、UF のが UR へ」。
 位置は上から見た名前（コーナー UBL UBR UFR UFL、エッジ UB UR UF UL）。`test/pll-data.test.js` の `EXPECTED` と同じ内容。
 
-| 名前 | ピースの動き（標準の向き） | 見た目 | `a`（解く手順） |
-|---|---|---|---|
-| Ua | UR>UL>UF | 3エッジが反時計回り。後ろが揃ったバー | `M2 U M U2 M' U M2` |
-| Ub | UR>UF>UL | 3エッジが時計回り。後ろが揃ったバー | `M2 U' M U2 M' U' M2` |
-| H | UB>UF UR>UL | 向かい合うエッジを2組交換 | `M2 U M2 U2 M2 U M2` |
-| Z | UB>UL UR>UF | 隣り合うエッジを2組交換（後ろと左、右と前） | `M' U' M2 U' M2 U' M' U2 M2` |
-| Aa | UBL>UBR>UFR | 3コーナーが時計回り。UFL は動かない | `x R' U R' D2 R U' R' D2 R2 x'` |
-| Ab | UBL>UFR>UBR | 3コーナーが反時計回り。UFL は動かない | `x R2 D2 R U R' D2 R U' R x'` |
-| E | UBL>UFL UBR>UFR | 左の2コーナー、右の2コーナーをそれぞれ交換 | `x' R U' R' D R U R' D' R U R' D R U' R' D' x` |
-| T | UBR>UFR UR>UL | 右の2コーナー＋左右のエッジ | `R U R' U' R' F R2 U' R' U' R U R' F'` |
-| F | UBR>UFR UB>UF | 右の2コーナー＋前後のエッジ。左が揃ったバー | `R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R` |
-| Ja | UBR>UFR UB>UR | 右の2コーナー＋後ろと右のエッジ | `x R2 F R F' R U2 r' U r U2 x'` |
-| Jb | UBR>UFR UR>UF | 右の2コーナー＋右と前のエッジ | `R U R' F' R U R' U' R' F R2 U' R'` |
-| Ra | UBR>UFR UB>UL | 右の2コーナー＋後ろと左のエッジ（ヘッドライトが左） | `R U' R' U' R U R D R' U' R D' R' U2 R'` |
-| Rb | UBR>UFR UF>UL | 右の2コーナー＋前と左のエッジ（ヘッドライトが左） | `R2 F R U R U' R' F' R U2 R' U2 R` |
-| Y | UBL>UFR UB>UL | 対角のコーナー＋後ろと左のエッジ | `F R U' R' U' R U R' F' R U R' U' R' F R F'` |
-| V | UBL>UFR UB>UR | 対角のコーナー＋後ろと右のエッジ | `R' U R' U' y R' F' R2 U' R' U R' F R F` |
-| Na | UBR>UFL UR>UL | 対角のコーナー（UBR と UFL）＋左右のエッジ | `R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'` |
-| Nb | UBL>UFR UR>UL | 対角のコーナー（UBL と UFR）＋左右のエッジ | `R' U R U' R' F' U' F R U R' F R' F' R U' R` |
-| Ga | UBL>UBR>UFL UB>UL>UR | ヘッドライトが左、ブロックは UFR と UF | `R2 U R' U R' U' R U' R2 U' D R' U R D'` |
-| Gb | UBL>UFL>UFR UB>UF>UL | ヘッドライトが左、ブロックは UBR と UR | `R' U' R U D' R2 U R' U R U' R U' R2 D` |
-| Gc | UBL>UFL>UFR UR>UF>UL | ヘッドライトが左、ブロックは UBR と UB | `R2 U' R U' R U R' U R2 U D' R U' R' D` |
-| Gd | UBL>UBR>UFL UB>UL>UF | ヘッドライトが左、ブロックは UFR と UR | `R U R' U' D R2 U' R U' R' U R' U R2 D'` |
+| 名前 | ピースの動き（標準の向き） | `a`（解く手順。出典の最初の手順） |
+|---|---|---|
+| Ua | UR>UF>UL | `R2 U R U R' U' R' U' R' U R'` |
+| Ub | UR>UL>UF | `R U' R U R U R U' R' U' R2` |
+| H | UB>UF UR>UL | `M2 U M2 U2 M2 U M2` |
+| Z | UB>UR UF>UL | `M' U M2 U M2 U M' U2 M2 U'` |
+| Aa | UBR>UFL>UFR | `x' R U' R D2 R' U R D2 R2 x` |
+| Ab | UBR>UFR>UFL | `x' R2 D2 R' U' R D2 R' U R' x` |
+| E | UBL>UFL UBR>UFR | `x' R U' R' D R U R' D' R U R' D R U' R' D' x` |
+| T | UBR>UFR UR>UL | `R U R' U' R' F R2 U' R' U' R U R' F'` |
+| F | UBR>UFR UB>UF | `R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R` |
+| Ja | UBL>UBR UB>UL | `R' U L' U2 R U' R' U2 L R U'` |
+| Jb | UBR>UFR UR>UF | `R U R' F' R U R' U' R' F R2 U' R' U'` |
+| Ra | UBL>UBR UR>UF | `R' U2 R U2 R' F R U R' U' R' F' R2 U'` |
+| Rb | UBR>UFR UB>UL | `R U' R' U' R U R D R' U' R D' R' U2 R' U'` |
+| Y | UBL>UFR UB>UL | `F R U' R' U' R U R' F' R U R' U' R' F R F'` |
+| V | UBL>UFR UB>UR | `R' U R U' R' Fw' U' R U2 R' U' R U' R' Fw R` |
+| Na | UBR>UFL UR>UL | `R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'` |
+| Nb | UBL>UFR UR>UL | `R' U R U' R' F' U' F R U R' F R' F' R U' R` |
+| Ga | UBL>UBR>UFL UB>UL>UF | `D' R U R' U' D R2 U' R U' R' U R' U R2 U` |
+| Gb | UBL>UFL>UBR UB>UF>UL | `U' R2 U' R U' R U R' U R2 D' U R U' R' D` |
+| Gc | UBL>UFL>UFR UB>UF>UL | `D R' U' R U D' R2 U R' U R U' R U' R2 U'` |
+| Gd | UBL>UFR>UFL UB>UL>UF | `U R2 U R' U R' U' R U' R2 D U' R' U R D'` |
 
-`s`（そのケースになる手順）は `data/pll/algs_info.json` を参照。AUF が付くのは Z（最後に `(U')`）と Ja（最後に `(U)`）。
+`s`（そのケースになる手順）は `data/pll/algs_info.json` を参照。どのケースの `s` にも括弧付きの AUF は付いていない。
 
 ## データファイル（生成）
 
@@ -127,7 +139,7 @@ PLL 表の図の向き（＝その手順を回し始める向き）とし、下�
 - 形式（元データの順番を保つ。`alg` = `a`、`setup` = `s`）
   ```js
   [
-    { name: 'Ua', group: 'Edges only', alg: "M2 U M U2 M' U M2", setup: "R2 U R U R' U' R' U' R' U R'" },
+    { name: 'Ua', group: 'Edges only', alg: "R2 U R U R' U' R' U' R' U R'", setup: "R U' R U R U R U' R' U' R2" },
     ...
   ]
   ```
@@ -200,7 +212,7 @@ PLL 表の図の向き（＝その手順を回し始める向き）とし、下�
 - `js/pll-data.js` が最新（生成し直しても変わらない）
 - 各ケース
   - `check('pll', alg, setup)` が null。`setup` の状態に `alg` を回すと最後の AUF を除いて揃い、`alg` の case 表示が `setup` の状態と一致する
-  - `alg` の最後に AUF・向きを戻さない持ち替えが無い
+  - `alg` の最後に括弧付きの AUF・向きを戻さない持ち替えが無い（出典の手順の最後の括弧の無い `U` はよい）
   - `setup` の状態で崩れているのは側面上段の12枚だけ（上面は U 色、F2L とセンターは揃ったまま）
   - `setup` は素の面回しと括弧付きの AUF だけ
 - **名前とケースの対応**（`a` と `s` が互いに合っていても、名前が違うケースを指していたら上の確認では分からないため、手順とは別の系統で確かめる）
@@ -208,7 +220,8 @@ PLL 表の図の向き（＝その手順を回し始める向き）とし、下�
     状態は回転の計算を通さず、ステッカーを直接置いて作る。置換どうしの比較（`classKey`）でも確かめ、ほかの20ケースとは一致しないことも見る
   - `EXPECTED` の21個は、どれも 3x3 で作れる置換（コーナーとエッジの偶奇が同じ）で、互いに違うケース
   - `alg` から前AUFを外した手順が、標準の向き（`EXPECTED` の状態）から最後の AUF を除いて揃う
-  - `OTHER_ALGS`：データとは別の、その名前で広く知られている手順（各ケース1〜2本）。`findCase` で同じ名前のケースになる
+  - `SITE_ALGS`：出典（roudai.net）で各ケースの2本目以降に載っている手順。`findCase` で同じ名前のケースになる
+  - `OTHER_ALGS`：データとは別の、国際的な呼び方で広く知られている手順（各ケース1〜2本）を、名前の入れ替え（Ua⇔Ub・Aa⇔Ab・Ra⇔Rb・Ga⇔Gd・Gb⇔Gc）をしてここでの名前に読み替えたもの。`findCase` で同じ名前のケースになる
   - 逆の関係：Ua⇔Ub、Aa⇔Ab、Ga⇔Gb、Gc⇔Gd は互いに逆、ほかは自分が逆
 - 全ケースが互いに違うケースで、あるケースの手順でほかのケースは揃わない
 
