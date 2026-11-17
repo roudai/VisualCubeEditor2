@@ -1,6 +1,6 @@
 // 実行: node --test
 // js/case-check.js（手順の確認）と js/custom-algs.js の validate（自分の手順の確認）
-// ここでは代表的なケースだけを使う。全ケースの確認は test/pll-data.test.js・test/oll-data.test.js で行う
+// ここでは代表的なケースだけを使う。全ケースの確認は test/pll-data.test.js・test/oll-data.test.js・test/coll-data.test.js で行う
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const M = require('../js/cube-state.js');
@@ -190,4 +190,40 @@ test('merged：保存値が無ければ既定のまま。既定と同じ手順�
   } finally {
     delete global.localStorage;
   }
+});
+
+// ---- COLL（上面の向きとコーナーの位置を揃える。エッジの位置は問わない） ----
+const COLL = [
+  make('27-1', "R U R' U R U2 R'"), // Sune
+  make('27-3', "R' U L U' R U L'"), // Sune 形で、コーナーの位置が違うもの
+  make('21-2', "R U2 R' U' R U R' U' R U' R'"), // H
+];
+const coll = (name) => COLL.find((c) => c.name === name);
+
+test('COLL：確認のコード（エッジの位置の違いは問わない）', () => {
+  COLL.forEach((c) => assert.equal(C.check('coll', c.alg, c.setup), null, c.name));
+  const sune = coll('27-1');
+  // コーナーは揃い、エッジの位置だけが違う状態（setup の前に Ua を回した）も、同じ手順で揃うので同じケース
+  const ua = "R U' R U R U R U' R' U' R2";
+  assert.equal(C.check('coll', sune.alg, `${M.flatten(ua, { inverse: true })} ${sune.setup}`), null);
+  // 上面の向きは同じ（Sune 形）でも、コーナーの位置が違えば揃わない
+  assert.equal(C.check('coll', sune.alg, coll('27-3').setup), 'not-solved');
+  assert.equal(C.check('coll', `${sune.alg} (U)`, sune.setup), 'trailing-auf');
+  assert.equal(C.check('coll', `${sune.alg} y`, sune.setup), 'trailing-y');
+  assert.equal(C.check('coll', sune.alg, `${sune.setup} R`), 'setup-f2l');
+  // 上面のエッジが向いていない状態（OLL 45 の形）は COLL のケースにならない
+  assert.equal(C.check('coll', sune.alg, M.flatten("F R U R' U' F'", { inverse: true })), 'setup-f2l');
+  // 前の AUF が違うと図（コーナーの色）が変わるので、そのままでは一致しない。setup の後ろの AUF で合わせれば通る
+  assert.equal(C.check('coll', `(U) ${sune.alg}`, sune.setup), 'not-solved');
+  assert.equal(C.check('coll', `(U) ${sune.alg}`, `${sune.setup} (U')`), null);
+});
+
+test('COLL：findCase は AUF とエッジの位置の違いを除いて同じケースを見つける', () => {
+  const sune = coll('27-1');
+  assert.equal(C.findCase('coll', sune.alg, COLL).name, '27-1');
+  assert.equal(C.findCase('coll', `(U2) ${sune.alg}`, COLL).name, '27-1');
+  assert.equal(C.findCase('coll', coll('27-3').alg, COLL).name, '27-3');
+  // 別の手順でも、同じケースを揃えるなら同じ名前（後ろから回す Sune）。サンプルに無いケース（Anti-Sune）は見つからない
+  assert.equal(C.findCase('coll', "y' R' U2 R U R' U R", COLL).name, '27-1');
+  assert.equal(C.findCase('coll', "R U2 R' U' R U' R'", COLL), null);
 });

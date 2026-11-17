@@ -19,7 +19,7 @@
 //   覚える順番 data/<set>/learn_order.json（段階ごとのケース名の配列）があれば、各ケースに stage（段階）と
 //   order（覚える順の通し番号）を付ける。全ケースがちょうど1回ずつ無ければエラー。無ければ付けない
 //
-//   出力 js/<set>-data.js = [{ name, group, (stage, order,) alg, setup }, …]（ブラウザでは window.PLL_DATA / OLL_DATA）
+//   出力 js/<set>-data.js = [{ name, group, (stage, order,) alg, setup }, …]（ブラウザでは window.PLL_DATA / OLL_DATA / COLL_DATA）
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -42,10 +42,17 @@ const MESSAGES = {
     'not-solved': 'a で s のケースの上面が揃いません',
     mismatch: 'Algorithm to solve case（a）と Algorithm to apply（s）の上面の向きが一致しません',
   },
+  coll: {
+    'trailing-y': 'a の最後に持ち替え（x y z）が付いています（向きを元に戻すもの以外は付けない）',
+    'trailing-auf': 'a の最後に AUF が付いています（最後の AUF は付けない）',
+    'setup-f2l': 's で最後の層以外が崩れているか、上面のエッジが向いていません',
+    'not-solved': 'a で s のケースの上面の向きとコーナーの位置が揃いません（最後の AUF を除いても揃わない）',
+    mismatch: 'Algorithm to solve case（a）と Algorithm to apply（s）の画像（上面と側面のコーナー）が一致しません',
+  },
 };
 
 /**
- * set（'pll' / 'oll'）の生成器を作る。options.root は元データと出力先の置き場所（既定はリポジトリのルート。テスト用）
+ * set（'pll' / 'oll' / 'coll'）の生成器を作る。options.root は元データと出力先の置き場所（既定はリポジトリのルート。テスト用）
  *   build()        生成するファイルの中身（文字列）。問題があれば Error を投げる
  *   cases()        生成するデータ（配列）
  *   check(a, s)    問題があればその内容（文）、無ければ null

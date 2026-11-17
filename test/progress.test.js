@@ -192,3 +192,12 @@ test('formatTime：60 秒未満は秒、60 秒以上は分表記（丸めてか�
   assert.equal(P.formatTime(70.4, 0), '1:10');
   assert.equal(P.formatTime(0), '0.00');
 });
+
+test('caseColors：COLL は側面のエッジのステッカー（側面上段の真ん中）だけを OLL_GRAY にする', () => {
+  const c = { name: '27-1', alg: "R U R' U R U2 R'" };
+  const plain = P.caseColors(c, M.DEFAULT_SCHEME);
+  const coll = P.caseColors(c, M.DEFAULT_SCHEME, 'coll');
+  assert.deepEqual(coll.ucolor, plain.ucolor);
+  coll.scolor.forEach((x, i) => assert.equal(x, i % 3 === 1 ? M.OLL_GRAY : plain.scolor[i], String(i)));
+  assert.deepEqual(P.caseColors(c, M.DEFAULT_SCHEME, 'pll'), plain);
+});

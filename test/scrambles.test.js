@@ -1,6 +1,6 @@
 // 実行: node --test
 // ケース用スクランブル：tools/gen-scrambles.js（生成）、tools/build-scrambles.js（確認と js/<set>-scrambles.js の生成）、
-// data/<pll|oll>/scrambles.json と js/<pll|oll>-scrambles.js の全件の確認。
+// data/<pll|oll|coll>/scrambles.json と js/<pll|oll|coll>-scrambles.js の全件の確認。
 // 前半は代表的なケースを直書きして、生成 → 確認の流れを確かめる（データが無くても動く）。
 // 後半は置かれている scrambles.json の全件を確かめる（まだ無ければ skip。置かれたら自動で有効になる）
 const test = require('node:test');
@@ -36,7 +36,17 @@ function isOllCase(c, scramble) {
   const state = M.applyAlg(scramble);
   return f2lSolved(state) && M.AUFS.some((post) => pattern(M.applyAlg(join(c.setup, post))) === pattern(state));
 }
-const isCase = (set, c, scramble) => (set === 'oll' ? isOllCase(c, scramble) : isPllCase(c, scramble));
+// COLL: 最後の層以外は揃っていて、上面のエッジは向いていて、最後の層のエッジ（位置）を除いた状態が「AUF・setup・AUF」のどれかと同じ
+// （COLL はエッジの位置を揃えないので、上面のエッジ 1・3・5・7 と側面の上段の真ん中は比べない）
+const LL_EDGE = new Set([1, 3, 5, 7, 9 + 1, 18 + 1, 36 + 1, 45 + 1]); // U 面のエッジと R・F・L・B の上段の真ん中
+const withoutEdges = (state) => state.map((x, i) => (LL_EDGE.has(i) ? '-' : x)).join('');
+function isCollCase(c, scramble) {
+  const state = M.applyAlg(scramble);
+  if (!f2lSolved(state) || ![1, 3, 5, 7].every((i) => state[i] === 'U')) return false;
+  const key = withoutEdges(state);
+  return M.AUFS.some((pre) => M.AUFS.some((post) => withoutEdges(M.applyAlg(join(pre, c.setup, post))) === key));
+}
+const isCase = (set, c, scramble) => (set === 'oll' ? isOllCase(c, scramble) : set === 'coll' ? isCollCase(c, scramble) : isPllCase(c, scramble));
 
 // 生成物（js/<set>-scrambles.js の中身）をブラウザと同じように読む
 function loadGenerated(source, varName) {
@@ -62,13 +72,19 @@ const SAMPLE = {
     make('44', "f R U R' U' f'"),
     make('21', "R U2 R' U' R U R' U' R U' R'"),
   ],
+  coll: [
+    make('27-1', "R U R' U R U2 R'"), // Sune
+    make('21-2', "R U2 R' U' R U R' U' R U' R'"), // H
+    make('22-1', "R U2 R2 U' R2 U' R2 U2 R"), // Pi
+    make('25-4', "R U2 R D R' U2 R D' R2"), // L
+  ],
 };
 const sample = {};
-['pll', 'oll'].forEach((set) => {
+['pll', 'oll', 'coll'].forEach((set) => {
   sample[set] = G.generate(set, SAMPLE[set]);
 });
 
-for (const set of ['pll', 'oll']) {
+for (const set of ['pll', 'oll', 'coll']) {
   const cases = SAMPLE[set];
 
   test(`${set}（直書きのケース）：各ケース ${COUNT} 本、どれもそのケースになり、重複が無く、短すぎない`, () => {
@@ -180,7 +196,7 @@ test('oll（直書きのケース）：最後の層の置換（PLL の部分）�
 });
 
 // ---- 置かれているデータの全件の確認 ----
-for (const set of ['pll', 'oll']) {
+for (const set of ['pll', 'oll', 'coll']) {
   const p = B.paths(set);
   const missing = [p.data, p.src].filter((f) => !fs.existsSync(f)).map((f) => f.replace(/^.*[\\/](?=[^\\/]+[\\/][^\\/]+$)/, ''));
   const skip = missing.length ? missing.join('・') + ' がまだ無い（node tools/gen-scrambles.js で作る）' : false;

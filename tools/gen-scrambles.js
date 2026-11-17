@@ -1,5 +1,5 @@
-// PLL・OLL の練習用のスクランブル（data/<pll|oll>/scrambles.json）を作る。
-// 実行: node tools/gen-scrambles.js [pll] [oll] [--seed=数] [--count=本数]（引数なしで両方。既定は種 1・各 20 本）
+// PLL・OLL・COLL の練習用のスクランブル（data/<pll|oll|coll>/scrambles.json）を作る。
+// 実行: node tools/gen-scrambles.js [pll] [oll] [coll] [--seed=数] [--count=本数]（引数なしで全部。既定は種 1・各 20 本）
 //       そのあと node tools/build-scrambles.js で js/<set>-scrambles.js を作る
 //
 //   js/<set>-data.js の各ケースについて、「そのケースの状態」を two-phase ソルバ（js/cube-solver.js）で解き、
@@ -10,6 +10,7 @@
 //          して解き、「解の逆 + t の逆」をスクランブルにする（つなぎ目はまとめる）。
 //          前後の AUF は 4×4 通り（H は実質 4 通り）しか無いが、t によって同じ状態でも違う手順になる
 //     OLL: 上面の向きはそのケースのまま、最後の層の置換（PLL の部分）を一様ランダムにし、ランダムな AUF を付けた状態
+//     COLL: 上面の向きとコーナーの位置はそのケースのまま、エッジの位置だけを一様ランダムにし、ランダムな AUF を付けた状態
 //   どのスクランブルも tools/build-scrambles.js の verifyScramble で確かめ、同じケースの中で重複させない。
 //   MIN_MOVES 手より短いものは作り直す。
 //   乱数はケースごとに「種・セット・ケース名」から決めるので、同じ種なら何度作っても同じ結果になる
@@ -95,6 +96,24 @@ function ollScramble(c, random) {
   return Solver.invert(Solver.solve(state, SOLVE_OPTIONS));
 }
 
+// COLL：上面の向きとコーナーの位置は setup のまま、最後の層のエッジの位置だけをランダムにした状態（＋ランダムな AUF）。
+// エッジの並びの偶奇はコーナーに合わせる（3x3 で作れる状態にするため）
+function collScramble(c, random) {
+  const cubie = Solver.fromState(M.applyAlg(c.setup));
+  for (let i = 0; i < 4; i++) {
+    if (cubie.cp[i] > 3 || cubie.ep[i] > 3) throw new Error(`${c.name}: setup が最後の層以外を崩しています`);
+  }
+  const ep = shuffle4(random);
+  if (parity(cubie.cp.slice(0, 4)) !== parity(ep)) {
+    const t = ep[0];
+    ep[0] = ep[1];
+    ep[1] = t;
+  }
+  for (let i = 0; i < 4; i++) cubie.ep[i] = ep[i];
+  const state = M.applyAlg(M.AUFS[pick(random, 4)], { state: Solver.toState(cubie) });
+  return Solver.invert(Solver.solve(state, SOLVE_OPTIONS));
+}
+
 /**
  * cases（[{ name, alg, setup }]）の各ケースのスクランブルを作る。戻り値 { ケース名: [スクランブル, ...] }
  * options.seed（既定 1）、options.count（既定 20）
@@ -103,7 +122,7 @@ function generate(set, cases, options) {
   const opts = options || {};
   const seed = opts.seed === undefined ? DEFAULT_SEED : opts.seed;
   const count = opts.count === undefined ? DEFAULT_COUNT : opts.count;
-  const make = set === 'oll' ? ollScramble : pllScramble;
+  const make = set === 'oll' ? ollScramble : set === 'coll' ? collScramble : pllScramble;
   const out = {};
   cases.forEach((c) => {
     const random = Solver.rng(hash(seed + ':' + set + ':' + c.name));
@@ -132,7 +151,7 @@ function main(argv) {
     if (m) options[m[1]] = parseInt(m[2], 10);
     else if (B.SETS.includes(arg)) sets.push(arg);
     else {
-      console.error('使い方: node tools/gen-scrambles.js [pll] [oll] [--seed=数] [--count=本数]');
+      console.error('使い方: node tools/gen-scrambles.js [pll] [oll] [coll] [--seed=数] [--count=本数]');
       process.exit(1);
     }
   }

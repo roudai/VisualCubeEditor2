@@ -11,7 +11,10 @@
  *   displaySettings(set)            エディタで保存した設定から、画像の配色・線の色・背景・サイズを決める
  *                                     PLL：保存した配色（OLL 配色のときは OLL を選ぶ前の配色、無ければ Standard）
  *                                     OLL：保存した U の色だけを残した OLL 配色
- *   caseColors(c, scheme)           solve case（alg の逆手順を適用、持ち替えは打ち消す）の状態の画像の色
+ *                                     COLL：PLL と同じ配色（側面のエッジのステッカーは caseColors でグレーにする）
+ *   caseColors(c, scheme, set)      solve case（alg の逆手順を適用、持ち替えは打ち消す）の状態の画像の色
+ *                                     set が 'coll' なら、側面のエッジのステッカー（scolor の 3i+1）を OLL_GRAY にする
+ *                                     （sr-visualizer の coll マスクと同じ見た目。COLL はエッジの位置を揃えないため）
  *   addLog(log, entry, max)         練習の記録（日時付き）の配列に足した新しい配列（新しい順、最大 max 件。既定 2000）
  *                                     entry = { at: 日時(ms), set, name, sec(null=解けなかった), status, hint }
  *   summarize(log, { set, from })   期間（from 以降。無ければすべて）の集計 { count, solved, dnf, avg, best }
@@ -98,9 +101,11 @@
     return Object.assign(common, { scheme: scheme });
   }
 
-  function caseColors(c, scheme) {
+  function caseColors(c, scheme, set) {
     const state = M.applyAlg(c.alg, { inverse: true, cancelRotation: true });
-    return M.toImageColors(state, scheme);
+    const colors = M.toImageColors(state, scheme);
+    if (set === 'coll') colors.scolor = colors.scolor.map((x, i) => (i % 3 === 1 ? M.OLL_GRAY : x));
+    return colors;
   }
 
   // ---- 練習の記録（日時付き） ----
