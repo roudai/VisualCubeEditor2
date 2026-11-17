@@ -1,0 +1,408 @@
+// 一覧ページ（pll.html / oll.html）：全ケースの画像と手順をグループごとに並べる。
+// <body data-set="pll|oll"> の種類のデータ（pll-data.js / oll-data.js）とグループ名（pll-groups.js / oll-groups.js）を使い、
+// 画像は cube-draw.js で描く（上面図）。仕様: reference/PLL_SPEC.md・reference/OLL_SPEC.md「一覧ページ」
+//   - 画像は solve case（alg の逆手順を適用し、手順中の持ち替えを打ち消す）の状態
+//   - Cube Color はエディタで保存した設定（localStorage）を使う。配色は
+//       PLL: 保存した配色。OLL 配色のときは OLL を選ぶ前の配色、それも無いときは Standard
+//       OLL: 保存した U の色だけを残した OLL 配色（他の面はグレー #404040）
+//   - ケースをクリックすると、そのケースを選んだ状態でエディタ（index.html?pll=… / ?oll=…）を開く
+//   - 覚えた度：各カード右上のバッジをタップで 未着手 → 練習中 → 覚えた と切り替え、localStorage に保存する。
+//     上部に進み具合（積み上げバー・件数）と絞り込みチップ、グループ見出しに「覚えた数 / 全体」を出す
+//   - 覚える順（<set>/learn_order.json）のデータがあるときだけ「グループ順 / 覚える順」を切り替えられる
+//     （今の 3x3 のデータには無いので出ない。区切りは case-sections.js。選んだ並びは 'list-filter' の <set>Order）
+//   - 上のグループ（覚える順なら段階）のボタンは、押すとそのグループだけを表示する（複数選べる。もう一度押すと外す。
+//     1つも選んでいなければすべて。「選択を解除」で戻す）。選んだものは 'list-filter' の <set>Groups（覚える順は <set>Stages）に保存
+//   - エディタで保存した自分の手順があれば、そのケースはその手順（と画像）で表示し、名前の横に「custom」を付ける
+//   - ZIP でダウンロード（Download ZIP）：全ケースを一覧と同じ配色で PNG にし、zip（visualcube-<pll|oll>.zip）にまとめる。
+//     画像サイズ・Cube Color・背景はエディタで保存した設定（zip-store.js で無圧縮の zip を作る）
+(function () {
+  'use strict';
+  const D = window.CubeDraw;
+  const $ = (id) => document.getElementById(id);
+  const I = window.I18N; // 日本語・英語の切り替え（i18n.js）
+
+  const SET = document.body.dataset.set;
+  const BASE = { pll: window.PLL_DATA, oll: window.OLL_DATA }[SET] || [];
+  // 自分の手順（エディタの My algorithm で保存したもの）を重ねる。手順・画像・一括ダウンロードはこちらを使う
+  const DATA = window.CustomAlgs ? window.CustomAlgs.merged(SET, BASE) : BASE;
+  const NOTES = (window.CASE_GROUP_NOTES || {})[SET] || {};
+  const IMAGE_SIZE = 120; // 表示サイズ（px）
+
+  const P = window.Progress; // 覚えた度・画像の色（progress.js。練習ページと共通）
+  // エディタで保存した設定から、画像の配色・線の色・背景・サイズを決める
+  const savedSettings = () => P.displaySettings(SET);
+
+  const groupLabel = (g) => (NOTES[g] ? `${g} (${NOTES[g]})` : g);
+  const el = (tag, className, text) => {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text != null) e.textContent = text;
+    return e;
+  };
+
+  // solve case（alg の逆手順を適用、持ち替えは打ち消す）の状態の画像の色
+  const caseColors = (c, settings) => P.caseColors(c, settings.scheme);
+
+  // ---- 覚えた度 ----
+  // { pll: { 'Aa': 'learning', ... }, oll: { ... } }。未着手（new）は保存しない
+  // 保存は store.js 経由（ログイン中はクラウドにも）
+  const FILTER_KEY = 'list-filter';
+  const STATUSES = P.STATUSES;
+  // 表示名（保存する値は new / learning / learned のまま）
+  const statusLabel = (status) => I.t('status.' + status);
+
+  const readJSON = (name) => {
+    const value = window.Store.get(name);
+    return value && typeof value === 'object' ? value : {};
+  };
+  const writeJSON = (name, value) => window.Store.set(name, value);
+
+  // 表示中は覚えた度を手元に持っておき（件数を数えるたびに読み直さないように）、変えるときは progress.js で保存する
+  let progress = P.statuses(SET);
+  const statusOf = (c) => (STATUSES.includes(progress[c.name]) ? progress[c.name] : 'new');
+  function setStatus(c, status) {
+    P.setStatus(SET, c.name, status);
+    progress = P.statuses(SET);
+  }
+
+  const ICONS =
+    // 練習中：進捗リング（薄い円の上に 3/4 の弧）
+    '<svg class="icon-learning" viewBox="0 0 16 16" aria-hidden="true">' +
+    '<circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2" opacity=".28"/>' +
+    '<path d="M8 3a5 5 0 1 1-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+    // 覚えた：チェック
+    '<svg class="icon-learned" viewBox="0 0 16 16" aria-hidden="true" style="position:absolute">' +
+    '<path d="M3.5 8.5l3 3 6-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function caseCard(c, settings) {
+    const col = el('div', 'col');
+    col.dataset.name = c.name;
+    const card = el('div', 'card h-100 case-card');
+    const link = el('a', 'case-link d-block h-100');
+    link.href = `index.html?${SET}=${encodeURIComponent(c.name)}`;
+    I.set(link, 'list.openTitle', { name: c.name }, 'title');
+
+    const image = el('div', 'case-image mx-auto mt-2');
+    const colors = caseColors(c, settings);
+    D.draw(image, colors.ucolor, colors.scolor, { size: IMAGE_SIZE, border: settings.border });
+
+    const body = el('div', 'card-body p-2 text-center');
+    const name = el('div', 'fw-bold', c.name);
+    if (c.custom) {
+      const tag = el('span', 'custom-tag');
+      I.set(tag, 'list.customTag');
+      I.set(tag, 'list.customTitle', null, 'title');
+      name.append(tag);
+    }
+    body.append(name, el('div', 'small font-monospace text-break', c.alg));
+    link.append(image, body);
+
+    const badge = el('button', 'status-badge');
+    badge.type = 'button';
+    badge.innerHTML = ICONS;
+    const show = (status) => {
+      card.dataset.status = status;
+      badge.dataset.status = status;
+      col.dataset.status = status;
+      badge.title = I.t('status.badgeTitle', { status: statusLabel(status) });
+      badge.setAttribute('aria-label', I.t('status.badgeAria', { name: c.name, status: statusLabel(status) }));
+    };
+    show(statusOf(c));
+    badge.addEventListener('relabel', () => show(statusOf(c)));
+    badge.addEventListener('click', () => {
+      const next = STATUSES[(STATUSES.indexOf(statusOf(c)) + 1) % STATUSES.length];
+      setStatus(c, next);
+      show(next);
+      badge.classList.remove('pop');
+      void badge.offsetWidth; // アニメーションをやり直す
+      badge.classList.add('pop');
+      updateSummary();
+    });
+
+    card.append(link, badge);
+    col.append(card);
+    return col;
+  }
+
+  // ---- 並び（グループ順 / 覚える順）----
+  const CS = window.CaseSections;
+  const HAS_STAGES = CS.hasStages(DATA);
+  let byStage = false;
+  let sections = []; // 今の並びの区切り（CaseSections.list）
+
+  // ---- 表示するグループ（覚える順なら段階）の選択 ----
+  let chosen = new Set(); // 区切りの key。空ならすべて
+  const chosenKey = () => SET + (byStage ? 'Stages' : 'Groups');
+  const loadChosen = () => {
+    const list = readJSON(FILTER_KEY)[chosenKey()];
+    const keys = new Set(sections.map((s) => s.key));
+    chosen = new Set(Array.isArray(list) ? list.filter((k) => keys.has(k)) : []);
+  };
+  function setChosen(next) {
+    chosen = next;
+    // 並びの順で保存する
+    writeJSON(FILTER_KEY, Object.assign(readJSON(FILTER_KEY), { [chosenKey()]: sections.map((s) => s.key).filter((k) => chosen.has(k)) }));
+    applyFilter();
+  }
+
+  // ---- 進み具合・絞り込み ----
+  let filter = 'all';
+  const counts = (list) => {
+    const n = { all: list.length, new: 0, learning: 0, learned: 0 };
+    list.forEach((c) => n[statusOf(c)]++);
+    return n;
+  };
+
+  function buildSummary() {
+    const box = $('progressBox');
+    box.className = 'progress-summary mb-3';
+    box.innerHTML = '';
+    if (HAS_STAGES) {
+      const sw = el('div', 'scope-switch mb-2');
+      sw.setAttribute('role', 'group');
+      I.set(sw, 'list.orderAria', null, 'aria-label');
+      [
+        { value: false, label: 'list.orderGroup', title: 'list.orderGroupTitle' },
+        { value: true, label: 'list.orderLearn', title: 'list.orderLearnTitle' },
+      ].forEach((o) => {
+        const b = el('button', 'scope-option');
+        b.type = 'button';
+        b.dataset.order = String(o.value);
+        I.set(b, o.label);
+        I.set(b, o.title, null, 'title');
+        b.addEventListener('click', () => {
+          if (byStage === o.value) return;
+          byStage = o.value;
+          writeJSON(FILTER_KEY, Object.assign(readJSON(FILTER_KEY), { [SET + 'Order']: byStage ? 'learn' : 'group' }));
+          buildSections();
+          loadChosen();
+          updateSummary();
+          applyFilter();
+        });
+        sw.append(b);
+      });
+      box.append(' ', sw);
+    }
+    const bar = el('div', 'progress-stacked mb-1');
+    I.set(bar, 'list.progressAria', null, 'aria-label');
+    ['learned', 'learning'].forEach((s) => {
+      const seg = el('div', 'progress');
+      seg.setAttribute('role', 'progressbar');
+      seg.dataset.segment = s;
+      seg.append(el('div', `progress-bar bar-${s}`));
+      bar.append(seg);
+    });
+    const legend = el('div', 'small text-muted mb-2');
+    legend.id = 'progressLegend';
+    const chips = el('div', 'filter-chips d-flex flex-wrap gap-1');
+    chips.setAttribute('role', 'group');
+    I.set(chips, 'list.filterAria', null, 'aria-label');
+    ['all'].concat(STATUSES).forEach((f) => {
+      const b = el('button', 'btn btn-sm btn-outline-secondary');
+      b.type = 'button';
+      b.dataset.filter = f;
+      const label = el('span');
+      I.set(label, f === 'all' ? 'list.filterAll' : 'status.' + f);
+      b.append(label, el('span', 'chip-count'));
+      b.addEventListener('click', () => {
+        filter = f;
+        writeJSON(FILTER_KEY, Object.assign(readJSON(FILTER_KEY), { [SET]: f }));
+        applyFilter();
+      });
+      chips.append(b);
+    });
+    box.append(bar, legend, chips);
+  }
+
+  // 件数・バー・グループの「覚えた数 / 全体」を今の状態に合わせる（絞り込みはやり直さない。
+  // 絞り込み中に状態を変えたカードがすぐ消えると落ち着かないので、チップを押したときに反映する）
+  function updateSummary() {
+    const n = counts(DATA);
+    ['learned', 'learning'].forEach((s) => {
+      const seg = document.querySelector(`#progressBox [data-segment="${s}"]`);
+      const pct = n.all ? (n[s] / n.all) * 100 : 0;
+      seg.style.width = pct + '%';
+      seg.setAttribute('aria-valuenow', String(n[s]));
+      seg.setAttribute('aria-valuemin', '0');
+      seg.setAttribute('aria-valuemax', String(n.all));
+      seg.setAttribute('aria-label', `${statusLabel(s)}: ${n[s]}`);
+    });
+    const legend = $('progressLegend');
+    legend.innerHTML = '';
+    STATUSES.slice().reverse().forEach((s, i) => {
+      if (i) legend.append(document.createTextNode('  ·  '));
+      legend.append(el('span', `legend-dot ${s}`), document.createTextNode(I.t('status.legend.' + s, { n: n[s] })));
+    });
+    document.querySelectorAll('#progressBox [data-filter]').forEach((b) => {
+      b.querySelector('.chip-count').textContent = n[b.dataset.filter];
+    });
+    sections.forEach((s) => {
+      const list = s.cases;
+      const learned = list.filter((c) => statusOf(c) === 'learned').length;
+      const label = document.querySelector(`#group-${CSS.escape(s.key)} .group-count`);
+      label.textContent = `${learned}/${list.length}`;
+      label.classList.toggle('complete', learned === list.length);
+      document.querySelector(`#groupNav [data-group="${CSS.escape(s.key)}"]`).classList.toggle('group-nav-complete', learned === list.length);
+    });
+  }
+
+  // 選んだ状態のカードだけを表示し、1枚も無いグループは見出しごと隠す
+  function applyFilter() {
+    document.querySelectorAll('#progressBox [data-order]').forEach((b) => {
+      const on = b.dataset.order === String(byStage);
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    document.querySelectorAll('#groupNav [data-group]').forEach((b) => {
+      const on = chosen.has(b.dataset.group);
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    $('groupClear').disabled = !chosen.size;
+    const total = DATA.length;
+    I.set($('caseCount'), 'list.count', { n: total });
+    // 今の絞り込みのまま練習ページを開くボタン
+    const practice = $('practiceLink');
+    if (practice) {
+      const q = new URLSearchParams({ set: SET, filter: filter });
+      // 選んだグループ（覚える順なら段階の番号）も渡す。空ならすべて
+      if (HAS_STAGES) q.set('order', byStage ? 'learn' : 'group');
+      const picked = sections.filter((s) => chosen.has(s.key));
+      q.set('groups', picked.map((s) => (byStage ? s.stage : s.key)).join(','));
+      practice.href = 'practice.html?' + q.toString();
+    }
+    const zip = $('downloadZip');
+    if (!zip.disabled) {
+      I.set(zip, 'list.download');
+    }
+    zip.title = I.t('list.downloadTitle', { n: total });
+    document.querySelectorAll('#progressBox [data-filter]').forEach((b) => {
+      const on = b.dataset.filter === filter;
+      b.classList.toggle('btn-secondary', on);
+      b.classList.toggle('btn-outline-secondary', !on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    document.querySelectorAll('#caseList section').forEach((section) => {
+      let visible = 0;
+      section.querySelectorAll('.col[data-name]').forEach((col) => {
+        const show = filter === 'all' || col.dataset.status === filter;
+        col.hidden = !show;
+        if (show) visible++;
+      });
+      const g = section.dataset.group;
+      section.hidden = visible === 0 || (chosen.size > 0 && !chosen.has(g));
+      // ボタンは選んでいれば（外せるように）カードが無くても出す
+      document.querySelector(`#groupNav [data-group="${CSS.escape(g)}"]`).hidden = visible === 0 && !chosen.has(g);
+    });
+    $('emptyMessage').hidden = !!document.querySelector('#caseList section:not([hidden])');
+  }
+
+  // カードは1回だけ作り、並びを変えたら見出しの下に入れ直す（画像を描き直さない）
+  const CARDS = {};
+
+  // 見出し（グループ：「Edges only (EPLL)」、段階：「2. …」）
+  const sectionTitle = (s) => (s.stage ? `${s.stage}. ${s.label}` : groupLabel(s.key));
+
+  // 今の並びで、ジャンプのボタンと見出しごとのカードを作り直す
+  function buildSections() {
+    sections = CS.list(DATA, byStage);
+    const nav = $('groupNav');
+    nav.replaceChildren();
+    sections.forEach((s) => {
+      const b = el('button', 'btn btn-outline-secondary btn-sm group-nav-btn', s.label);
+      b.type = 'button';
+      b.dataset.group = s.key;
+      b.title = sectionTitle(s);
+      b.addEventListener('click', () => {
+        const next = new Set(chosen);
+        if (next.has(s.key)) next.delete(s.key);
+        else next.add(s.key);
+        setChosen(next);
+      });
+      nav.append(b);
+    });
+
+    const list = $('caseList');
+    list.querySelectorAll('section').forEach((section) => section.remove());
+    const empty = $('emptyMessage');
+    sections.forEach((s) => {
+      const section = el('section', 'mb-4');
+      section.id = 'group-' + s.key;
+      section.dataset.group = s.key;
+      const heading = el('h2', 'h5 border-bottom pb-1 d-flex justify-content-between align-items-baseline', sectionTitle(s));
+      heading.append(el('span', 'group-count'));
+      section.append(heading);
+      const row = el('div', 'row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2');
+      s.cases.forEach((c) => row.append(CARDS[c.name]));
+      section.append(row);
+      list.insertBefore(section, empty);
+    });
+  }
+
+  function render() {
+    const settings = savedSettings();
+    DATA.forEach((c) => {
+      CARDS[c.name] = caseCard(c, settings);
+    });
+    // グループのボタンの下：「選択を解除」
+    const foot = el('div', 'group-nav-foot d-flex align-items-center gap-2 mb-3');
+    const clear = el('button', 'btn btn-link btn-sm p-0');
+    clear.type = 'button';
+    clear.id = 'groupClear';
+    I.set(clear, 'practice.groupsClear');
+    clear.addEventListener('click', () => setChosen(new Set()));
+    foot.append(clear);
+    $('groupNav').after(foot);
+
+    const list = $('caseList');
+    const empty = el('p', 'text-muted text-center py-5');
+    I.set(empty, 'list.empty');
+    empty.id = 'emptyMessage';
+    empty.hidden = true;
+    list.append(empty);
+
+    const savedFilter = readJSON(FILTER_KEY);
+    filter = ['all'].concat(STATUSES).includes(savedFilter[SET]) ? savedFilter[SET] : 'all';
+    byStage = HAS_STAGES && savedFilter[SET + 'Order'] === 'learn';
+    buildSections();
+    loadChosen();
+    buildSummary();
+    updateSummary();
+    applyFilter();
+  }
+
+  // 全ケースを PNG にして zip にまとめ、ダウンロードする。ファイル名は <pll|oll>-<名前>.png
+  async function downloadAll(button) {
+    button.disabled = true;
+    try {
+      const settings = savedSettings(); // ダウンロードの時点の設定を読み直す
+      const list = DATA;
+      const files = [];
+      for (let i = 0; i < list.length; i++) {
+        const c = list[i];
+        button.textContent = I.t('list.creating', { i: i + 1, n: list.length });
+        const colors = caseColors(c, settings);
+        const blob = await D.pngBlob(colors.ucolor, colors.scolor, { size: settings.size, border: settings.border, background: settings.background });
+        files.push({ name: `${SET}-${c.name}.png`, data: new Uint8Array(await blob.arrayBuffer()) });
+      }
+      const zip = new Blob([window.ZipStore.create(files)], { type: 'application/zip' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zip);
+      link.download = `visualcube-${SET}.zip`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+    } finally {
+      button.disabled = false;
+      applyFilter(); // ボタンの文を（今の言語で）戻す
+    }
+  }
+
+  render();
+  // 言語を切り替えたら、その場で作る文（件数・バッジの説明など）を作り直す
+  I.onChange(() => {
+    document.querySelectorAll('.status-badge').forEach((b) => b.dispatchEvent(new CustomEvent('relabel')));
+    updateSummary();
+    applyFilter();
+  });
+  $('downloadZip').addEventListener('click', (e) => downloadAll(e.currentTarget));
+})();

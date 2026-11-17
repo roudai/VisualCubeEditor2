@@ -1,0 +1,221 @@
+/* 一覧ページ（pll.html / oll.html）の見た目。処理は js/cases.js */
+:root {
+  --status-learning: #f0ad00;
+  --status-learning-soft: rgba(240, 173, 0, .55);
+  --status-learned: #198754;
+  --status-learned-soft: rgba(25, 135, 84, .45);
+  --status-new: #ced4da;
+}
+
+/* ---- カード ---- */
+.case-card {
+  position: relative;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.case-card:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+}
+.case-card[data-status="learning"] {
+  border-color: var(--status-learning-soft);
+}
+.case-card[data-status="learned"] {
+  border-color: var(--status-learned-soft);
+  background-color: rgba(25, 135, 84, .04);
+}
+.case-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 自分の手順のケースの印 */
+.custom-tag {
+  margin-left: .35rem;
+  padding: .05rem .4rem;
+  border-radius: 50rem;
+  background-color: rgba(13, 110, 253, .1);
+  color: #0a58ca;
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  vertical-align: 2px;
+}
+
+/* ---- 右上の覚えた度バッジ（タップで 未着手 → 練習中 → 覚えた） ---- */
+.status-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  width: 32px; /* 押せる範囲。見た目の丸は ::before */
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.status-badge::before {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--status-new);
+  background: #fff;
+  transition: background-color .2s ease, border-color .2s ease, transform .2s ease;
+}
+.status-badge:hover::before {
+  border-color: #adb5bd;
+  transform: scale(1.08);
+}
+.status-badge:focus-visible {
+  outline: none;
+}
+.status-badge:focus-visible::before {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.status-badge svg {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.status-badge[data-status="learning"]::before {
+  background: var(--status-learning);
+  border-color: var(--status-learning);
+}
+.status-badge[data-status="learned"]::before {
+  background: var(--status-learned);
+  border-color: var(--status-learned);
+}
+.status-badge[data-status="learning"] .icon-learning,
+.status-badge[data-status="learned"] .icon-learned {
+  opacity: 1;
+}
+.status-badge .icon-learning {
+  color: #5c4300;
+}
+.status-badge .icon-learned {
+  color: #fff;
+}
+.status-badge.pop::before {
+  animation: status-pop .28s ease;
+}
+@keyframes status-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-badge.pop::before { animation: none; }
+}
+
+/* ---- 上部の進み具合 ---- */
+.progress-summary .progress-stacked {
+  height: 8px;
+  background-color: #e9ecef;
+}
+.progress-summary .progress-bar {
+  transition: width .35s ease;
+}
+.progress-summary .bar-learned {
+  background-color: var(--status-learned);
+}
+.progress-summary .bar-learning {
+  background-color: var(--status-learning);
+}
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: .3rem;
+  vertical-align: 1px;
+}
+.legend-dot.learned { background: var(--status-learned); }
+.legend-dot.learning { background: var(--status-learning); }
+.legend-dot.new { background: var(--status-new); }
+
+/* 並びの切り替え（グループ順 / 覚える順。覚える順のデータがあるときだけ出る）：セグメント型 */
+.scope-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 50rem;
+  background-color: #eef0f3;
+}
+.scope-option {
+  border: 0;
+  border-radius: 50rem;
+  padding: .3rem .95rem;
+  background: transparent;
+  color: #495057;
+  font-size: .875rem;
+  font-weight: 500;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.scope-option:hover {
+  color: #212529;
+}
+.scope-option.active {
+  background-color: #fff;
+  color: #212529;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+}
+.scope-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.scope-count {
+  margin-left: .4rem;
+  font-size: .75rem;
+  opacity: .55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 絞り込みチップ */
+.filter-chips .btn {
+  border-radius: 50rem;
+  padding: .15rem .45rem;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.filter-chips .chip-count {
+  margin-left: .25rem;
+  opacity: .65;
+  font-variant-numeric: tabular-nums;
+}
+
+/* グループ見出しの「覚えた数 / 全体」 */
+.group-count {
+  font-size: .8rem;
+  font-weight: normal;
+  color: #6c757d;
+  font-variant-numeric: tabular-nums;
+}
+.group-count.complete {
+  color: var(--status-learned);
+}
+/* 全部覚えたグループのジャンプボタン */
+/* グループ（覚える順なら段階）のボタン：OLL の 14 個が PC の幅で1行に収まるよう小さめにする */
+.group-nav-btn {
+  margin: 0 .15rem .2rem 0;
+  padding: .15rem .35rem;
+  font-size: .78rem;
+}
+.group-nav-complete {
+  border-color: var(--status-learned-soft);
+  color: var(--status-learned);
+}
+
+/* ケースの画像（cube-draw.js が中に svg を入れる） */
+.case-image {
+  width: 120px;
+  height: 120px;
+}
+.case-image svg {
+  display: block;
+}
