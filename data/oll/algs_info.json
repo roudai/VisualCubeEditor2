@@ -4,7 +4,7 @@
     "group": "Dot",
     "algset": "OLL",
     "s": "F R' F' R U2 F R' F' R2 U2 R'",
-    "a": "R U2 R2 F R F' U2 R' F R F'"
+    "a": "R U'2 R'2 F R F' U2 R' F R F'"
   },
   "2": {
     "name": "2",
@@ -39,21 +39,21 @@
     "group": "Dot",
     "algset": "OLL",
     "s": "L F R' F' R L' U2 F R' F' R2 U2 R'",
-    "a": "R U2 R2 F R F' U2 M' U R U' Rw'"
+    "a": "R U'2 R'2 F R F' U2 M' U R U' Rw'"
   },
   "7": {
     "name": "19",
     "group": "Dot",
     "algset": "OLL",
     "s": "F R' F' R2 L' B R B' R' B' R' L",
-    "a": "Rw' R U R U R' U' Rw R2 F R F'"
+    "a": "Rw' R U R U R' U' Rw R'2 F R F'"
   },
   "8": {
     "name": "20",
     "group": "Dot",
     "algset": "OLL",
     "s": "L F R' F' R2 L2 B R B' R' B' R' L",
-    "a": "Rw' R U R U R' U' M2 U R U' Rw'"
+    "a": "Rw' R U R U R' U' M'2 U R U' Rw'"
   },
   "9": {
     "name": "5",
@@ -74,7 +74,7 @@
     "group": "Lightning",
     "algset": "OLL",
     "s": "L F2 R' F' R F' L'",
-    "a": "Rw U R' U R U2 Rw'"
+    "a": "Rw U R' U R U'2 Rw'"
   },
   "12": {
     "name": "8",
@@ -130,7 +130,7 @@
     "group": "Fish",
     "algset": "OLL",
     "s": "R U2 R' F R' F' R2 U2 R'",
-    "a": "R U2 R2 F R F' R U2 R'"
+    "a": "R U'2 R'2 F R F' R U'2 R'"
   },
   "20": {
     "name": "37",
@@ -144,7 +144,7 @@
     "group": "Knight",
     "algset": "OLL",
     "s": "R U R' U' R' F R2 U R' U' F'",
-    "a": "F U R U' R2 F' R U R U' R'"
+    "a": "F U R U' R'2 F' R U R U' R'"
   },
   "22": {
     "name": "14",
@@ -179,14 +179,14 @@
     "group": "OCLL",
     "algset": "OLL",
     "s": "R' U2 R2 U R2 U R2 U2 R'",
-    "a": "R U2 R2 U' R2 U' R2 U2 R"
+    "a": "R U'2 R'2 U' R2 U' R'2 U2 R"
   },
   "27": {
     "name": "23",
     "group": "OCLL",
     "algset": "OLL",
     "s": "R' U2 R' D' R U2 R' D R2",
-    "a": "R2 D' R U2 R' D R U2 R"
+    "a": "R'2 D' R U2 R' D R U2 R"
   },
   "28": {
     "name": "24",
@@ -235,7 +235,7 @@
     "group": "Awkward",
     "algset": "OLL",
     "s": "R L' U R' U' R' L2 F R F' L'",
-    "a": "Rw U R' U' x Rw2 R U R U' R' L"
+    "a": "Rw U R' U' x Rw'2 R U R U' R' L"
   },
   "35": {
     "name": "30",
@@ -249,7 +249,7 @@
     "group": "Awkward",
     "algset": "OLL",
     "s": "F U R U' R' F' R U2 R' U' R U' R'",
-    "a": "R U R' U R U2 R' F R U R' U' F'"
+    "a": "R U R' U R U2′ R' F R U R' U' F'"
   },
   "37": {
     "name": "42",
@@ -347,14 +347,14 @@
     "group": "L",
     "algset": "OLL",
     "s": "R' F R2 B' R2 F' R2 B R'",
-    "a": "R B' R2 F R2 B R2 F' R"
+    "a": "R B' R'2 F R2 B R'2 F' R"
   },
   "51": {
     "name": "50",
     "group": "L",
     "algset": "OLL",
     "s": "L F' L2 B L2 F L2 B' L",
-    "a": "Rw' U Rw2 U' Rw2 U' Rw2 U Rw'"
+    "a": "Rw' U Rw2 U' Rw'2 U' Rw2 U Rw'"
   },
   "52": {
     "name": "53",
@@ -368,7 +368,7 @@
     "group": "L",
     "algset": "OLL",
     "s": "L F2 R' F' R F R' F' R F' L'",
-    "a": "Rw U R' U R U' R' U R U2 Rw'"
+    "a": "Rw U R' U R U' R' U R U'2 Rw'"
   },
   "54": {
     "name": "51",

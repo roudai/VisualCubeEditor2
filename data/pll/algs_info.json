@@ -25,7 +25,7 @@
     "group": "Edges only",
     "algset": "PLL",
     "s": "R U R2 U' R' U' R U R' U' R' U R' U R U2",
-    "a": "M' U M2 U M2 U M' U2 M2 U'"
+    "a": "M' U M'2 U M'2 U M' U2 M'2 U'"
   },
   "5": {
     "name": "Aa",
@@ -81,14 +81,14 @@
     "group": "Adjacent swap",
     "algset": "PLL",
     "s": "U R2 F R U R U' R' F' R U2 R' U2 R",
-    "a": "R' U2 R U2 R' F R U R' U' R' F' R2 U'"
+    "a": "R' U2 R U'2 R' F R U R' U' R' F' R2 U'"
   },
   "13": {
     "name": "Rb",
     "group": "Adjacent swap",
     "algset": "PLL",
     "s": "U R U2 R D R' U R D' R' U' R' U R U R'",
-    "a": "R U' R' U' R U R D R' U' R D' R' U2 R' U'"
+    "a": "R U' R' U' R U R D R' U' R D' R' U'2 R' U'"
   },
   "14": {
     "name": "Y",
