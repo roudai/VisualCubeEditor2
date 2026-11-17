@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const M = require('../js/cube-state.js');
 const C = require('../js/case-check.js');
+const CS = require('../js/case-sections.js');
 const OLL = require('../js/oll-data.js');
 const SRC = require('../data/oll/algs_info.json');
 const NOTES = require('../js/oll-groups.js');
@@ -245,8 +246,8 @@ test('js/oll-data.js が最新（生成し直しても変わらない）', () =>
   assert.equal(fs.readFileSync(OUT, 'utf8'), build());
 });
 
-test('生成データの項目は name・group・alg・setup だけ', () => {
-  OLL.forEach((c) => assert.deepEqual(Object.keys(c), ['name', 'group', 'alg', 'setup']));
+test('生成データの項目は name・group・stage・order・alg・setup だけ', () => {
+  OLL.forEach((c) => assert.deepEqual(Object.keys(c), ['name', 'group', 'stage', 'order', 'alg', 'setup']));
 });
 
 test('setup はセンターを動かさない素の面回しだけ（ワイド・中層・持ち替えを含まない）', () => {
@@ -317,4 +318,33 @@ test('roudai.net のほかの手順（SITE_ALGS）でも同じ番号のケース
       assert.equal(found && found.name, n, alg);
     })
   );
+});
+
+// ---- 覚える順（data/oll/learn_order.json）----
+// Cube Voyage「OLLを覚える順番」（https://cubevoyage.net/how-to-solve/advanced/ollsequence/）の段階を写したもの。段階の中の並びも出典の番号の順。名前は出典のカテゴリの記号 A〜M
+const STAGES = [
+  ['21', '22', '23', '24', '25', '26', '27'], // A. すでに覚えているもの
+  ['2', '43', '44', '45'], // B. 実はすでに覚えているもの
+  ['1', '31', '32', '33'], // C. B と上面が同じもの
+  ['37', '46'], // D. 手数が短いもの
+  ['34', '35'], // E. D と上面が同じもの
+  ['5', '6', '7', '8', '11', '12'], // F. 26・27 に手順が似ているものと、それらと上面が同じもの
+  ['20', '28', '57'], // G. コーナーが全て揃っているもの
+  ['3', '4', '17', '18', '19'], // H. エッジが1個も揃っていないもの（残り）
+  ['9', '10', '36', '38', '39', '40'], // I. 左右対称以外に上面が同じパターンがないもの
+  ['13', '14', '15', '16'], // J. 大きい L 型
+  ['47', '48', '49', '50', '53', '54'], // K. 小さい L 型
+  ['51', '52', '55', '56'], // L. 棒型
+  ['29', '30', '41', '42'], // M. 変な形のもの
+];
+
+test('覚える順：Cube Voyage の 13 段階どおりで、全ケースがちょうど1回ずつ（stage・order はその順）', () => {
+  const sorted = OLL.slice().sort((a, b) => a.order - b.order);
+  assert.deepEqual(sorted.map((c) => c.order), OLL.map((_, i) => i + 1));
+  const stages = [];
+  sorted.forEach((c) => (stages[c.stage - 1] = (stages[c.stage - 1] || []).concat(c.name)));
+  assert.deepEqual(stages, STAGES);
+  assert.equal(new Set(stages.flat()).size, OLL.length);
+  // 段階の名前（一覧の見出し・練習のボタン）
+  assert.deepEqual(CS.list(OLL, true).map((s) => s.label), ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']);
 });

@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const CS = require('../js/case-sections.js');
 
-// 覚える順番の無いデータ（3x3 の PLL・OLL はこの形）
+// 覚える順番の無いデータ（グループだけ）
 const GROUPED = [
   { name: 'Ua', group: 'Edges only' },
   { name: 'Ub', group: 'Edges only' },
@@ -12,7 +12,7 @@ const GROUPED = [
   { name: 'T', group: 'Adjacent swap' },
   { name: 'Ab', group: 'Corners only' }, // 離れていても同じグループにまとめる
 ];
-// 覚える順番のあるデータ（data/pll/learn_order.json を置いた場合の形）
+// 覚える順番のあるデータ（Megaminx の名前の形）
 const STAGED = [
   { name: 'F1+', group: 'F', stage: 2, order: 3 },
   { name: 'F1-', group: 'F', stage: 2, order: 4 },

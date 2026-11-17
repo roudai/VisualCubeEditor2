@@ -13,6 +13,7 @@ const C = require('../js/case-check.js');
 const PLL = require('../js/pll-data.js');
 const SRC = require('../data/pll/algs_info.json');
 const NOTES = require('../js/pll-groups.js');
+const CS = require('../js/case-sections.js');
 const { build, cases, check, OUT } = require('../tools/build-pll-data.js');
 
 const SOLVED = M.solved();
@@ -178,10 +179,10 @@ test('グループの説明（js/pll-groups.js）が全グループにあり、�
   Object.values(NOTES).forEach((note) => assert.ok(typeof note === 'string' && note.length > 0));
 });
 
-test('js/pll-data.js が最新（生成し直しても変わらない）で、項目は name・group・alg・setup だけ', () => {
+test('js/pll-data.js が最新（生成し直しても変わらない）で、項目は name・group・stage・order・alg・setup だけ', () => {
   assert.equal(fs.readFileSync(OUT, 'utf8'), build());
   assert.deepEqual(PLL, cases());
-  PLL.forEach((c) => assert.deepEqual(Object.keys(c), ['name', 'group', 'alg', 'setup']));
+  PLL.forEach((c) => assert.deepEqual(Object.keys(c), ['name', 'group', 'stage', 'order', 'alg', 'setup']));
   Object.values(SRC).forEach((c) => {
     assert.deepEqual(Object.keys(c), ['name', 'group', 'algset', 's', 'a']);
     assert.equal(c.algset, 'PLL');
@@ -331,4 +332,33 @@ test('逆の関係にある組: Ua⇔Ub、Aa⇔Ab、Ga⇔Gb、Gc⇔Gd は互い�
     const found = C.findCase('pll', c.setup.replace(/\s*\(U[0-9']*\)\s*$/, ''), PLL);
     assert.equal(found && found.name, inverse[c.name] || c.name, c.name);
   });
+});
+
+// ---- 覚える順（data/pll/learn_order.json）----
+// Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/advanced/pllsequence/）の段階を写したもの。段階の中の a・b は出典と名前の付け方が違うので、データの順（Ua → Ub など）
+const STAGES = [
+  ['Ua', 'Ub'],
+  ['T'],
+  ['Y'],
+  ['H'],
+  ['Z'],
+  ['Ja', 'Jb'],
+  ['Aa', 'Ab'],
+  ['F'],
+  ['V'],
+  ['Ra', 'Rb'],
+  ['E'],
+  ['Ga', 'Gb', 'Gc', 'Gd'],
+  ['Na', 'Nb'],
+];
+
+test('覚える順：Cube Voyage の 13 段階どおりで、全ケースがちょうど1回ずつ（stage・order はその順）', () => {
+  const sorted = PLL.slice().sort((a, b) => a.order - b.order);
+  assert.deepEqual(sorted.map((c) => c.order), PLL.map((_, i) => i + 1));
+  const stages = [];
+  sorted.forEach((c) => (stages[c.stage - 1] = (stages[c.stage - 1] || []).concat(c.name)));
+  assert.deepEqual(stages, STAGES);
+  assert.equal(new Set(stages.flat()).size, PLL.length);
+  // 段階の名前（一覧の見出し・練習のボタン）
+  assert.deepEqual(CS.list(PLL, true).map((s) => s.label), ['U', 'T', 'Y', 'H', 'Z', 'J', 'A', 'F', 'V', 'R', 'E', 'G', 'N']);
 });
