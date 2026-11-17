@@ -189,6 +189,39 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* すべて未習得に戻す（目立たせない。押すと確認のバーを出す） */
+.reset-progress {
+  color: #6c757d;
+  font-size: .78rem;
+  text-decoration: none;
+}
+.reset-progress:hover,
+.reset-progress:focus-visible {
+  color: #dc3545;
+}
+.reset-progress:disabled {
+  visibility: hidden;
+}
+.reset-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .5rem;
+  font-size: .82rem;
+}
+.reset-bar[hidden] {
+  display: none;
+}
+.reset-confirm {
+  color: #b02a37;
+  font-weight: 500;
+}
+.reset-bar .btn-link {
+  font-size: .82rem;
+  text-decoration: none;
+}
+
 /* グループ見出しの「覚えた数 / 全体」 */
 .group-count {
   font-size: .8rem;

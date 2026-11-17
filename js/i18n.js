@@ -10,6 +10,7 @@
  *   I18N.onChange(fn)            言語を変えたときに呼ぶ関数を登録する（件数など毎回作る文の作り直し用）
  *   I18N.error(message)          cube-state.js の解析エラー（英語）を訳す
  *
+ * 英語で数によって形が変わる文は { one: '{n} case', other: '{n} cases' } のように書き、params.n が 1 なら one を使う。
  * HTML では <span data-i18n="key">English</span> のように書く（属性は data-i18n-title / -placeholder / -aria-label）。
  * エディタ（index.html）の Vue の中（#app）は Vue が描き直すので data-i18n を使わず、{{ t('key') }} と書く
  * （js/main.js の t。言語を切り替えると I18N.onChange で描き直す）。
@@ -123,6 +124,12 @@
       'list.openTitle': 'Open {name} in the editor',
       'list.customTag': 'custom',
       'list.customTitle': 'Your own algorithm (saved in the editor)',
+      'list.resetAll': 'Reset all progress',
+      'list.resetAllTitle': 'Set every {set} case back to To learn',
+      'list.resetConfirm': 'Reset all {set} progress? This clears {learned} learned and {learning} learning.',
+      'list.resetYes': 'Reset',
+      'list.resetDone': { one: 'Reset {n} case to To learn.', other: 'Reset {n} cases to To learn.' },
+      'list.resetRestored': { one: 'Restored {n} case.', other: 'Restored {n} cases.' },
       'status.new': 'To learn',
       'status.learning': 'Learning',
       'status.learned': 'Learned',
@@ -353,6 +360,12 @@
       'list.openTitle': '{name} をエディタで開く',
       'list.customTag': 'カスタム',
       'list.customTitle': '自分の手順（エディタで保存したもの）',
+      'list.resetAll': 'すべて未習得に戻す',
+      'list.resetAllTitle': '{set} のすべてのケースを未習得に戻す',
+      'list.resetConfirm': '{set} のすべてのケースを未習得に戻しますか？（習得済み {learned}・練習中 {learning} が消えます）',
+      'list.resetYes': '未習得に戻す',
+      'list.resetDone': '{n} ケースを未習得に戻しました。',
+      'list.resetRestored': '{n} ケースを元に戻しました。',
       'status.new': '未習得',
       'status.learning': '練習中',
       'status.learned': '習得済み',
@@ -495,7 +508,9 @@
   const listeners = [];
 
   function t(key, params) {
-    const text = (DICT[lang] && DICT[lang][key]) || DICT.en[key] || key;
+    let text = (DICT[lang] && DICT[lang][key]) || DICT.en[key] || key;
+    // 単数・複数（英語の「1 case / 2 cases」）
+    if (typeof text === 'object') text = params && Number(params.n) === 1 ? text.one : text.other;
     return text.replace(/\{(\w+)\}/g, (m, name) => (params && params[name] != null ? String(params[name]) : m));
   }
 
