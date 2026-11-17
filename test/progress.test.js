@@ -117,6 +117,22 @@ test('summarize / perCase：種類・期間で絞って集計し、解けなか�
   });
 });
 
+test('recentPerCase：ケースごとの直近 n 回。解けなかった回は平均に入れず、score では dnfAs 秒として数える', () => {
+  const log = [
+    { at: 100, set: 'pll', name: 'Aa', sec: 20 }, // 直近 3 回から外れる
+    { at: 200, set: 'pll', name: 'Aa', sec: 6 },
+    { at: 400, set: 'pll', name: 'Aa', sec: 4 },
+    { at: 300, set: 'pll', name: 'Aa', sec: null },
+    { at: 250, set: 'pll', name: 'Jb', sec: null },
+    { at: 260, set: 'oll', name: 'Aa', sec: 1 }, // 種類が違う
+    { at: 50, set: 'pll', name: 'Z', sec: 3 }, // 期間外
+  ];
+  assert.deepEqual(P.recentPerCase(log, { set: 'pll', from: 60, n: 3, dnfAs: 16 }), {
+    Aa: { attempts: 3, avg: 5, dnf: 1, score: 26 / 3 },
+    Jb: { attempts: 1, avg: null, dnf: 1, score: 16 },
+  });
+});
+
 test('daily：直近の日ごとの回数と平均（練習していない日は 0）', () => {
   const now = new Date(2026, 10, 16, 15).getTime();
   const at = (d, h) => new Date(2026, 10, d, h).getTime();

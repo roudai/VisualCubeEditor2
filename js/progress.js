@@ -17,6 +17,9 @@
  *   summarize(log, { set, from })   期間（from 以降。無ければすべて）の集計 { count, solved, dnf, avg, best }
  *   daily(log, { set, days, now })  直近 days 日の日ごとの { day: 'YYYY-MM-DD', count, avg }（古い順。練習していない日も 0 で入る）
  *   perCase(log, { set, from })     ケースごとの { name: { count, solved, dnf, best, avg, last } }
+ *   recentPerCase(log, { set, from, n, dnfAs })
+ *                                   ケースごとの直近 n 回（既定 10）の { attempts, avg（解けた回の平均。無ければ null）, dnf, score }
+ *                                     score は苦手の度合い：解けなかった回を dnfAs 秒として数えた平均（記録のページの「苦手順」）
  *   通しの練習（WCA と同じ扱い）。rec = { at, sec, penalty: '' | '+2' | 'DNF' }
  *   effectiveTime(rec)              ペナルティを含めたタイム（+2 なら sec + 2、DNF なら null）
  *   average(recs, n)                直近 n 回（recs は新しい順）の WCA 式の平均：最速と最遅を除いた平均。
@@ -181,6 +184,30 @@
     return out;
   }
 
+  function recentPerCase(log, opts) {
+    const o = opts || {};
+    const n = o.n || 10;
+    const out = {};
+    pick(log, o)
+      .slice()
+      .sort((a, b) => b.at - a.at) // 新しい順
+      .forEach((e) => {
+        const list = out[e.name] || (out[e.name] = []);
+        if (list.length < n) list.push(typeof e.sec === 'number' ? e.sec : null);
+      });
+    Object.keys(out).forEach((name) => {
+      const list = out[name];
+      const times = list.filter((t) => t !== null);
+      out[name] = {
+        attempts: list.length,
+        avg: mean(times),
+        dnf: list.length - times.length,
+        score: mean(list.map((t) => (t === null ? o.dnfAs : t))),
+      };
+    });
+    return out;
+  }
+
   // ---- タイムの表示 ----
   function formatTime(sec, digits) {
     const d = digits == null ? 2 : digits;
@@ -257,6 +284,7 @@
     summarize: summarize,
     daily: daily,
     perCase: perCase,
+    recentPerCase: recentPerCase,
     dayKey: dayKey,
     statuses: statuses,
     statusOf: statusOf,

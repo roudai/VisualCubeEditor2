@@ -322,6 +322,26 @@
   color: #495057;
 }
 
+/* ケースごとの表の並び（苦手順 / グループ順 / 覚える順） */
+.stats-sort-bar {
+  margin: .25rem 0 .5rem;
+}
+.stats-sort-bar[hidden] {
+  display: none;
+}
+/* 最近（直近 10 回の平均）：解けなかった回の数を小さく添える。回数が少ないときは薄く */
+.stats-recent {
+  white-space: nowrap;
+}
+.stats-recent-dnf {
+  margin-left: .35rem;
+  color: #dc3545;
+  font-size: .72rem;
+}
+.stats-few {
+  opacity: .45;
+}
+
 /* 記録の一覧のページ送り */
 .stats-pager {
   display: flex;

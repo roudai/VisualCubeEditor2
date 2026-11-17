@@ -5,7 +5,8 @@
 // 仕様: reference/PRACTICE_SPEC.md「記録」
 //   - 種類（PLL / OLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
 //   - 集計（回数・平均・解けなかった・習得済みの数）、タイムの推移（横軸＝1回ごと、点＝タイム、線＝ao5・ao12）の SVG、
-//     ケースごとの表（既定は平均の遅い順。見出しで並べ替え。ケースを押すとそのケースを練習ページで出題）
+//     ケースごとの表（並び：苦手順（既定。直近 10 回の平均の遅い順）/ グループ順 / 覚える順（PLL）。見出しでも並べ替え。
+//     ケースを押すとそのケースを練習ページで出題）
 (function () {
   'use strict';
   const S = window.Store;
@@ -36,8 +37,10 @@
   const view = {
     set: ['pll', 'oll', 'full'].includes(saved.set) ? saved.set : ['oll', 'full'].includes(practice().set) ? practice().set : 'pll',
     period: Object.prototype.hasOwnProperty.call(PERIODS, saved.period) ? saved.period : '30',
-    sort: saved.sort || 'avg',
-    desc: saved.desc !== false,
+    // 並びの既定は苦手順。苦手順を足す前（sortV が無い）に保存した並び（平均の遅い順）は使わず、苦手順にする
+    sort: saved.sortV === 2 && saved.sort ? saved.sort : 'weak',
+    desc: saved.sortV === 2 ? saved.desc !== false : true,
+    sortV: 2,
     tab: saved.tab === 'solves' ? 'solves' : 'cases', // PLL・OLL の表：ケースごと / 記録の一覧
   };
   // 練習ページの「すべての記録を見る」から開いたとき（?set=oll など）は、その種類を出す（表示の設定として保存する）
@@ -355,33 +358,76 @@
     { key: 'name', label: 'stats.col.case' },
     { key: 'group', label: 'stats.col.group' },
     { key: 'status', label: 'stats.col.status' },
+    { key: 'weak', label: 'stats.col.recent', title: 'stats.recentTitle', num: true },
     { key: 'count', label: 'stats.col.count', num: true },
     { key: 'best', label: 'stats.col.best', num: true },
     { key: 'avg', label: 'stats.col.avg', num: true },
     { key: 'last', label: 'stats.col.last', num: true },
   ];
   const STATUS_ORDER = { new: 0, learning: 1, learned: 2 };
+  const RECENT = 10; // 苦手順で見る直近の回数
+  const FEW = 3; // これより少ない回数の「最近」は参考値として薄く出す
+  const PRIOR = 2; // 苦手順で、回数の少ないケースを全体の平均に寄せる強さ（全体の平均で PRIOR 回解いたものとして足す）
+  const hasStages = () => window.CaseSections && window.CaseSections.hasStages(DATA[view.set]);
 
   function rows(log) {
     const per = P.perCase(log, { from: from() });
+    // 苦手順：直近 RECENT 回の平均。解けなかった回は習得の目安の 2 倍のタイムとして数える
+    const threshold = practice().threshold > 0 ? practice().threshold : 8;
+    const recent = P.recentPerCase(log, { from: from(), n: RECENT, dnfAs: threshold * 2 });
+    const index = {};
+    const groupIndex = {}; // グループの並び（データに最初に出てくる順。3x3 のグループ名は A〜Z の順ではないので名前では並べない）
+    DATA[view.set].forEach((c, i) => {
+      index[c.name] = i;
+      if (!(c.group in groupIndex)) groupIndex[c.group] = Object.keys(groupIndex).length;
+    });
+    // 回数の少ないケースがたまたまの1回で上に来ないよう、並べるときは全体の平均に寄せる
+    // （そのケースの回数に、全体の平均のタイムで PRIOR 回を足した平均）。表に出すのは寄せる前の平均
+    const all = Object.values(recent);
+    const total = all.reduce((sum, x) => sum + x.attempts, 0);
+    const overall = total ? all.reduce((sum, x) => sum + x.score * x.attempts, 0) / total : 0;
+    const weakScore = (x) => (x ? (x.score * x.attempts + overall * PRIOR) / (x.attempts + PRIOR) : null);
     return casesInScope()
       .filter((c) => per[c.name])
-      .map((c) => Object.assign({ c: c, name: c.name, group: c.group, status: P.statusOf(view.set, c.name) }, per[c.name]));
+      .map((c) =>
+        Object.assign({ c: c, name: c.name, group: c.group, groupIndex: groupIndex[c.group], index: index[c.name], status: P.statusOf(view.set, c.name) }, per[c.name], {
+          recent: recent[c.name],
+          weak: weakScore(recent[c.name]),
+        })
+      );
   }
 
   function sortRows(list) {
-    const k = view.sort;
+    // 覚える順は PLL だけ（OLL で選ばれていたら苦手順）
+    const k = view.sort === 'learn' && !hasStages() ? 'weak' : view.sort;
     const dir = view.desc ? -1 : 1;
-    const val = (r) => (k === 'status' ? STATUS_ORDER[r.status] : r[k]);
+    const val = (r) => (k === 'status' ? STATUS_ORDER[r.status] : k === 'learn' ? r.c.order : k === 'group' ? r.groupIndex : r[k]);
     return list.sort((a, b) => {
       const x = val(a);
       const y = val(b);
-      if (x == null && y == null) return 0;
+      if (x == null && y == null) return a.index - b.index;
       if (x == null) return 1; // 値の無いもの（解けなかっただけ）は最後
       if (y == null) return -1;
-      if (typeof x === 'string') return dir * x.localeCompare(y, undefined, { numeric: true });
-      return dir * (x - y);
+      const d = typeof x === 'string' ? x.localeCompare(y, undefined, { numeric: true }) : x - y;
+      return d ? dir * d : a.index - b.index; // 同じ値なら元のデータの順（グループの中はケースの順）
     });
+  }
+
+  // 表の上の並びの切り替え：苦手順 / グループ順 / 覚える順（PLL だけ）
+  function renderSortBar() {
+    const box = $('statsSort');
+    const show = view.set !== 'full' && view.tab !== 'solves';
+    box.hidden = !show;
+    if (!show) return;
+    const items = [
+      { value: 'weak', key: 'stats.sortWeak' },
+      { value: 'group', key: 'list.orderGroup' },
+    ];
+    if (hasStages()) items.push({ value: 'learn', key: 'list.orderLearn' });
+    const current = view.sort === 'learn' && !hasStages() ? 'weak' : view.sort;
+    const seg = segment(items, current, (v) => change({ sort: v, desc: v === 'weak' }));
+    I.set(seg, 'list.orderAria', null, 'aria-label');
+    box.replaceChildren(seg);
   }
 
   function renderTable(log) {
@@ -393,6 +439,7 @@
         b.type = 'button';
         const label = el('span');
         I.set(label, col.label);
+        if (col.title) I.set(b, col.title, { n: RECENT }, 'title');
         b.append(label);
         if (view.sort === col.key) b.append(el('span', 'stats-sort-mark', view.desc ? ' ▼' : ' ▲'));
         b.addEventListener('click', () => change(view.sort === col.key ? { desc: !view.desc } : { sort: col.key, desc: col.num }));
@@ -425,12 +472,22 @@
         I.set(badge, 'status.' + r.status);
         statusTd.append(badge);
         const last = new Date(r.last);
+        // 最近：直近の平均（解けなかった回があれば「DNF n」も）。回数が少ないときは薄く出す
+        const recentTd = el('td', 'text-end stats-recent');
+        const rc = r.recent;
+        recentTd.append(el('span', 'fw-semibold', rc.avg == null ? 'DNF' : fmt(rc.avg)));
+        if (rc.dnf && rc.avg != null) recentTd.append(el('span', 'stats-recent-dnf', `DNF ${rc.dnf}`));
+        if (rc.attempts < FEW) {
+          recentTd.classList.add('stats-few');
+          I.set(recentTd, 'stats.fewTitle', { n: rc.attempts }, 'title');
+        }
         const cells = [
           el('td', 'text-muted', r.group),
           statusTd,
+          recentTd,
           el('td', 'text-end', r.dnf ? `${r.count} (${r.dnf} DNF)` : String(r.count)),
           el('td', 'text-end', fmt(r.best)),
-          el('td', 'text-end fw-semibold', fmt(r.avg)),
+          el('td', 'text-end', fmt(r.avg)),
           el('td', 'text-end text-muted', `${last.getMonth() + 1}/${last.getDate()}`),
         ];
         tr.append(imgTd, nameTd, ...cells);
@@ -837,6 +894,7 @@
   function render() {
     renderControls();
     renderTableTabs();
+    renderSortBar();
     const full = view.set === 'full';
     const solves = full || view.tab === 'solves';
     I.set($('statsTableTitle'), solves ? 'stats.solves' : 'stats.byCase');
