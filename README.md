@@ -39,6 +39,14 @@ does not, so links between pages return 404 there):
 node tools/serve.js 8000   # http://localhost:8000/
 ```
 
+To try the practice / stats pages with sample data, run the server with `--demo` (default port 8001, so the
+browser storage stays separate from your own). It fills in practice records, recent times and progress
+(`tools/demo-data.js`), disables sign-in, and shows a badge with a reset link (`/__demo/reset`):
+
+```sh
+node tools/serve.js --demo  # http://localhost:8001/stats
+```
+
 Tests (Node.js built-in test runner; checked with Node.js 24):
 
 ```sh
