@@ -114,6 +114,13 @@ test('prepare：次の 1 本を先に作っておき、cube3() がそれを返�
     setTimeout(resolve, 200);
   });
   assert.equal(W.hasNext(), true);
+  // 作成の予約中に渡した callback も捨てずに呼ぶ（2 回とも呼ばれる）
+  assert.equal(n, 2);
+  W.cube3();
+  // 引数なしで予約したあとに callback 付きで呼んでも、その callback は呼ばれる（practice.js の show → nextFull）
+  W.prepare();
+  await new Promise((resolve) => W.prepare(resolve));
+  assert.equal(W.hasNext(), true);
   W.cube3();
 });
 

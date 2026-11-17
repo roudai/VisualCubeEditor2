@@ -166,6 +166,15 @@ test('読めない手順はエラーにする', () => {
   });
 });
 
+test('括弧の繰り返しの展開は 1000 手まで（入れ子で爆発させない）', () => {
+  assert.equal(M.parseAlg('(R)1000').length, 1000);
+  assert.throws(() => M.parseAlg('(R)1001'), /Too many moves/);
+  const start = Date.now();
+  assert.throws(() => M.parseAlg('((((((((R)9)9)9)9)9)9)9)9'), /Too many moves/);
+  assert.throws(() => M.parseAlg('(R U)99999999'), /Too many moves/);
+  assert.ok(Date.now() - start < 1000);
+});
+
 test('canonicalAlg：全角を半角に、Rw を r に（大文字・小文字は変えない）', () => {
   assert.equal(M.canonicalAlg("Rw U Rw’ （U2） r"), "r U r' (U2) r");
   assert.equal(M.canonicalAlg('R,U'), 'R U');

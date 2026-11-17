@@ -144,9 +144,13 @@ const app = Vue.createApp({
       if (!element) return // まだ画面に無い（created の中から呼ばれたとき）。mounted で描く
       this.imageHeight = this.imageSize
       // 描画に渡す手順。3x3 では括弧と繰り返しを展開したもの（js/editor-cases.js の algForDraw）。
-      // 読めない手順（null）のときは、欄の下にエラーを出したまま前の画像を残す
-      const algorithm = this.algorithm && this.algtype !== 'state' ? this.algForDraw() : ''
-      if (algorithm === null) return
+      // 読めない手順（null）のときは、欄の下にエラーを出したまま前の画像を残す。
+      // まだ1枚も描いていない（?alg= に読めない手順を入れて開いた）ときは、手順なしで描く
+      let algorithm = this.algorithm && this.algtype !== 'state' ? this.algForDraw() : ''
+      if (algorithm === null) {
+        if (lastDrawn !== null) return
+        algorithm = ''
+      }
       if (algorithm) {
         if (this.algtype === 'alg') {
           this.parameter.algorithm = algorithm

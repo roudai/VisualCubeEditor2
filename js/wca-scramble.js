@@ -49,6 +49,7 @@
   // ---- 次の 1 本を先に作っておく ----
   let queued = null;
   let scheduled = false;
+  let waiting = []; // 作成の予約中に渡された callback（作り終えたらまとめて呼ぶ）
 
   function cube3(random) {
     if (typeof random === 'function') return generate(random);
@@ -61,16 +62,20 @@
   }
 
   function prepare(callback) {
-    const done = typeof callback === 'function' ? callback : function () {};
-    if (queued || scheduled) {
-      if (queued) done();
+    const done = typeof callback === 'function' ? callback : null;
+    if (queued) {
+      if (done) done();
       return;
     }
+    if (done) waiting.push(done);
+    if (scheduled) return;
     scheduled = true;
     setTimeout(function () {
       scheduled = false;
       if (!queued) queued = generate();
-      done();
+      const callbacks = waiting;
+      waiting = [];
+      callbacks.forEach((f) => f());
     }, 0);
   }
 

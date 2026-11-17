@@ -99,6 +99,7 @@
       'parse.invalid': 'Invalid move: {move}',
       'parse.missing': 'Missing closing parenthesis',
       'parse.unmatched': 'Unmatched ")"',
+      'parse.tooLong': 'Too many moves after expanding repeats (max {max})',
       // 一覧ページ
       'title.pllList': 'PLL List - VisualCube Editor 2.0',
       'title.ollList': 'OLL List - VisualCube Editor 2.0',
@@ -329,6 +330,7 @@
       'parse.invalid': '読めない記号があります: {move}',
       'parse.missing': '閉じ括弧 ) が足りません',
       'parse.unmatched': '対応する ( の無い ) があります',
+      'parse.tooLong': '繰り返しを展開すると手数が多すぎます（{max} 手まで）',
       'title.pllList': 'PLL一覧 - VisualCube Editor 2.0',
       'title.ollList': 'OLL一覧 - VisualCube Editor 2.0',
       'list.pllHeading': 'PLL一覧',
@@ -546,6 +548,8 @@
     if (m) return t('parse.invalid', { move: m[1] });
     if (message === 'Missing closing parenthesis') return t('parse.missing');
     if (message === 'Unmatched ")"') return t('parse.unmatched');
+    const long = /^Too many moves \(max (\d+)\)$/.exec(message);
+    if (long) return t('parse.tooLong', { max: long[1] });
     return message;
   }
 

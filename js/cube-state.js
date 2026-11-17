@@ -123,6 +123,8 @@
   const canonicalFace = (text) => (text.length === 2 ? text[0].toLowerCase() : text);
   const AMOUNT_RE = /(\d*)(')?(\d*)/y;
   const SUFFIX = ['', '', '2', "'"]; // 90°単位の回数 → 記号の付け方
+  // 括弧の繰り返しを展開した後の手数の上限（((R)9)9… の入れ子で展開が爆発してタブが固まるのを防ぐ）
+  const MAX_MOVES = 1000;
 
   function normalize(alg) {
     return String(alg)
@@ -178,6 +180,7 @@
           const inner = seq(depth + 1);
           const a = readAmount(src, pos, start);
           pos = a.end;
+          if (out.length + inner.length * a.n > MAX_MOVES) throw new SyntaxError('Too many moves (max ' + MAX_MOVES + ')');
           let group = [];
           for (let i = 0; i < a.n; i++) group = group.concat(inner);
           out = out.concat(a.prime ? invertMoves(group) : group);
