@@ -77,11 +77,19 @@
   font-weight: 600;
 }
 
-/* 日ごとのグラフ */
+/* タイムの推移（横軸＝1回ごとの記録。点＝1回のタイム、線＝ao5・ao12） */
+.stats-chart {
+  position: relative;
+}
+.stats-chart-empty {
+  margin: 2rem 0;
+  text-align: center;
+}
 .stats-svg {
   display: block;
   width: 100%;
   height: auto;
+  touch-action: pan-y; /* 縦のスクロールはそのまま、横になぞると値を出す */
 }
 .stats-grid {
   stroke: #eef0f3;
@@ -90,28 +98,92 @@
 .stats-axis {
   fill: #adb5bd;
   font-size: 10px;
+  font-variant-numeric: tabular-nums;
 }
-.stats-axis-avg {
-  fill: #e0a000;
+.stats-single {
+  fill: #ced4da;
 }
-.stats-bar {
-  fill: #9ec5fe;
+.stats-single.learned {
+  fill: #8fd1b0;
 }
-.stats-bar:hover {
-  fill: #6ea8fe;
+.stats-single.learning {
+  fill: #f5cf74;
 }
-.stats-line {
+.stats-dnf {
+  stroke: #e35d6a;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+.stats-avg-line {
   fill: none;
-  stroke: #f0ad00;
   stroke-width: 2;
   stroke-linejoin: round;
+  stroke-linecap: round;
 }
-.stats-dot {
-  fill: #f0ad00;
+.stats-avg-line.ao5 {
+  stroke: #0d6efd;
+}
+.stats-avg-line.ao12 {
+  stroke: #6f42c1;
+  stroke-width: 2.4;
+}
+.stats-time-line {
+  fill: none;
+  stroke: #0d6efd;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  opacity: .55;
+}
+.stats-target {
+  stroke: #198754;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: .7;
+}
+.stats-cursor {
+  stroke: #adb5bd;
+  stroke-width: 1;
+}
+.stats-tip {
+  position: absolute;
+  z-index: 1;
+  min-width: 9rem;
+  padding: .4rem .6rem;
+  border: 1px solid #e9ecef;
+  border-radius: .5rem;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.stats-tip-head {
+  color: #6c757d;
+}
+.stats-tip-case {
+  font-weight: 600;
+}
+.stats-tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.stats-tip-label {
+  color: #6c757d;
+}
+.stats-tip-label.ao5 {
+  color: #0d6efd;
+}
+.stats-tip-label.ao12 {
+  color: #6f42c1;
+}
+.stats-tip-value {
+  font-weight: 600;
 }
 .stats-legend {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: .25rem 1rem;
   margin-top: .25rem;
   color: #6c757d;
   font-size: .75rem;
@@ -124,16 +196,40 @@
 .stats-legend-mark {
   display: inline-block;
 }
-.stats-legend-mark.bar {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: #9ec5fe;
+.stats-legend-mark.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ced4da;
+}
+.stats-legend-mark.dot.learned {
+  background: #8fd1b0;
+}
+.stats-legend-mark.dot.learning {
+  background: #f5cf74;
+}
+.stats-legend-mark.dnf::before {
+  content: '×';
+  color: #e35d6a;
+  font-weight: 600;
 }
 .stats-legend-mark.line {
   width: 14px;
   height: 2px;
-  background: #f0ad00;
+}
+.stats-legend-mark.line.ao5 {
+  background: #0d6efd;
+}
+.stats-legend-mark.line.ao12 {
+  background: #6f42c1;
+}
+.stats-legend-mark.line.time {
+  background: #0d6efd;
+  opacity: .55;
+}
+.stats-legend-mark.target {
+  width: 14px;
+  border-top: 1px dashed #198754;
 }
 
 /* ケースごとの表 */

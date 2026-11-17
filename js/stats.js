@@ -1,9 +1,9 @@
-// 記録のページ（stats.html）：練習の記録（store.js の practice.log）を、期間の集計・日ごとのグラフ・ケースごとの表で見る。
-// 通し（practice.full.log）は、回数・ベスト・ベスト ao5/ao12（今の ao5/ao12）、日ごとのグラフ、記録の一覧で見る。
+// 記録のページ（stats.html）：練習の記録（store.js の practice.log）を、期間の集計・タイムの推移・ケースごとの表で見る。
+// 通し（practice.full.log）は、回数・ベスト・ベスト ao5/ao12（今の ao5/ao12）、タイムの推移、記録の一覧で見る。
 // 通しの記録は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて削除できる（どちらも元に戻せる）。
 // 仕様: reference/PRACTICE_SPEC.md「記録」
 //   - 種類（PLL / OLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
-//   - 集計（回数・平均・解けなかった・習得済みの数）、日ごとの回数（棒）と平均タイム（線）の SVG、
+//   - 集計（回数・平均・解けなかった・習得済みの数）、タイムの推移（横軸＝1回ごと、点＝タイム、線＝ao5・ao12）の SVG、
 //     ケースごとの表（既定は平均の遅い順。見出しで並べ替え。ケースを押すとそのケースを練習ページで出題）
 //   - 期間内の記録を CSV で書き出す
 (function () {
@@ -126,84 +126,217 @@
     );
   }
 
-  // ---- 日ごとのグラフ（棒＝回数、線＝平均タイム） ----
+  // ---- タイムの推移（横軸＝1回ごとの記録、縦軸＝タイム） ----
+  // recs：記録すべて（新しい順。{ at, sec, penalty, name?, status? }）。表示は期間内だけ
+  // 通し：点＝1回のタイム、線＝その時点の ao5・ao12（期間の前の記録も使って出す）
+  // PLL・OLL：線＝1回ごとのタイム（ao は出さない）。点の色＝判定（習得済み・練習中）、解けなかった＝×。破線＝今の習得の目安
   const SVG = 'http://www.w3.org/2000/svg';
   const svgEl = (tag, attrs) => {
     const e = document.createElementNS(SVG, tag);
     Object.keys(attrs || {}).forEach((k) => e.setAttribute(k, attrs[k]));
     return e;
   };
+  // 目盛りの間隔（だいたい ticks 本になる、きりのよい秒数）
+  function niceStep(range, ticks) {
+    const raw = range / ticks;
+    const steps = [0.1, 0.2, 0.5, 1, 2, 5, 10, 15, 20, 30, 60, 120, 300, 600];
+    return steps.find((st) => st >= raw) || Math.ceil(raw / 600) * 600;
+  }
+  const axisTime = (v, step) => (v >= 60 ? P.formatTime(v, step < 1 ? 1 : 0) : (step < 1 ? v.toFixed(1) : String(Math.round(v))) + 's');
+  const dateTime = (ms) => {
+    const d = new Date(ms);
+    return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
 
-  function renderChart(log) {
-    const days = PERIODS[view.period] || 90;
-    const data = P.daily(log, { days: days });
+  function renderChart(recs) {
     const box = $('statsChart');
     box.replaceChildren();
-    const W = 720;
-    const H = 180;
-    const pad = { l: 34, r: 40, t: 12, b: 24 };
+    lastWidth = box.clientWidth;
+    const f = from();
+    const cases = view.set !== 'full';
+    const ao5All = cases ? [] : P.rollingAverages(recs, 5);
+    const ao12All = cases ? [] : P.rollingAverages(recs, 12);
+    // 期間内を古い順に
+    const pts = [];
+    for (let i = recs.length - 1; i >= 0; i--) {
+      if (recs[i].at < f) continue;
+      pts.push({ r: recs[i], t: P.effectiveTime(recs[i]), ao5: ao5All[i], ao12: ao12All[i] });
+    }
+    const n = pts.length;
+    if (!n) {
+      const empty = el('p', 'stats-chart-empty text-muted small');
+      I.set(empty, 'stats.empty');
+      box.append(empty);
+      return;
+    }
+    const target = cases ? practice().threshold : null;
+
+    // 表示する幅そのままの大きさで描く（スマホでも目盛りの文字が小さくならないように）
+    const W = Math.round(Math.min(1200, Math.max(280, box.clientWidth || 720)));
+    const H = W < 500 ? 210 : 260;
+    const pad = { l: 40, r: 10, t: 12, b: 24 };
     const iw = W - pad.l - pad.r;
     const ih = H - pad.t - pad.b;
-    const maxCount = Math.max(1, ...data.map((d) => d.count));
-    const avgs = data.map((d) => d.avg).filter((a) => a != null);
-    const maxAvg = avgs.length ? Math.max(...avgs) * 1.1 : 10;
+    // 縦軸：1回のタイムの外れ値で平均の線がつぶれないよう、上は平均の最大と 1 回のタイムの 95% 点の大きい方まで
+    // （それより遅い点は上の端に △ で出す）
+    const singles = pts.map((p) => p.t).filter((t) => typeof t === 'number').sort((a, b) => a - b);
+    const avgs = pts.flatMap((p) => [p.ao5, p.ao12]).filter((a) => typeof a === 'number');
+    const p95 = singles.length ? singles[Math.min(singles.length - 1, Math.floor(singles.length * 0.95))] : 0;
+    let hi = Math.max(p95, ...avgs, typeof target === 'number' ? target : 0);
+    let lo = Math.min(...(singles.length ? singles : [0]), ...avgs);
+    if (!(hi > lo)) {
+      hi = (hi || 1) * 1.2;
+      lo = Math.max(0, lo * 0.8);
+    }
+    const step = niceStep(hi - lo, 4);
+    lo = Math.max(0, Math.floor((lo - (hi - lo) * 0.05) / step) * step);
+    hi = Math.ceil((hi + (hi - lo) * 0.04) / step) * step;
+    const x = (i) => pad.l + (n === 1 ? iw / 2 : (iw * i) / (n - 1));
+    const y = (v) => pad.t + ih * (1 - (Math.min(v, hi) - lo) / (hi - lo));
+
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'stats-svg', role: 'img' });
-    svg.setAttribute('aria-label', I.t('stats.daily'));
-    const step = iw / data.length;
-    // 目盛り（回数）
-    [0, 0.5, 1].forEach((f) => {
-      const y = pad.t + ih * (1 - f);
-      svg.append(svgEl('line', { x1: pad.l, x2: W - pad.r, y1: y, y2: y, class: 'stats-grid' }));
-      // 回数の目盛りは整数のときだけ出す（最大 3 の真ん中 1.5 などは出さない）
-      if (Number.isInteger(maxCount * f)) {
-        const t = svgEl('text', { x: pad.l - 6, y: y + 4, class: 'stats-axis', 'text-anchor': 'end' });
-        t.textContent = String(maxCount * f);
-        svg.append(t);
-      }
-      const t2 = svgEl('text', { x: W - pad.r + 6, y: y + 4, class: 'stats-axis stats-axis-avg' });
-      const v = maxAvg * f;
-      t2.textContent = v >= 60 ? P.formatTime(v, 0) : v.toFixed(f ? 1 : 0) + 's';
-      svg.append(t2);
-    });
-    // 棒
-    data.forEach((d, i) => {
-      if (!d.count) return;
-      const h = (ih * d.count) / maxCount;
-      const bar = svgEl('rect', {
-        x: pad.l + i * step + step * 0.15,
-        y: pad.t + ih - h,
-        width: Math.max(1, step * 0.7),
-        height: h,
-        rx: Math.min(3, step * 0.2),
-        class: 'stats-bar',
-      });
-      const title = svgEl('title');
-      title.textContent = `${d.day}  ${I.t('stats.tooltip', { n: d.count, avg: fmt(d.avg) })}`;
-      bar.append(title);
-      svg.append(bar);
-    });
-    // 線（平均タイム。練習した日だけを結ぶ）
-    const points = data
-      .map((d, i) => (d.avg == null ? null : [pad.l + i * step + step / 2, pad.t + ih - (ih * d.avg) / maxAvg]))
-      .filter(Boolean);
-    if (points.length > 1) svg.append(svgEl('polyline', { points: points.map((p) => p.join(',')).join(' '), class: 'stats-line' }));
-    points.forEach((p) => svg.append(svgEl('circle', { cx: p[0], cy: p[1], r: 2.5, class: 'stats-dot' })));
-    // 日付（最初・真ん中・最後）
-    [0, Math.floor((data.length - 1) / 2), data.length - 1].forEach((i) => {
-      const t = svgEl('text', { x: pad.l + i * step + step / 2, y: H - 6, class: 'stats-axis', 'text-anchor': 'middle' });
-      t.textContent = data[i].day.slice(5).replace('-', '/');
+    svg.setAttribute('aria-label', I.t('stats.trend'));
+    // 横の目盛り（タイム）
+    for (let v = lo; v <= hi + step / 1000; v += step) {
+      svg.append(svgEl('line', { x1: pad.l, x2: W - pad.r, y1: y(v), y2: y(v), class: 'stats-grid' }));
+      const t = svgEl('text', { x: pad.l - 6, y: y(v) + 3.5, class: 'stats-axis', 'text-anchor': 'end' });
+      t.textContent = axisTime(v, step);
       svg.append(t);
+    }
+    // 縦の目盛り（何回目か。期間内で 1 から数える）
+    const maxTicks = W < 500 ? 5 : 8;
+    const xStep = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((st) => n / st <= maxTicks) || 1000;
+    for (let k = xStep; k <= n; k += xStep) {
+      const t = svgEl('text', { x: x(k - 1), y: H - 6, class: 'stats-axis', 'text-anchor': 'middle' });
+      t.textContent = String(k);
+      svg.append(t);
+    }
+    const first = svgEl('text', { x: x(0), y: H - 6, class: 'stats-axis', 'text-anchor': n === 1 ? 'middle' : 'start' });
+    first.textContent = '1';
+    if (xStep > 1 || n === 1) svg.append(first);
+    // 習得の目安（PLL・OLL）
+    if (typeof target === 'number' && target >= lo && target <= hi) {
+      svg.append(svgEl('line', { x1: pad.l, x2: W - pad.r, y1: y(target), y2: y(target), class: 'stats-target' }));
+    }
+    // 線。gaps：値が無い（DNF・平均が出ない）ところで途切れさせるか（false なら前後の値を結ぶ）
+    const line = (key, cls, gaps) => {
+      let d = '';
+      let pen = false;
+      pts.forEach((p, i) => {
+        const v = p[key];
+        if (typeof v !== 'number') {
+          if (gaps) pen = false;
+          return;
+        }
+        d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(v).toFixed(1);
+        pen = true;
+      });
+      if (d) svg.append(svgEl('path', { d: d, class: cls }));
+    };
+    // PLL・OLL：1回ごとのタイムを結ぶ線（解けなかったところは飛ばして結ぶ）。点はその上に描く
+    if (cases) line('t', 'stats-time-line', false);
+    // 1回のタイム（点）。多いときは小さく
+    const r = n > 600 ? 1.4 : n > 200 ? 1.9 : n > 60 ? 2.4 : 3;
+    const dots = svgEl('g');
+    pts.forEach((p, i) => {
+      const cx = x(i);
+      if (p.t === null) {
+        // DNF：上の端に ×
+        const s = r + 1;
+        const cy = pad.t + 2;
+        dots.append(svgEl('path', { d: `M${cx - s},${cy - s}L${cx + s},${cy + s}M${cx - s},${cy + s}L${cx + s},${cy - s}`, class: 'stats-dnf' }));
+        return;
+      }
+      const cls = 'stats-single' + (cases ? ' ' + (p.r.status === 'learned' ? 'learned' : 'learning') : '');
+      if (p.t > hi) {
+        // 縦軸の上より遅い：上の端に △
+        const cy = pad.t + 1;
+        dots.append(svgEl('path', { d: `M${cx},${cy - r}L${cx + r + 0.5},${cy + r + 1}L${cx - r - 0.5},${cy + r + 1}Z`, class: cls }));
+        return;
+      }
+      dots.append(svgEl('circle', { cx: cx, cy: y(p.t), r: r, class: cls }));
     });
+    svg.append(dots);
+    // 通し：ao5・ao12（平均が出ない（DNF・足りない）ところは途切れる）
+    if (!cases) {
+      line('ao12', 'stats-avg-line ao12', true);
+      line('ao5', 'stats-avg-line ao5', true);
+    }
+    // マウス・タッチで、いちばん近い記録の縦線と詳しい値を出す
+    const cursor = svgEl('line', { y1: pad.t, y2: pad.t + ih, class: 'stats-cursor', visibility: 'hidden' });
+    const hit = svgEl('rect', { x: pad.l - 6, y: 0, width: iw + 12, height: H, fill: 'transparent' });
+    svg.append(cursor, hit);
     box.append(svg);
+
+    const tip = el('div', 'stats-tip');
+    tip.hidden = true;
+    box.append(tip);
+    const show = (ev) => {
+      const rect = svg.getBoundingClientRect();
+      const px = ((ev.clientX - rect.left) / rect.width) * W;
+      const i = n === 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round(((px - pad.l) / iw) * (n - 1))));
+      const p = pts[i];
+      cursor.setAttribute('x1', x(i));
+      cursor.setAttribute('x2', x(i));
+      cursor.setAttribute('visibility', 'visible');
+      const head = el('div', 'stats-tip-head', `#${i + 1} · ${dateTime(p.r.at)}`);
+      const rows = [head];
+      if (cases) rows.push(el('div', 'stats-tip-case', `${view.set.toUpperCase()} ${p.r.name}`));
+      const row = (label, value, cls) => {
+        const d = el('div', 'stats-tip-row');
+        d.append(el('span', 'stats-tip-label ' + (cls || ''), label), el('span', 'stats-tip-value', value));
+        return d;
+      };
+      rows.push(row(I.t('stats.col.time'), cases && p.t === null ? I.t('stats.dnf') : showTime(p.r)));
+      if (!cases) rows.push(row('ao5', showAvg(p.ao5), 'ao5'), row('ao12', showAvg(p.ao12), 'ao12'));
+      tip.replaceChildren(...rows);
+      tip.hidden = false;
+      // 点の左右どちらかに寄せる（右半分なら左に出す）
+      const left = (x(i) / W) * rect.width;
+      const boxW = box.clientWidth;
+      tip.style.top = '4px';
+      if (left > boxW / 2) {
+        tip.style.left = '';
+        tip.style.right = Math.max(0, boxW - left + 12) + 'px';
+      } else {
+        tip.style.right = '';
+        tip.style.left = left + 12 + 'px';
+      }
+    };
+    const hide = () => {
+      tip.hidden = true;
+      cursor.setAttribute('visibility', 'hidden');
+    };
+    hit.addEventListener('pointermove', show);
+    hit.addEventListener('pointerdown', show);
+    hit.addEventListener('pointerleave', hide);
+
+    // 凡例
     const legend = el('div', 'stats-legend');
-    const item = (cls, key) => {
+    const item = (cls, key, params, text) => {
       const s = el('span', 'stats-legend-item');
       const label = el('span');
-      I.set(label, key);
+      if (key) I.set(label, key, params);
+      else label.textContent = text;
       s.append(el('span', 'stats-legend-mark ' + cls), label);
       return s;
     };
-    legend.append(item('bar', 'stats.legendCount'), item('line', 'stats.legendAvg'));
+    if (cases) {
+      legend.append(
+        item('line time', 'stats.col.time'),
+        item('dot learned', 'status.learned'),
+        item('dot learning', 'status.learning'),
+        item('dnf', 'stats.dnf')
+      );
+    } else {
+      legend.append(
+        item('dot', 'stats.legendSingle'),
+        item('dnf', null, null, 'DNF'),
+        item('line ao5', null, null, 'ao5'),
+        item('line ao12', null, null, 'ao12')
+      );
+    }
+    if (typeof target === 'number') legend.append(item('target', 'stats.legendTarget', { t: fmt(target) }));
     box.append(legend);
   }
 
@@ -330,12 +463,11 @@
   }
 
   // ---- 通し ----
-  // 通しの記録（practice.full.log、新しい順）。グラフは記録をタイム（+2 込み、DNF は null）に直して使う
+  // 通しの記録（practice.full.log、新しい順）
   const fullLog = () => {
     const f = practice().full;
     return f && Array.isArray(f.log) ? f.log.filter((r) => r && typeof r.at === 'number') : [];
   };
-  const asTimes = (recs) => recs.map((r) => ({ at: r.at, set: 'full', name: 'full', sec: P.effectiveTime(r) }));
   const showTime = (r) => {
     const t = P.effectiveTime(r);
     return t === null ? 'DNF' : fmt(t) + (r.penalty === '+2' ? '+' : '');
@@ -580,17 +712,27 @@
       const all = fullLog(); // 読むたびに別のオブジェクトになるので1回だけ読む
       const recs = all.filter((r) => r.at >= from());
       renderFullCards(recs);
-      renderChart(asTimes(all));
+      renderChart(all);
       renderFullTable(recs, all);
       return;
     }
     const log = logInScope();
     renderCards(log);
-    renderChart(log);
+    renderChart(log.map((e) => ({ at: e.at, sec: e.sec, penalty: e.sec == null ? 'DNF' : '', name: e.name, status: e.status })));
     renderTable(log);
   }
 
   $('statsCsv').addEventListener('click', exportCsv);
+  // 幅が変わったらグラフを描き直す（グラフは表示する幅で描くため）
+  let lastWidth = 0;
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const w = $('statsChart').clientWidth;
+      if (w !== lastWidth) render();
+    }, 150);
+  });
   I.onChange(render);
   // ログインしてクラウドの記録が入ったとき（ページの読み直し）以外にも、別タブで練習したら反映する
   window.addEventListener('storage', (e) => {

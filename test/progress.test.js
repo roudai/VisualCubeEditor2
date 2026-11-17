@@ -133,6 +133,14 @@ test('daily：直近の日ごとの回数と平均（練習していない日は
   ]);
 });
 
+test('rollingAverages：各記録の時点の n 回平均（足りなければ undefined、DNF 2つで null）', () => {
+  const r = (sec, penalty) => ({ sec, penalty: penalty || '' });
+  const recs = [r(5), r(1), r(3), r(0, 'DNF'), r(2), r(4), r(0, 'DNF')]; // 新しい順
+  assert.deepEqual(P.rollingAverages(recs, 5), [P.average(recs, 5), P.average(recs.slice(1), 5), null, undefined, undefined, undefined, undefined]);
+  assert.equal(P.rollingAverages(recs, 5)[0], 3.33);
+  assert.deepEqual(P.rollingAverages([], 5), []);
+});
+
 test('effectiveTime：+2 を足し、DNF は null', () => {
   assert.equal(P.effectiveTime({ sec: 50.1, penalty: '' }), 50.1);
   assert.equal(P.effectiveTime({ sec: 50.1, penalty: '+2' }), 52.1);

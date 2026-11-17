@@ -21,6 +21,7 @@
  *   effectiveTime(rec)              ペナルティを含めたタイム（+2 なら sec + 2、DNF なら null）
  *   average(recs, n)                直近 n 回（recs は新しい順）の WCA 式の平均：最速と最遅を除いた平均。
  *                                     DNF は最遅とみなし、DNF が2つ以上なら null（DNF）。n 回に足りなければ undefined
+ *   rollingAverages(recs, n)        各記録の時点の n 回平均の配列（recs と同じ並び。i 番目は recs[i] から古い方へ n 回の average）
  *   bestAverage(recs, n)            これまでで最も速い n 回平均（DNF・足りなければ null / undefined）
  *   bestSingle(recs)                最速の1回（DNF を除く。無ければ null）
  *   formatTime(sec, digits)         タイムの表示。60 秒以上は分表記（例：65.234 → "1:05.23"、5.2 → "5.20"）。digits は小数の桁数（既定 2）
@@ -209,6 +210,11 @@
     return Math.round((kept.reduce((a, b) => a + b, 0) / kept.length) * 100) / 100;
   }
 
+  function rollingAverages(recs, n) {
+    const list = Array.isArray(recs) ? recs : [];
+    return list.map((_, i) => average(list.slice(i, i + n), n));
+  }
+
   function bestAverage(recs, n) {
     const list = Array.isArray(recs) ? recs : [];
     if (list.length < n) return undefined;
@@ -244,6 +250,7 @@
     formatTime: formatTime,
     effectiveTime: effectiveTime,
     average: average,
+    rollingAverages: rollingAverages,
     bestAverage: bestAverage,
     bestSingle: bestSingle,
     addLog: addLog,
