@@ -5,7 +5,7 @@
 // 仕様: reference/PRACTICE_SPEC.md「記録」
 //   - 種類（PLL / OLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
 //   - 集計（回数・平均・解けなかった・習得済みの数）、タイムの推移（横軸＝1回ごと、点＝タイム、線＝ao5・ao12）の SVG、
-//     ケースごとの表（並び：苦手順（既定。直近 10 回の平均の遅い順）/ グループ順 / 覚える順（PLL）。見出しでも並べ替え。
+//     ケースごとの表（並び：苦手順（既定。直近 10 回の平均の遅い順）/ グループ順（OLL は番号順）/ 覚える順。見出しでも並べ替え。
 //     ケースを押すとそのケースを練習ページで出題）
 (function () {
   'use strict';
@@ -369,6 +369,8 @@
   const FEW = 3; // これより少ない回数の「最近」は参考値として薄く出す
   const PRIOR = 2; // 苦手順で、回数の少ないケースを全体の平均に寄せる強さ（全体の平均で PRIOR 回解いたものとして足す）
   const hasStages = () => window.CaseSections && window.CaseSections.hasStages(DATA[view.set]);
+  // OLL（番号の名前）は「グループ順」の代わりに「番号順」
+  const numbered = () => window.CaseSections && window.CaseSections.isNumbered(DATA[view.set]);
 
   function rows(log) {
     const per = P.perCase(log, { from: from() });
@@ -398,10 +400,12 @@
   }
 
   function sortRows(list) {
-    // 覚える順は PLL だけ（OLL で選ばれていたら苦手順）
+    // 覚える順は覚える順のデータがあるときだけ（無ければ苦手順）。'group' は PLL ならグループ順、OLL なら番号順
     const k = view.sort === 'learn' && !hasStages() ? 'weak' : view.sort;
     const dir = view.desc ? -1 : 1;
-    const val = (r) => (k === 'status' ? STATUS_ORDER[r.status] : k === 'learn' ? r.c.order : k === 'group' ? r.groupIndex : r[k]);
+    const byNumber = numbered();
+    const val = (r) =>
+      k === 'status' ? STATUS_ORDER[r.status] : k === 'learn' ? r.c.order : k === 'group' ? (byNumber ? Number(r.name) : r.groupIndex) : r[k];
     return list.sort((a, b) => {
       const x = val(a);
       const y = val(b);
@@ -413,7 +417,7 @@
     });
   }
 
-  // 表の上の並びの切り替え：苦手順 / グループ順 / 覚える順（PLL だけ）
+  // 表の上の並びの切り替え：苦手順 / グループ順（OLL は番号順）/ 覚える順（覚える順のデータがあるとき）
   function renderSortBar() {
     const box = $('statsSort');
     const show = view.set !== 'full' && view.tab !== 'solves';
@@ -421,7 +425,7 @@
     if (!show) return;
     const items = [
       { value: 'weak', key: 'stats.sortWeak' },
-      { value: 'group', key: 'list.orderGroup' },
+      { value: 'group', key: numbered() ? 'list.orderNumber' : 'list.orderGroup' },
     ];
     if (hasStages()) items.push({ value: 'learn', key: 'list.orderLearn' });
     const current = view.sort === 'learn' && !hasStages() ? 'weak' : view.sort;

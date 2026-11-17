@@ -3,8 +3,9 @@
 //   - 出題：選んだ種類（PLL / OLL）・グループ（選んでいなければすべて）・対象（習得状況）に当てはまるケースからランダム
 //     （直前と同じケースは避ける）、そのケースのスクランブル（js/<pll|oll>-scrambles.js。各 20 本。ランダムな AUF 込みで
 //     作ってあるので、そのまま出す）からランダムに選ぶ。ケースの名前と画像は解き終わるまで出さない
-//   - 覚える順（data/<set>/learn_order.json）のデータがあるときだけ、グループを選ぶ欄で「グループ順 / 覚える順」を切り替えられる
-//     （今の 3x3 のデータには無いので出ない。並びは 'list-filter' の <set>Order、選んだ段階は prefs.groups['<set>-stage']）
+//   - グループを選ぶ欄で「グループ順 / 覚える順」（OLL は「番号順 / 覚える順」）を切り替えられる（覚える順は data/<set>/learn_order.json。
+//     Cube Voyage の順。並びは 'list-filter' の <set>Order、選んだ段階は prefs.groups['<set>-stage']）。
+//     OLL の番号順ではグループを選ばない（すべてのケースから出題。前に選んだ OLL のグループは使わない）
 //   - タイマー：スペースを押す（画面ではタイマーをタップする）とスタート。何かのキー（タップ）でストップ。
 //     計測中もスクランブルは出したまま。止めたあとはタイムを 0.00 に戻さず、タイマーの上に解いたケース（PLL Aa など）を出す。
 //     計測中の Esc は中止（記録しない）。計測中に「スキップ」「解けなかった」を押してもタイムは記録しない。
@@ -89,6 +90,7 @@
   // 選んでいるグループ（覚える順なら段階の key "s9" など）。保存は prefs.groups[set]（段階は prefs.groups[set + '-stage'] に番号で）
   const groupsKey = (set) => (byStage(set) ? set + '-stage' : set);
   const chosenGroups = (set) => {
+    if (CS.isNumbered(DATA[set]) && !byStage(set)) return null; // OLL の番号順：グループで選ばない
     const list = prefs.groups && Array.isArray(prefs.groups[groupsKey(set)]) ? prefs.groups[groupsKey(set)] : [];
     if (!list.length) return null;
     return new Set(byStage(set) ? list.map((n) => 's' + n) : list);
@@ -265,7 +267,7 @@
     if (CS.hasStages(DATA[set])) {
       const order = segment(
         [
-          { value: false, key: 'list.orderGroup' },
+          { value: false, key: CS.isNumbered(DATA[set]) ? 'list.orderNumber' : 'list.orderGroup' },
           { value: true, key: 'list.orderLearn' },
         ],
         stage,
@@ -300,7 +302,8 @@
     clear.addEventListener('click', () => setGroups(set, []));
     const foot = el('div', 'd-flex align-items-center gap-2 mt-1');
     foot.append(clear);
-    box.append(chips, foot);
+    // OLL の番号順（区切りが 'all' の1つだけ）は、選ぶグループが無いので並びの切り替えだけを出す
+    if (!(sections.length === 1 && sections[0].key === 'all')) box.append(chips, foot);
     return box;
   }
 

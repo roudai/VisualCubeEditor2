@@ -232,13 +232,18 @@
 .group-count.complete {
   color: var(--status-learned);
 }
-/* 全部覚えたグループのジャンプボタン */
-/* グループ（覚える順なら段階）のボタン：OLL の 14 個が PC の幅で1行に収まるよう小さめにする */
+/* OLL の番号順：見出し・グループのボタン・「選択を解除」を出さない（d-flex の display より hidden を優先） */
+.group-nav-foot[hidden],
+#caseList section > h2[hidden] {
+  display: none !important;
+}
+/* グループ（覚える順なら段階）のボタン：OLL の 13 段階が PC の幅で1行に収まるよう小さめにする */
 .group-nav-btn {
   margin: 0 .15rem .2rem 0;
   padding: .15rem .35rem;
   font-size: .78rem;
 }
+/* 全部覚えたグループのジャンプボタン */
 .group-nav-complete {
   border-color: var(--status-learned-soft);
   color: var(--status-learned);

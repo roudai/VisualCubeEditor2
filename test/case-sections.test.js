@@ -27,7 +27,13 @@ test('stageLabel：+/− を除いた名前の文字と番号の範囲', () => {
   assert.equal(CS.stageLabel(['D+', 'D-']), 'D');
   assert.equal(CS.stageLabel(['M']), 'M');
   assert.equal(CS.stageLabel(['A1+', 'B1+']), 'A1・B1');
-  assert.equal(CS.stageLabel(['Aa', 'Ab']), 'Aa・Ab');
+  // 3x3 の PLL：最後の小文字を除いた種類の名前
+  assert.equal(CS.stageLabel(['Ua', 'Ub'], 1), 'U');
+  assert.equal(CS.stageLabel(['Ga', 'Gb', 'Gc', 'Gd'], 12), 'G');
+  assert.equal(CS.stageLabel(['T'], 2), 'T');
+  // OLL（番号の名前）：段階の番号を A〜M に
+  assert.equal(CS.stageLabel(['21', '22'], 1), 'A');
+  assert.equal(CS.stageLabel(['29', '30', '41', '42'], 13), 'M');
 });
 
 test('hasStages：全ケースに stage・order があるデータだけ覚える順番がある', () => {
@@ -55,4 +61,29 @@ test('list：覚える順は段階ごとで、中も覚える順。覚える順�
   assert.deepEqual(stages[0].cases.map((c) => c.name), ['B1+', 'A1+']);
   assert.equal(CS.keyOf(STAGED[0], true), 's2');
   assert.deepEqual(CS.list(GROUPED, true).map((s) => s.key), CS.list(GROUPED, false).map((s) => s.key));
+});
+
+// 番号の名前のデータ（3x3 の OLL の形。データの並びはグループ順）
+const NUMBERED = [
+  { name: '2', group: 'Dot' },
+  { name: '17', group: 'Dot' },
+  { name: '5', group: 'Square' },
+  { name: '10', group: 'Awkward' },
+];
+
+test('isNumbered：名前がすべて番号のデータだけ', () => {
+  assert.equal(CS.isNumbered(NUMBERED), true);
+  assert.equal(CS.isNumbered(GROUPED), false);
+  assert.equal(CS.isNumbered([]), false);
+});
+
+test('list：番号のデータは、覚える順でなければ区切り1つに番号順（見出しなし）', () => {
+  const all = CS.list(NUMBERED, false);
+  assert.deepEqual(all.map((s) => [s.key, s.label]), [['all', '']]);
+  assert.deepEqual(all[0].cases.map((c) => c.name), ['2', '5', '10', '17']);
+  assert.equal(CS.keyOf(NUMBERED[0], false, true), 'all');
+  // 覚える順番があれば、覚える順では段階ごと（名前は A〜）
+  const staged = NUMBERED.map((c, i) => Object.assign({ stage: i < 2 ? 1 : 2, order: i + 1 }, c));
+  assert.deepEqual(CS.list(staged, true).map((s) => [s.key, s.label]), [['s1', 'A'], ['s2', 'B']]);
+  assert.deepEqual(CS.list(staged, false).map((s) => s.key), ['all']);
 });

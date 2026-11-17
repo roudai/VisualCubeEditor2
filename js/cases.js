@@ -127,9 +127,10 @@
     return col;
   }
 
-  // ---- 並び（グループ順 / 覚える順）----
+  // ---- 並び（グループ順 / 覚える順。OLL は番号順 / 覚える順）----
   const CS = window.CaseSections;
   const HAS_STAGES = CS.hasStages(DATA);
+  const NUMBERED = CS.isNumbered(DATA); // OLL：覚える順でないときは 1〜57 を見出しなしで並べる
   let byStage = false;
   let sections = []; // 今の並びの区切り（CaseSections.list）
 
@@ -165,14 +166,14 @@
       sw.setAttribute('role', 'group');
       I.set(sw, 'list.orderAria', null, 'aria-label');
       [
-        { value: false, label: 'list.orderGroup', title: 'list.orderGroupTitle' },
+        { value: false, label: NUMBERED ? 'list.orderNumber' : 'list.orderGroup', title: NUMBERED ? 'list.orderNumberTitle' : 'list.orderGroupTitle' },
         { value: true, label: 'list.orderLearn', title: 'list.orderLearnTitle' },
       ].forEach((o) => {
         const b = el('button', 'scope-option');
         b.type = 'button';
         b.dataset.order = String(o.value);
         I.set(b, o.label);
-        I.set(b, o.title, null, 'title');
+        I.set(b, o.title, { set: SET.toUpperCase() }, 'title');
         b.addEventListener('click', () => {
           if (byStage === o.value) return;
           byStage = o.value;
@@ -364,7 +365,7 @@
       const q = new URLSearchParams({ set: SET, filter: filter });
       // 選んだグループ（覚える順なら段階の番号）も渡す。空ならすべて
       if (HAS_STAGES) q.set('order', byStage ? 'learn' : 'group');
-      const picked = sections.filter((s) => chosen.has(s.key));
+      const picked = sections.filter((s) => chosen.has(s.key) && s.key !== 'all');
       q.set('groups', picked.map((s) => (byStage ? s.stage : s.key)).join(','));
       practice.href = '/practice?' + q.toString();
     }
@@ -403,8 +404,13 @@
   // 今の並びで、ジャンプのボタンと見出しごとのカードを作り直す
   function buildSections() {
     sections = CS.list(DATA, byStage);
+    // 番号順（区切りが 'all' の1つだけ）のときは、見出し・グループのボタン・「選択を解除」を出さない
+    const flat = sections.length === 1 && sections[0].key === 'all';
     const nav = $('groupNav');
     nav.replaceChildren();
+    nav.hidden = flat;
+    const foot = $('groupClear') && $('groupClear').parentElement;
+    if (foot) foot.hidden = flat;
     sections.forEach((s) => {
       const b = el('button', 'btn btn-outline-secondary btn-sm group-nav-btn', s.label);
       b.type = 'button';
@@ -428,6 +434,7 @@
       section.dataset.group = s.key;
       const heading = el('h2', 'h5 border-bottom pb-1 d-flex justify-content-between align-items-baseline', sectionTitle(s));
       heading.append(el('span', 'group-count'));
+      heading.hidden = flat;
       section.append(heading);
       const row = el('div', 'row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2');
       s.cases.forEach((c) => row.append(CARDS[c.name]));
