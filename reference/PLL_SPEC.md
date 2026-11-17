@@ -149,8 +149,16 @@ s = [AUF] setup [AUF]
 
 ## 覚える順番
 
-3x3 では置かない（`data/pll/learn_order.json` は無い。`js/pll-data.js` に `stage`・`order` は付かない）。
-`tools/build-case-data.js` と `js/case-sections.js` には、`learn_order.json` があれば読む仕組みだけが残っている。
+Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/advanced/pllsequence/）に準拠する。
+
+- `data/pll/learn_order.json` は段階ごとのケース名の配列（13 段階・21 件。全ケースをちょうど1回ずつ。生成時と `test/pll-data.test.js` で確認）
+  ```
+  U(Ua Ub) → T → Y → H → Z → J(Ja Jb) → A(Aa Ab) → F → V → R(Ra Rb) → E → G(Ga Gb Gc Gd) → N(Na Nb)
+  ```
+  - 出典は種類（U-perm など）ごとに並べている。段階の中の a・b は、出典と名前の付け方が違う（このデータは roudai.net の名前）ので、データの順にした
+- 生成（`tools/build-case-data.js`）で、各ケースに `stage`（段階 1〜13）と `order`（覚える順の通し番号 1〜21）を付ける
+- 段階の名前（一覧の見出し・ボタン、練習のボタン）は種類の文字（`U`・`J`・`G` など。`CaseSections.stageLabel`）。見出しは「2. T」のように番号を付ける
+- 一覧・練習・記録の並びは「グループ順 / 覚える順」。選んだ並びは `visualcube-editor:list-filter` の `pllOrder`（`'group'` / `'learn'`。一覧と練習で共通）。既定はグループ順
 
 ## 自分の手順（PLL・OLL 共通）
 
@@ -200,7 +208,7 @@ s = [AUF] setup [AUF]
     - 消すのは習得状況だけ（練習の記録・最近のタイムは消さない）
 - グループのボタン：押したグループだけを表示する（複数選べる。「選択を解除」で戻す）。絞り込みと合わせて `visualcube-editor:list-filter` に保存
 - 「練習する」：今の絞り込み・選んだグループのまま練習ページを開く（`reference/PRACTICE_SPEC.md`）
-- 「グループ順 / 覚える順」の切り替えは無い（覚える順のデータが無いので出ない）
+- 並び：進み具合の上で「グループ順 / 覚える順」を切り替える（上の「覚える順番」）。覚える順ではグループのボタンが段階（U・T・…・N）のボタンになる（選んだ段階は `list-filter` の `pllStages`）
 
 ### 一括ダウンロード
 - 「Download ZIP」（スマホの幅では出さない）：全21ケースを一覧と同じ配色で PNG にし、`visualcube-pll.zip`（中は `pll-<名前>.png`）にまとめる（`js/zip-store.js`、無圧縮）
