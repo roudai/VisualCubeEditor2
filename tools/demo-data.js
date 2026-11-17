@@ -12,7 +12,8 @@ const COLL = require('../js/coll-data.js');
 const W = require('../js/wca-scramble.js');
 
 const DAY = 24 * 60 * 60 * 1000;
-const THRESHOLD = 3; // 習得の目安（秒。練習ページの既定と同じ）
+// 習得の目安（秒）。種類ごと（移植元の PLL 8・OLL 5 を、このテストデータの速さ 1.2〜6.5 秒に合わせて読み替えた）
+const THRESHOLDS = { pll: 3, oll: 2, coll: 3 };
 
 // 種を固定した乱数（mulberry32）
 function rng(seed) {
@@ -55,7 +56,7 @@ function caseLog(random, set, cases, count, days, now) {
     if (random() > 0.05 + (1 - skill) * 0.06) {
       sec = round2(Math.max(1.2, 6.5 - progress * 2.5 - skill * 2 + (random() - 0.4) * 2.5));
     }
-    const status = !hint && sec !== null && sec <= THRESHOLD ? 'learned' : 'learning';
+    const status = !hint && sec !== null && sec <= THRESHOLDS[set] ? 'learned' : 'learning';
     log.push({ at: at, set: set, name: c.name, sec: sec, status: status, hint: hint });
   });
   return log;
@@ -93,7 +94,7 @@ function build(opts) {
   const practice = {
     set: 'pll',
     filter: 'all',
-    threshold: THRESHOLD,
+    thresholds: THRESHOLDS,
     log: caseRecords,
     times: times,
     full: { inspection: true, log: fullLog(random, 260, 60, now).reverse() }, // 新しい順
@@ -102,4 +103,4 @@ function build(opts) {
   return { practice: practice, progress: progress };
 }
 
-module.exports = { build: build, THRESHOLD: THRESHOLD };
+module.exports = { build: build, THRESHOLDS: THRESHOLDS };

@@ -7,6 +7,8 @@
  *   statusOf(set, name)             'new' | 'learning' | 'learned'
  *   setStatus(set, name, status)    習得状況を書く（'new' なら消す）
  *   judge(time, threshold)          練習の判定：time（秒）がしきい値以内なら 'learned'、超えた・null（解けなかった）なら 'learning'
+ *   thresholdOf(practice, set)      練習の設定（store.js の 'practice'）から、その種類（'pll' | 'oll' | 'coll'）の習得の目安（秒）。
+ *                                     thresholds[set] → 以前の共通の threshold → 3 の順に使う（1〜120 秒の範囲外は使わない）
  *   addTime(list, time, max)        最近のタイムの配列に足した新しい配列（新しい順、最大 max 件）
  *   displaySettings(set)            エディタで保存した設定から、画像の配色・線の色・背景・サイズを決める
  *                                     PLL：保存した配色（OLL 配色のときは OLL を選ぶ前の配色、無ければ Standard）
@@ -68,6 +70,16 @@
   }
 
   const judge = (time, threshold) => (typeof time === 'number' && time <= threshold ? 'learned' : 'learning');
+
+  // 習得の目安は種類ごと（thresholds: { pll, oll, coll }）。以前は共通の threshold だったので、無ければそれを使う
+  const DEFAULT_THRESHOLD = 3; // 練習ページの既定（移植元は 8 秒）
+  const validThreshold = (v) => typeof v === 'number' && v > 0 && v <= 120;
+  function thresholdOf(practice, set) {
+    const p = isObject(practice) ? practice : {};
+    const own = isObject(p.thresholds) ? p.thresholds[set] : undefined;
+    if (validThreshold(own)) return own;
+    return validThreshold(p.threshold) ? p.threshold : DEFAULT_THRESHOLD;
+  }
 
   function addTime(list, time, max) {
     const prev = Array.isArray(list) ? list.filter((t) => typeof t === 'number') : [];
@@ -278,6 +290,7 @@
 
   return {
     STATUSES: STATUSES,
+    thresholdOf: thresholdOf,
     wrapAuf: wrapAuf,
     formatTime: formatTime,
     effectiveTime: effectiveTime,

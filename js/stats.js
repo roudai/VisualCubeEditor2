@@ -184,7 +184,7 @@
       box.append(empty);
       return;
     }
-    const target = cases ? practice().threshold : null;
+    const target = cases ? P.thresholdOf(practice(), view.set) : null; // その種類の習得の目安
 
     // 表示する幅そのままの大きさで描く（スマホでも目盛りの文字が小さくならないように）
     const W = Math.round(Math.min(1200, Math.max(280, box.clientWidth || 720)));
@@ -378,7 +378,7 @@
   function rows(log) {
     const per = P.perCase(log, { from: from() });
     // 苦手順：直近 RECENT 回の平均。解けなかった回は習得の目安の 2 倍のタイムとして数える
-    const threshold = practice().threshold > 0 ? practice().threshold : 8;
+    const threshold = P.thresholdOf(practice(), view.set);
     const recent = P.recentPerCase(log, { from: from(), n: RECENT, dnfAs: threshold * 2 });
     const index = {};
     const groupIndex = {}; // グループの並び（データに最初に出てくる順。3x3 のグループ名は A〜Z の順ではないので名前では並べない）

@@ -19,7 +19,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
   - 種類：PLL / OLL / COLL / 通し（見出し「練習」の横に置き、下の設定の行を1行に収める）
   - グループ：「すべてのグループ」または選んだグループ（例：`Dot, Square`）。押すとグループのボタンが並ぶ欄が開き、押したグループだけを出題する（1つも選んでいなければすべて。「選択を解除」で戻す）。グループのボタンにマウスを乗せると説明とケースの数が出る。PLL・OLL・COLL それぞれで覚えておく
   - 対象：未習得 / 練習中 / 習得済み / すべて（それぞれ件数付き。グループで絞った中の件数）
-  - 習得の目安：2秒 / 3秒 / 5秒 / 8秒（既定は 3秒）、または入力欄に数値（1〜120 秒）。入力した秒数はボタンには足さず、入力欄を強調する
+  - 習得の目安：2秒 / 3秒 / 5秒 / 8秒（既定は 3秒）、または入力欄に数値（1〜120 秒）。入力した秒数はボタンには足さず、入力欄を強調する。PLL・OLL・COLL で別々に持ち、設定欄には今の種類の目安を出す（例：PLL は 5 秒、OLL は 2 秒）。判定・記録のページのグラフの破線・苦手順の並びも、その種類の目安を使う（`Progress.thresholdOf`）
   - グループを選ぶ欄で「グループ順 / 覚える順」（OLL は「番号順 / 覚える順」）を切り替える（一覧と共通の `list-filter` の `<set>Order`）。覚える順では段階（PLL は U〜N、OLL は A〜M。Cube Voyage 準拠）で選ぶ（`prefs.groups['<set>-stage']`）。
     OLL の番号順ではグループを選ばない（すべてから出題。前に選んだ OLL のグループは使わない）。OLL の範囲（No Dot / Dot）は無い（Megaminx 版にだけある）
 - 出題：対象に当てはまるケースからランダム（直前と同じケースは避ける）、そのケースのスクランブル 20 本からランダムに選び、**そのまま出す**
@@ -42,7 +42,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 
 ## 保存（`js/store.js` 経由。ログイン中はクラウドにも）
 - 習得状況：一覧と同じ `progress` を書き換える（`js/progress.js`。一覧と練習で共通）
-- `practice`：`{ set, filter, threshold, groups: { pll: ["Edges only"], oll: [] }, stats: { 記録のページの表示 }, log: [日時付きの記録], times: { pll: { "Aa": [最近のタイム(秒) 新しい順 最大10件] }, oll: {…} }, full: { 通しの設定と記録 } }`
+- `practice`：`{ set, filter, thresholds: { pll: 秒, oll: 秒, coll: 秒 }（以前の共通の threshold があれば、無い種類の目安に使う）, groups: { pll: ["Edges only"], oll: [] }, stats: { 記録のページの表示 }, log: [日時付きの記録], times: { pll: { "Aa": [最近のタイム(秒) 新しい順 最大10件] }, oll: {…} }, full: { 通しの設定と記録 } }`
 - URL `?set=oll&filter=new` で設定の初期値を指定できる（その値で保存し直す）。`&groups=Dot,Square` で出題するグループ、`&case=Aa` で最初の1問のケース
 
 ## ほかのページ
@@ -57,7 +57,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 - 集計のカード：練習回数、平均（とベスト）、解けなかった回数、習得済みの数（今の習得状況）
 - タイムの推移：横軸＝期間内の1回ごとの記録（古い順、1 から数える）、縦軸＝タイム。ライブラリを使わず SVG で描く（表示する幅で描く）
   - 通し：点＝1回のタイム、線＝その時点の ao5・ao12（`Progress.rollingAverages`。期間より前の記録も使って出す。DNF・回数が足りないところは線が途切れる）
-  - PLL・OLL・COLL：ao は出さず、1回ごとのタイムを線で結ぶ（解けなかったところは飛ばして前後を結ぶ）。点の色＝判定（習得済み＝緑、練習中＝琥珀）。破線＝今の習得の目安
+  - PLL・OLL・COLL：ao は出さず、1回ごとのタイムを線で結ぶ（解けなかったところは飛ばして前後を結ぶ）。点の色＝判定（習得済み＝緑、練習中＝琥珀）。破線＝その種類の今の習得の目安
   - DNF は上の端に ×。縦軸の上は ao5・ao12 の最大と1回のタイムの 95% 点の大きい方までにし、それより遅い点は上の端に △（外れ値で線がつぶれないように）
   - マウス・タッチで、いちばん近い記録の縦線と、何回目・日時・タイム（PLL・OLL・COLL はケース名も、通しは ao5・ao12 も）を出す
 - ケースごとの表：画像・ケース・グループ・習得状況・最近・回数（解けなかった回数）・ベスト・平均・最後に練習した日。見出しを押すと並べ替え。
@@ -101,7 +101,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 ## Megaminx 版（移植元）との違い
 - スクランブル：Pochmann 記法 7 行 → random-state の 1 行。短い形は 13 文字固定 → 1 手 1 文字（可変長）
 - ケース用スクランブルに出題時の AUF を足さない（`Progress.wrapAuf` は使っていない。関数とテストは残してある）
-- 習得の目安：5 / 8 / 10 / 15 秒（既定 8）→ 2 / 3 / 5 / 8 秒（既定 3）
+- 習得の目安：5 / 8 / 10 / 15 秒（既定 8）→ 2 / 3 / 5 / 8 秒（既定 3）。種類ごとに別々に持つのは同じ（MegaminxImageEditor a9f039b）
 - OLL の範囲（No Dot / Dot）が無い。覚える順は PLL・OLL とも Cube Voyage 準拠の 13 段階（Megaminx は PLL だけ 27 段階）。OLL は番号順もある
 - 以前の形の通しの記録を短い形に直す処理は無い（新しいアプリなので古い記録が無い）
 - 画像は canvas ではなく SVG（srVisualizer）

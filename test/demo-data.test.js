@@ -15,6 +15,11 @@ const data = Demo.build({ now: NOW });
 test('demo-data：PLL・OLL・COLL の記録は今あるケースだけで、新しい順・過去 60 日以内・保存の上限以内', () => {
   const names = { pll: new Set(PLL.map((c) => c.name)), oll: new Set(OLL.map((c) => c.name)), coll: new Set(COLL.map((c) => c.name)) };
   assert.ok(data.practice.log.some((e) => e.set === 'coll'), 'COLL の記録がある');
+  // 習得の目安は種類ごと（判定もその目安で付いている）
+  assert.deepEqual(Object.keys(data.practice.thresholds).sort(), ['coll', 'oll', 'pll']);
+  data.practice.log.forEach((e) => {
+    if (e.sec !== null && !e.hint) assert.equal(e.status, e.sec <= data.practice.thresholds[e.set] ? 'learned' : 'learning');
+  });
   const log = data.practice.log;
   assert.ok(log.length > 300 && log.length <= 2000, String(log.length));
   log.forEach((e, i) => {

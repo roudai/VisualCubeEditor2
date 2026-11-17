@@ -19,6 +19,17 @@ function withStorage(initial, fn) {
   }
 }
 
+test('thresholdOf：種類ごとの目安。無ければ以前の共通の threshold、それも無ければ 3（範囲外の値は使わない）', () => {
+  assert.equal(P.thresholdOf({ thresholds: { pll: 5, oll: 2, coll: 8 } }, 'pll'), 5);
+  assert.equal(P.thresholdOf({ thresholds: { pll: 5, oll: 2, coll: 8 } }, 'oll'), 2);
+  assert.equal(P.thresholdOf({ thresholds: { pll: 5, oll: 2, coll: 8 } }, 'coll'), 8);
+  assert.equal(P.thresholdOf({ threshold: 10, thresholds: { pll: 6 } }, 'coll'), 10);
+  assert.equal(P.thresholdOf({ threshold: 10 }, 'pll'), 10);
+  assert.equal(P.thresholdOf({}, 'pll'), 3);
+  assert.equal(P.thresholdOf(null, 'oll'), 3);
+  assert.equal(P.thresholdOf({ thresholds: { pll: 0, oll: 'x' }, threshold: 500 }, 'pll'), 3);
+});
+
 test('judge：しきい値以内なら習得済み、超えた・解けなかった（null）なら練習中', () => {
   assert.equal(P.judge(4.99, 5), 'learned');
   assert.equal(P.judge(5, 5), 'learned');
