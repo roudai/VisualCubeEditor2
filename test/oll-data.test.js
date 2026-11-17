@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const M = require('../js/cube-state.js');
+const C = require('../js/case-check.js');
 const OLL = require('../js/oll-data.js');
 const SRC = require('../data/oll/algs_info.json');
 const NOTES = require('../js/oll-groups.js');
@@ -288,4 +289,32 @@ NUMBERS.forEach((n) => {
     // alg の逆から求めた形も期待値と同じ
     assert.equal(canon(diagram(M.applyAlg(c.alg, { inverse: true, cancelRotation: true }))), canon(EXPECTED[n]));
   });
+});
+
+// roudai.net の OLL 手順（https://roudai.net/oll/oll/）で、2本目に載っている手順（データは1本目）。同じ番号のケースになること
+// （手順はそのページのまま。U'2 を U2 にするなど、書き方だけそろえた）
+const SITE_ALGS = {
+  8: ["y2 R U2 R' U2 R' F R F'"],
+  10: ["y2 L U L' y' R' F R U' R' F' R"],
+  32: ["S R U R' U' R' F R Fw'"],
+  36: ["R' U' R U' R' U R U x' R U' R' U x"],
+  37: ["F R' F' R U R U' R'"],
+  39: ["y2 R U R' F' U' F U R U2 R'"],
+  41: ["y2 R U' R' U2 R U y R U' R' U' F'"],
+  42: ["y R' U2 R U R' U R2 y R U R' U' F'"],
+  44: ["y2 F U R U' R' F'"],
+  50: ["y' R U2 R' U' R U' R' F R U R' U' F'"],
+  51: ["F U R U' R' U R U' R' F'"],
+  55: ["R U2 R2 U' R U' R' U2 F R F'"],
+  56: ["F R U R' U' R F' Rw U R' U' Rw'"],
+};
+
+test('roudai.net のほかの手順（SITE_ALGS）でも同じ番号のケースになる', () => {
+  Object.entries(SITE_ALGS).forEach(([n, algs]) =>
+    algs.forEach((alg) => {
+      assert.notEqual(M.flatten(alg), M.flatten(byName(n).alg), 'データと同じ手順では確認にならない');
+      const found = C.findCase('oll', alg, OLL);
+      assert.equal(found && found.name, n, alg);
+    })
+  );
 });

@@ -10,22 +10,22 @@
     "name": "2",
     "group": "Dot",
     "algset": "OLL",
-    "s": "B L U L' U' B' F U R U' R' F'",
-    "a": "F R U R' U' F' f R U R' U' f'"
+    "s": "B L U L' U' F B' U R U' R' F'",
+    "a": "F R U R' U' F' Fw R U R' U' Fw'"
   },
   "3": {
     "name": "3",
     "group": "Dot",
     "algset": "OLL",
     "s": "F U R U' R' F' U B L U L' U' B'",
-    "a": "f R U R' U' f' U' F R U R' U' F'"
+    "a": "Fw R U R' U' Fw' U' F R U R' U' F'"
   },
   "4": {
     "name": "4",
     "group": "Dot",
     "algset": "OLL",
     "s": "F U R U' R' F' U' B L U L' U' B'",
-    "a": "f R U R' U' f' U F R U R' U' F'"
+    "a": "Fw R U R' U' Fw' U F R U R' U' F'"
   },
   "5": {
     "name": "17",
@@ -38,71 +38,71 @@
     "name": "18",
     "group": "Dot",
     "algset": "OLL",
-    "s": "L' B2 R B R' B L2 F2 R' F' R F' L'",
-    "a": "r U R' U R U2 r2 U' R U' R' U2 r"
+    "s": "L F R' F' R L' U2 F R' F' R2 U2 R'",
+    "a": "R U2 R2 F R F' U2 M' U R U' Rw'"
   },
   "7": {
     "name": "19",
     "group": "Dot",
     "algset": "OLL",
     "s": "F R' F' R2 L' B R B' R' B' R' L",
-    "a": "r' R U R U R' U' r R2 F R F'"
+    "a": "Rw' R U R U R' U' Rw R2 F R F'"
   },
   "8": {
     "name": "20",
     "group": "Dot",
     "algset": "OLL",
-    "s": "L' R B R B R' B' L2 R2 F R F' L'",
-    "a": "r U R' U' M2 U R U' R' U' M'"
+    "s": "L F R' F' R2 L2 B R B' R' B' R' L",
+    "a": "Rw' R U R U R' U' M2 U R U' Rw'"
   },
   "9": {
     "name": "5",
     "group": "Square",
     "algset": "OLL",
     "s": "L' B' R B' R' B2 L",
-    "a": "r' U2 R U R' U r"
+    "a": "Rw' U2 R U R' U Rw"
   },
   "10": {
     "name": "6",
     "group": "Square",
     "algset": "OLL",
     "s": "L F R' F R F2 L'",
-    "a": "r U2 R' U' R U' r'"
+    "a": "Rw U2 R' U' R U' Rw'"
   },
   "11": {
     "name": "7",
     "group": "Lightning",
     "algset": "OLL",
     "s": "L F2 R' F' R F' L'",
-    "a": "r U R' U R U2 r'"
+    "a": "Rw U R' U R U2 Rw'"
   },
   "12": {
     "name": "8",
     "group": "Lightning",
     "algset": "OLL",
     "s": "L' B2 R B R' B L",
-    "a": "r' U' R U' R' U2 r"
+    "a": "Rw' U' R U' R' U2 Rw"
   },
   "13": {
     "name": "11",
     "group": "Lightning",
     "algset": "OLL",
-    "s": "L F2 R' D R' D' R F' R F' L'",
-    "a": "r U R' U R' F R F' R U2 r'"
+    "s": "R L' B' R B2 R' B' R B' R2 L",
+    "a": "Rw' R2 U R' U R U2 R' U M'"
   },
   "14": {
     "name": "12",
     "group": "Lightning",
     "algset": "OLL",
-    "s": "F U R U' R' F' U' F U R U' R' F'",
-    "a": "F R U R' U' F' U F R U R' U' F'"
+    "s": "F U R U' R' F' U' F U R U' R' F' (U)",
+    "a": "y' F R U R' U' F' U F R U R' U' F'"
   },
   "15": {
     "name": "39",
     "group": "Lightning",
     "algset": "OLL",
-    "s": "L U F' U' L' U L F L'",
-    "a": "L F' L' U' L U F U' L'"
+    "s": "F U R' U' F' U F R F' (U)",
+    "a": "L F' L' U' L U y' R U' F'"
   },
   "16": {
     "name": "40",
@@ -136,8 +136,8 @@
     "name": "37",
     "group": "Fish",
     "algset": "OLL",
-    "s": "R U R' U' R' F R F'",
-    "a": "F R' F' R U R U' R'"
+    "s": "F R U' R' U R U R' F'",
+    "a": "F R U' R' U' R U R' F'"
   },
   "21": {
     "name": "13",
@@ -158,14 +158,14 @@
     "group": "Knight",
     "algset": "OLL",
     "s": "L' B' L U' R' U R L' B L",
-    "a": "r' U' r R' U' R U r' U r"
+    "a": "Rw' U' Rw R' U' R U Rw' U Rw"
   },
   "24": {
     "name": "16",
     "group": "Knight",
     "algset": "OLL",
-    "s": "L F L' U R U' R' L F' L'",
-    "a": "r U r' R U R' U' r U' r'"
+    "s": "R B R' U L U' R L' B' R'",
+    "a": "R B R' L U L' U' R B' R'"
   },
   "25": {
     "name": "21",
@@ -185,22 +185,22 @@
     "name": "23",
     "group": "OCLL",
     "algset": "OLL",
-    "s": "R U2 R D R' U2 R D' R2",
-    "a": "R2 D R' U2 R D' R' U2 R'"
+    "s": "R' U2 R' D' R U2 R' D R2",
+    "a": "R2 D' R U2 R' D R U2 R"
   },
   "28": {
     "name": "24",
     "group": "OCLL",
     "algset": "OLL",
-    "s": "F R' F' L F R F' L'",
-    "a": "r U R' U' r' F R F'"
+    "s": "F R B R' F' R B' R'",
+    "a": "x' R U R' D R U' R' D' x"
   },
   "29": {
     "name": "25",
     "group": "OCLL",
     "algset": "OLL",
-    "s": "R' F' L F R F' L' F",
-    "a": "F' r U R' U' r' F R"
+    "s": "F R B' R' F' R B R'",
+    "a": "x' R U' R' D R U R' D' x"
   },
   "30": {
     "name": "26",
@@ -221,28 +221,28 @@
     "group": "Corners oriented",
     "algset": "OLL",
     "s": "R U R' U' R' L F R F' L'",
-    "a": "r U R' U' r' R U R U' R'"
+    "a": "Rw U R' U' Rw' R U R U' R'"
   },
   "33": {
     "name": "57",
     "group": "Corners oriented",
     "algset": "OLL",
-    "s": "L F R' F' L' R U R U' R'",
-    "a": "R U R' U' M' U R U' r'"
+    "s": "L F R' F' R L' U R U' R'",
+    "a": "R U R' U' M' U R U' Rw'"
   },
   "34": {
     "name": "29",
     "group": "Awkward",
     "algset": "OLL",
-    "s": "R U' R' F' U F R U R' U R U' R'",
-    "a": "R U R' U' R U' R' F' U' F R U R'"
+    "s": "R L' U R' U' R' L2 F R F' L'",
+    "a": "Rw U R' U' x Rw2 R U R U' R' L"
   },
   "35": {
     "name": "30",
     "group": "Awkward",
     "algset": "OLL",
-    "s": "F U R U2 R' U R U2 R' U' F'",
-    "a": "F U R U2 R' U' R U2 R' U' F'"
+    "s": "B U L U2 L' U L U2 L' U' B' (U')",
+    "a": "y Fw R U R2 U' R' U R2 U' R' Fw'"
   },
   "36": {
     "name": "41",
@@ -269,22 +269,22 @@
     "name": "32",
     "group": "P",
     "algset": "OLL",
-    "s": "L F' L' U' L U F U' L'",
-    "a": "L U F' U' L' U L F L'"
+    "s": "R B' R' U' R U B U' R'",
+    "a": "x' R F U' F' R' F R U R' x"
   },
   "40": {
     "name": "43",
     "group": "P",
     "algset": "OLL",
-    "s": "F' L' U' L U F",
-    "a": "F' U' L' U L F"
+    "s": "R' F' U' F U R",
+    "a": "R' U' F' U F R"
   },
   "41": {
     "name": "44",
     "group": "P",
     "algset": "OLL",
-    "s": "F R U R' U' F'",
-    "a": "F U R U' R' F'"
+    "s": "B L U L' U' B'",
+    "a": "Fw R U R' U' Fw'"
   },
   "42": {
     "name": "33",
@@ -304,8 +304,8 @@
     "name": "34",
     "group": "C",
     "algset": "OLL",
-    "s": "F U R' U' R' F' R U R2 U' R'",
-    "a": "R U R2 U' R' F R U R U' F'"
+    "s": "R L' B' R' B L U B U' B' (U)",
+    "a": "R U R' U' y' Rw' U' R U M'"
   },
   "45": {
     "name": "46",
@@ -318,8 +318,8 @@
     "name": "36",
     "group": "W",
     "algset": "OLL",
-    "s": "F' L F L' U' L' U' L U L' U L",
-    "a": "L' U' L U' L' U L U L F' L' F"
+    "s": "F R' F' R U R' F' R U R U' R' F R U' R'",
+    "a": "R U R' F' R U R' U' R' F R U' R' F R F'"
   },
   "47": {
     "name": "38",
@@ -332,8 +332,8 @@
     "name": "47",
     "group": "L",
     "algset": "OLL",
-    "s": "F' U' L' U L U' L' U L F",
-    "a": "F' L' U' L U L' U' L U F"
+    "s": "R' U' F R' F' R F R' F' R U R",
+    "a": "R' U' x R' U R U' R' U R U' x' U R"
   },
   "49": {
     "name": "48",
@@ -346,56 +346,56 @@
     "name": "49",
     "group": "L",
     "algset": "OLL",
-    "s": "L' B L2 F' L2 B' L2 F L'",
-    "a": "r U' r2 U r2 U r2 U' r"
+    "s": "R' F R2 B' R2 F' R2 B R'",
+    "a": "R B' R2 F R2 B R2 F' R"
   },
   "51": {
     "name": "50",
     "group": "L",
     "algset": "OLL",
     "s": "L F' L2 B L2 F L2 B' L",
-    "a": "r' U r2 U' r2 U' r2 U r'"
+    "a": "Rw' U Rw2 U' Rw2 U' Rw2 U Rw'"
   },
   "52": {
     "name": "53",
     "group": "L",
     "algset": "OLL",
     "s": "L' B2 R B R' B' R B R' B L",
-    "a": "r' U' R U' R' U R U' R' U2 r"
+    "a": "Rw' U' R U' R' U R U' R' U2 Rw"
   },
   "53": {
     "name": "54",
     "group": "L",
     "algset": "OLL",
     "s": "L F2 R' F' R F R' F' R F' L'",
-    "a": "r U R' U R U' R' U R U2 r'"
+    "a": "Rw U R' U R U' R' U R U2 Rw'"
   },
   "54": {
     "name": "51",
     "group": "I",
     "algset": "OLL",
-    "s": "F R U R' U' R U R' U' F'",
-    "a": "F U R U' R' U R U' R' F'"
+    "s": "B L U L' U' L U L' U' B'",
+    "a": "Fw R U R' U' R U R' U' Fw'"
   },
   "55": {
     "name": "52",
     "group": "I",
     "algset": "OLL",
-    "s": "R B U B' U R' U' R U' R'",
-    "a": "R U R' U R U' B U' B' R'"
+    "s": "B' R' U' R U' B U B' U B (U)",
+    "a": "R' U' R U' R' U y' R' U R B"
   },
   "56": {
     "name": "55",
     "group": "I",
     "algset": "OLL",
-    "s": "F R' F' U2 R U R' U R2 U2 R'",
-    "a": "R U2 R2 U' R U' R' U2 F R F'"
+    "s": "R U' R' U' R U R2 F R2 U R' U' R' F' R (U)",
+    "a": "y R' F R U R U' R2 F' R2 U' R' U R U R'"
   },
   "57": {
     "name": "56",
     "group": "I",
     "algset": "OLL",
-    "s": "L F L' R U R' U' R U R' U' L F' L'",
-    "a": "r U r' U R U' R' U R U' R' r U' r'"
+    "s": "L' B' R' L U' R U R' U' R U L' B L",
+    "a": "Rw' U' Rw U' R' U R U' R' U R Rw' U Rw"
   }
 }

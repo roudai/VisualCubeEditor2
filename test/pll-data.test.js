@@ -29,59 +29,85 @@ const NAMES = Object.values(GROUPS).flat();
 
 // ---- 期待するピースの置換（標準の向き） ----
 // 「その PLL を解くと、ピースがどう動くか」を巡回で書く。'UR>UL>UF' は「UR にあるピースが UL へ、UL のが UF へ、UF のが UR へ」。
-// 位置は上から見て（B が上）: コーナー UBL UBR UFR UFL、エッジ UB UR UF UL。向きは reference/PLL_SPEC.md「標準の向き」。
-//   Ua は3エッジの反時計回り、Ub は時計回り（後ろのエッジは動かない）。Aa は3コーナーの時計回り、Ab は反時計回り。
-//   隣接交換は右のコーナー2個（UBR・UFR）の交換で、いっしょに交換するエッジの組で見分ける
-//     T: 左右 / F: 前後 / Ja: 後ろと右 / Jb: 右と前 / Ra: 後ろと左 / Rb: 前と左
-//   対角交換: Y・V・Nb は UBL と UFR、Na は UBR と UFL。エッジは Y: 後ろと左 / V: 後ろと右 / N: 左右
-//   G: 動かないコーナーとその隣の動かないエッジが 1x2 のブロック、左の2コーナーがヘッドライト
+// 位置は上から見て（B が上）: コーナー UBL UBR UFR UFL、エッジ UB UR UF UL。
+// 名前と向きは roudai.net の PLL 手順（https://roudai.net/pll/pll/）に合わせる（reference/PLL_SPEC.md「名前」「標準の向き」）。
+//   向き＝そのページの図の向き（そのケースの最初の手順で揃う状態）。
+//   名前は、国際的に多い呼び方と Ua⇔Ub・Aa⇔Ab・Ra⇔Rb・Ga⇔Gd・Gb⇔Gc が入れ替わっている（J・N ほかは同じ）。
+//   Ua は3エッジの時計回り、Ub は反時計回り（後ろのエッジは動かない）。
 const EXPECTED = {
-  Ua: 'UR>UL>UF',
-  Ub: 'UR>UF>UL',
+  Ua: 'UR>UF>UL',
+  Ub: 'UR>UL>UF',
   H: 'UB>UF UR>UL',
-  Z: 'UB>UL UR>UF',
-  Aa: 'UBL>UBR>UFR',
-  Ab: 'UBL>UFR>UBR',
+  Z: 'UB>UR UF>UL',
+  Aa: 'UBR>UFL>UFR',
+  Ab: 'UBR>UFR>UFL',
   E: 'UBL>UFL UBR>UFR',
   T: 'UBR>UFR UR>UL',
   F: 'UBR>UFR UB>UF',
-  Ja: 'UBR>UFR UB>UR',
+  Ja: 'UBL>UBR UB>UL',
   Jb: 'UBR>UFR UR>UF',
-  Ra: 'UBR>UFR UB>UL',
-  Rb: 'UBR>UFR UF>UL',
+  Ra: 'UBL>UBR UR>UF',
+  Rb: 'UBR>UFR UB>UL',
   Y: 'UBL>UFR UB>UL',
   V: 'UBL>UFR UB>UR',
   Na: 'UBR>UFL UR>UL',
   Nb: 'UBL>UFR UR>UL',
-  Ga: 'UBL>UBR>UFL UB>UL>UR',
-  Gb: 'UBL>UFL>UFR UB>UF>UL',
-  Gc: 'UBL>UFL>UFR UR>UF>UL',
-  Gd: 'UBL>UBR>UFL UB>UL>UF',
+  Ga: 'UBL>UBR>UFL UB>UL>UF',
+  Gb: 'UBL>UFL>UBR UB>UF>UL',
+  Gc: 'UBL>UFL>UFR UB>UF>UL',
+  Gd: 'UBL>UFR>UFL UB>UL>UF',
 };
 
-// データとは別の手順（名前とケースの対応の確認用。どれもその名前で広く知られているもの）
+// データとは別の手順（名前とケースの対応の確認用）。どれも国際的な呼び方で広く知られている手順で、
+// 上の入れ替え（Ua⇔Ub・Aa⇔Ab・Ra⇔Rb・Ga⇔Gd・Gb⇔Gc）をしてサイトの名前に読み替えてある
 const OTHER_ALGS = {
-  Ua: ["R U' R U R U R U' R' U' R2", "R2 U' R' U' R U R U R U' R"],
-  Ub: ["R2 U R U R' U' R' U' R' U R'", "R' U R' U' R' U' R' U R U R2"],
+  Ua: ["M2 U' M U2 M' U' M2", "R' U R' U' R' U' R' U R U R2"],
+  Ub: ["M2 U M U2 M' U M2", "R2 U' R' U' R U R U R U' R"],
   H: ["R2 U2 R U2 R2 U2 R2 U2 R U2 R2"],
   Z: ["M2 U M2 U M' U2 M2 U2 M'", "R' U' R U' R U R U' R' U R U R2 U' R'"],
-  Aa: ["l' U R' D2 R U' R' D2 R2 x'", "x L2 D2 L' U' L D2 L' U L' x'"],
-  Ab: ["l' R' D2 R U R' D2 R U' R x'", "x' L2 D2 L U L' D2 L U' L x"],
+  Aa: ["l' R' D2 R U R' D2 R U' R x'", "x' L2 D2 L U L' D2 L U' L x"],
+  Ab: ["l' U R' D2 R U' R' D2 R2 x'", "x L2 D2 L' U' L D2 L' U L' x'"],
   E: ["x' L' U L D' L' U' L D L' U' L D' L' U L D x"],
   T: ["R U R' U' R' F R2 U' R' U F' L' U L"],
   F: ["R' U2 R' U' y R' F' R2 U' R' U R' F R U' F"],
   Ja: ["R' U L' U2 R U' R' U2 R L", "L' U' L F L' U' L U L F' L2 U L"],
   Jb: ["R U2 R' U' R U2 L' U R' U' L"],
-  Ra: ["R U R' F' R U2 R' U2 R' F R U R U2 R'", "L U2 L' U2 L F' L' U' L U L F L2"],
-  Rb: ["R' U2 R U2 R' F R U R' U' R' F' R2", "R' U2 R' D' R U' R' D R U R U' R' U' R"],
+  Ra: ["R' U2 R U2 R' F R U R' U' R' F' R2", "R' U2 R' D' R U' R' D R U R U' R' U' R"],
+  Rb: ["R U R' F' R U2 R' U2 R' F R U R U2 R'", "L U2 L' U2 L F' L' U' L U L F L2"],
   Y: ["F R' F R2 U' R' U' R U R' F' R U R' U' F'"],
   V: ["R' U R' U' R D' R' D R' U D' R2 U' R2 D R2", "R' U R' d' R' F' R2 U' R' U R' F R F"],
   Na: ["z U R' D R2 U' R D' U R' D R2 U' R D' z'", "L U' R U2 L' U R' L U' R U2 L' U R'"],
   Nb: ["z U' R D' R2 U R' D U' R D' R2 U R' D z'", "R' U L' U2 R U' L R' U L' U2 R U' L"],
-  Ga: ["R2 u R' U R' U' R u' R2 y' R' U R"],
-  Gb: ["R' U' R y R2 u R' U R U' R u' R2"],
-  Gc: ["R2 u' R U' R U R' u R2 y R U' R'"],
-  Gd: ["R U R' y' R2 u' R U' R' U R' u R2"],
+  Ga: ["R U R' y' R2 u' R U' R' U R' u R2"],
+  Gb: ["R2 u' R U' R U R' u R2 y R U' R'"],
+  Gc: ["R' U' R y R2 u R' U R U' R u' R2"],
+  Gd: ["R2 u R' U R' U' R u' R2 y' R' U R"],
+};
+
+// roudai.net の PLL 手順で、各ケースの2本目以降に載っている手順（データは1本目）。同じ名前のケースになること
+// （手順はそのページのまま。U'2 を U2 にするなど、書き方だけそろえた）
+const SITE_ALGS = {
+  Ua: ["R' U R' U' R' U' R' U R U R2", "z U' R U' R' U' R' U' R U R U2", "z U2 R U R U' R' U' R' U' R U'", "F2 U M' U2 M U F2"],
+  Ub: ["R2 U' R' U' R U R U R U' R", "F2 U' M' U2 M U' F2"],
+  H: ["R2 U2 R U2 R2 U2 R2 U2 R U2 R2", "L R U2 L' R' F' B' U2 F B"],
+  Z: ["(U) U R' U' R U' R U R U' R' U R U R2 U' R' U", "M2 U' x M2 U2 M2 U2 x' U M2"],
+  Aa: ["x R2 D2 R U R' D2 R U' R"],
+  Ab: ["R U R' F' Rw U R' U' Rw' F R2 U' R'", "x R' U R' D2 R U' R' D2 R2"],
+  E: ["R2 U R' U' y R U R' U' R U R' U' R U R' F U' F2", "R' U L' D2 L U' R L' U R' D2 R U' L"],
+  T: ["L' U' L U Rw U' Rw2 F Rw U L' U' Rw U", "z U2 R' U2 R U2 x U2 R U2 Rw' U2 Rw"],
+  F: ["R' U2 R' U' y R' F' R2 U' R' U R' F R U' F", "x R2 U R U' R' y R' U' R U x U2 R U' R' U R", "L B2 F' D2 B R' B' D2 F2 L' F' L B2 L'"],
+  Ja: ["L' U R' z R2 U R' U' R2 U D R'", "L' U2 L U L' U2 R U' L U R'", "B2 R' U' R B2 L' D L' D' L2"],
+  Jb: ["B2 L U L' B2 R D' R D R2"], // ページの片手「R U'2 R' U' R U'2」は途中で切れていて揃わないので入れない
+  Ra: [],
+  Rb: ["L U2 L' U2 L F' L' U' L U Rw U Rw2 F", "x' R' U' F' U R' U' x U R' U' R' U R B R2"],
+  Y: ["R2 U' R' U R U' x' U' R' D R' D' R' U R", "R2 U' R2 U' R2 U F U F' R2 F U' F'"],
+  V: ["R' U R' U' y R' F' R2 U' R' U R' F R F", "L' U L' U' y' R' F' R2 U' R' U R' F R F", "y R U2 R' U2 L' U R U' L U' L' U R' U' L"],
+  Na: ["R U' R' U Lw U F U' R' F' R U' R U Lw' U R'"], // ページの片手・最少「L U' R U'2 L' U L R' U' R U2 L U R'」は揃わないので入れない
+  Nb: ["R' U L' U2 R U' R' L U L' U2 R U' L"],
+  Ga: ["R U R' y' R2 Uw' R U' R' U R' Uw R2"],
+  Gb: ["R2 Uw' R U' R U R' Uw R2 y R U' R'", "R2 F2 R U2 R U2 R' F R U R' U' R' F R2"],
+  Gc: ["L' U' L y' R2 Uw R' U R U' R Uw' R2", "R' U' R y R2 Uw R' U R U' R Uw' R2"],
+  Gd: ["R2 Uw R' U R' U' R Uw' R2 F' U F", "z U2 Rw U' R U' R' U Rw' U2 x' U' R U"],
 };
 
 // ---- 置換 → 状態（CubeState の回転は使わず、ステッカーを直接置く） ----
@@ -266,6 +292,13 @@ PLL.forEach((c) => {
     assert.ok(solves(body), '標準の向きから揃わない（前AUFが要る・違う）');
     // 前AUFが付いているなら、付けたままでは標準の向きから揃わない（＝前AUFに意味がある）
     if (pre) assert.ok(!solves(c.alg));
+  });
+
+  test(`${c.name}: roudai.net のほかの手順（SITE_ALGS）でも同じ名前のケースになる`, () => {
+    SITE_ALGS[c.name].forEach((alg) => {
+      const found = C.findCase('pll', alg, PLL);
+      assert.equal(found && found.name, c.name, alg);
+    });
   });
 
   test(`${c.name}: 別の手順（OTHER_ALGS）でも同じ名前のケースになる`, () => {
