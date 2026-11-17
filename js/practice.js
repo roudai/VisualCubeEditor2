@@ -281,10 +281,15 @@
       const b = el('button', 'practice-group-chip' + (chosen.has(s.key) ? ' active' : ''));
       b.type = 'button';
       b.textContent = s.label;
-      // 段階の説明：OLL は段階の名前（i18n の stage.oll.<記号>）、PLL は「覚える順の n 段階目」
-      const note = stage ? (CS.isNumbered(DATA[set]) ? I.t(`stage.${set}.${s.label}`) : I.t('practice.stageTitle', { n: s.stage })) : (NOTES[set] || {})[s.key];
       const n = s.cases.length;
-      b.title = note ? `${s.label} (${note}) · ${n}` : `${s.label} · ${n}`;
+      if (stage) {
+        // 段階：一覧の見出しと同じ文（OLL「A. 十字完成」、PLL「1. U-perm（エッジ3つ）」。名前は i18n の stage.<set>.<記号>）
+        const name = I.t(`stage.${set}.${s.label}`);
+        b.title = `${CS.isNumbered(DATA[set]) ? s.label : s.stage}. ${name} · ${n}`;
+      } else {
+        const note = (NOTES[set] || {})[s.key];
+        b.title = note ? `${s.label} (${note}) · ${n}` : `${s.label} · ${n}`;
+      }
       b.setAttribute('aria-pressed', String(chosen.has(s.key)));
       b.addEventListener('click', () => {
         const next = new Set(chosen);

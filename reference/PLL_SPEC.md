@@ -157,7 +157,10 @@ Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
   ```
   - 出典は種類（U-perm など）ごとに並べている。段階の中の a・b は、出典と名前の付け方が違う（このデータは roudai.net の名前）ので、データの順にした
 - 生成（`tools/build-case-data.js`）で、各ケースに `stage`（段階 1〜13）と `order`（覚える順の通し番号 1〜21）を付ける
-- 段階の名前（一覧の見出し・ボタン、練習のボタン）は種類の文字（`U`・`J`・`G` など。`CaseSections.stageLabel`）。見出しは「2. T」のように番号を付ける
+- 段階の記号は種類の文字（`U`・`J`・`G` など。`CaseSections.stageLabel`）。一覧と練習の段階のボタンは記号だけ
+- 段階の名前（`js/i18n.js` の `stage.pll.<記号>`）は「U-perm」の形。見分けやすい5つだけ説明を付ける：
+  U-perm（エッジ3つ / 3 edges）、H-perm（向かいのエッジ / opposite edges）、Z-perm（隣のエッジ / adjacent edges）、A-perm（コーナー3つ / 3 corners）、E-perm（コーナー2組の交換 / 2 corner swaps）。ほかは T-perm・Y-perm・J-perm・F-perm・V-perm・R-perm・G-perm・N-perm
+- 一覧の見出しは「1. U-perm（エッジ3つ）」のように番号と名前（記号は順番を表さないので番号を付ける。OLL は記号 A〜M が順番なので番号なし）。段階のボタンにマウスを乗せると見出しと同じ文、練習のボタンはそれにケース数（「1. U-perm（エッジ3つ） · 2」）
 - 一覧・練習・記録の並びは「グループ順 / 覚える順」。選んだ並びは `visualcube-editor:list-filter` の `pllOrder`（`'group'` / `'learn'`。一覧と練習で共通）。既定はグループ順
 
 ## 自分の手順（PLL・OLL 共通）

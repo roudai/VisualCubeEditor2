@@ -399,10 +399,13 @@
   const CARDS = {};
 
   // 見出し（グループ：「Edges only (EPLL)」、段階：「2. …」）
-  // OLL（番号のデータ）の段階は記号 A〜M が順番を表すので、番号は付けずに名前を添える（「A. OCLL」。名前は i18n の stage.oll.<記号>）
+  // 覚える順の段階の見出し（名前は i18n の stage.<set>.<記号>）
+  //   OLL（番号のデータ）：記号 A〜M が順番を表すので番号は付けない（「A. 十字完成」）
+  //   PLL：記号（U・T…）は順番を表さないので番号を付ける（「1. U-perm（エッジ3つ）」）
   const sectionTitle = (s) => {
     if (!s.stage) return groupLabel(s.key);
-    return NUMBERED ? `${s.label}. ${I.t(`stage.${SET}.${s.label}`)}` : `${s.stage}. ${s.label}`;
+    const name = I.t(`stage.${SET}.${s.label}`);
+    return NUMBERED ? `${s.label}. ${name}` : `${s.stage}. ${name}`;
   };
   // 言語を切り替えたら、見出しとボタンの説明を作り直す（段階の名前は訳がある）
   function relabelSections() {
