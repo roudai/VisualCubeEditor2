@@ -1,5 +1,5 @@
 // 実行: node --test test/pll-data.test.js
-// PLL 21ケースのデータ（pll/algs_info.json → js/pll-data.js）。仕様: reference/PLL_SPEC.md
+// PLL 21ケースのデータ（data/pll/algs_info.json → js/pll-data.js）。仕様: reference/PLL_SPEC.md
 //
 // a と s が互いに合っているか（生成時の確認と同じ）に加えて、**名前とケースの対応**を手順とは別の系統で確かめる:
 //   1. EXPECTED … 各 PLL を「ピースの置換」（どのコーナー・エッジがどこへ動くか）として直書きしたもの。
@@ -11,7 +11,7 @@ const fs = require('fs');
 const M = require('../js/cube-state.js');
 const C = require('../js/case-check.js');
 const PLL = require('../js/pll-data.js');
-const SRC = require('../pll/algs_info.json');
+const SRC = require('../data/pll/algs_info.json');
 const NOTES = require('../js/pll-groups.js');
 const { build, cases, check, OUT } = require('../tools/build-pll-data.js');
 

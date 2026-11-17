@@ -1,4 +1,4 @@
-// <pll|oll>/scrambles.json から練習用のスクランブルのファイル（js/<pll|oll>-scrambles.js）を作る。
+// data/<pll|oll>/scrambles.json から練習用のスクランブルのファイル（js/<pll|oll>-scrambles.js）を作る。
 // 実行: node tools/build-scrambles.js [pll] [oll]（引数なしで両方）
 //   - scrambles.json は { ケース名: [スクランブル, ...] }（ケース名は js/<set>-data.js の name。tools/gen-scrambles.js が作る）
 //   - 各スクランブルを確かめ、だめなものがあればエラーで止める（verifyScramble）
@@ -24,7 +24,7 @@ function paths(set, root) {
   const base = root || ROOT;
   return {
     data: path.join(base, 'js', set + '-data.js'),
-    src: path.join(base, set, 'scrambles.json'),
+    src: path.join(base, 'data', set, 'scrambles.json'),
     out: path.join(base, 'js', set + '-scrambles.js'),
   };
 }
@@ -68,13 +68,13 @@ function buildFile(set, raw, cases) {
   Object.keys(raw).forEach((name) => {
     if (!names.has(name)) errors.push(`${name}: js/${set}-data.js に無いケース名です`);
   });
-  if (errors.length) throw new Error(`${set}/scrambles.json に問題があります:\n  ` + errors.join('\n  '));
+  if (errors.length) throw new Error(`data/${set}/scrambles.json に問題があります:\n  ` + errors.join('\n  '));
 
   const varName = set.toUpperCase() + '_SCRAMBLES';
   const lines = cases.map((c) => '  ' + JSON.stringify(c.name) + ': ' + JSON.stringify(out[c.name]) + ',');
   return [
     '// 自動生成ファイル。手で編集しないこと。',
-    `// 元データ: ${set}/scrambles.json / 生成: node tools/build-scrambles.js`,
+    `// 元データ: data/${set}/scrambles.json / 生成: node tools/build-scrambles.js`,
     '(function (root, data) {',
     "  if (typeof module === 'object' && module.exports) module.exports = data;",
     `  else root.${varName} = data;`,
@@ -85,7 +85,7 @@ function buildFile(set, raw, cases) {
   ].join('\n');
 }
 
-/** <set>/scrambles.json と js/<set>-data.js を読んで、生成するファイルの中身を返す */
+/** data/<set>/scrambles.json と js/<set>-data.js を読んで、生成するファイルの中身を返す */
 function build(set, root) {
   const raw = JSON.parse(fs.readFileSync(paths(set, root).src, 'utf8'));
   return buildFile(set, raw, loadCases(set, root));

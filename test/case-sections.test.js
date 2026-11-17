@@ -12,7 +12,7 @@ const GROUPED = [
   { name: 'T', group: 'Adjacent swap' },
   { name: 'Ab', group: 'Corners only' }, // 離れていても同じグループにまとめる
 ];
-// 覚える順番のあるデータ（pll/learn_order.json を置いた場合の形）
+// 覚える順番のあるデータ（data/pll/learn_order.json を置いた場合の形）
 const STAGED = [
   { name: 'F1+', group: 'F', stage: 2, order: 3 },
   { name: 'F1-', group: 'F', stage: 2, order: 4 },

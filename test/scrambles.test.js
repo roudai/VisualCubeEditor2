@@ -1,6 +1,6 @@
 // 実行: node --test
 // ケース用スクランブル：tools/gen-scrambles.js（生成）、tools/build-scrambles.js（確認と js/<set>-scrambles.js の生成）、
-// <pll|oll>/scrambles.json と js/<pll|oll>-scrambles.js の全件の確認。
+// data/<pll|oll>/scrambles.json と js/<pll|oll>-scrambles.js の全件の確認。
 // 前半は代表的なケースを直書きして、生成 → 確認の流れを確かめる（データが無くても動く）。
 // 後半は置かれている scrambles.json の全件を確かめる（まだ無ければ skip。置かれたら自動で有効になる）
 const test = require('node:test');
@@ -104,7 +104,7 @@ for (const set of ['pll', 'oll']) {
 
   test(`${set}（直書きのケース）：生成物は { ケース名: [スクランブル] } で、json と同じ中身になる`, () => {
     const source = B.buildFile(set, sample[set], cases);
-    assert.match(source, new RegExp('^// 自動生成ファイル。手で編集しないこと。\\n// 元データ: ' + set + '/scrambles.json / 生成: node tools/build-scrambles.js\\n'));
+    assert.match(source, new RegExp('^// 自動生成ファイル。手で編集しないこと。\\n// 元データ: data/' + set + '/scrambles.json / 生成: node tools/build-scrambles.js\\n'));
     assert.deepEqual(loadGenerated(source, set.toUpperCase() + '_SCRAMBLES'), sample[set]);
     // json の文字列にして読み直しても同じ（scrambles.json の形）
     assert.deepEqual(JSON.parse(G.toJson(sample[set])), sample[set]);
@@ -185,7 +185,7 @@ for (const set of ['pll', 'oll']) {
   const missing = [p.data, p.src].filter((f) => !fs.existsSync(f)).map((f) => f.replace(/^.*[\\/](?=[^\\/]+[\\/][^\\/]+$)/, ''));
   const skip = missing.length ? missing.join('・') + ' がまだ無い（node tools/gen-scrambles.js で作る）' : false;
 
-  test(`${set}/scrambles.json：全ケースに ${COUNT} 本ずつあり、どれもそのケースになり、重複が無い`, { skip: skip }, () => {
+  test(`data/${set}/scrambles.json：全ケースに ${COUNT} 本ずつあり、どれもそのケースになり、重複が無い`, { skip: skip }, () => {
     const cases = B.loadCases(set);
     const raw = JSON.parse(fs.readFileSync(p.src, 'utf8'));
     assert.deepEqual(Object.keys(raw).sort(), cases.map((c) => c.name).sort());

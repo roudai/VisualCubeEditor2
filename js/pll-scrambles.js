@@ -1,5 +1,5 @@
 // 自動生成ファイル。手で編集しないこと。
-// 元データ: pll/scrambles.json / 生成: node tools/build-scrambles.js
+// 元データ: data/pll/scrambles.json / 生成: node tools/build-scrambles.js
 (function (root, data) {
   if (typeof module === 'object' && module.exports) module.exports = data;
   else root.PLL_SCRAMBLES = data;

@@ -7,7 +7,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 目安の時間（しきい値）以内に解けたケースは自動で「習得済み」、超えた・解けなかったケースは「練習中」にする。
 
 ## データ
-- 元データ：`pll/scrambles.json`・`oll/scrambles.json`（`{ ケース名: [スクランブル 20 本] }`。キーは `algs_info.json` の `name`）
+- 元データ：`data/pll/scrambles.json`・`data/oll/scrambles.json`（`{ ケース名: [スクランブル 20 本] }`。キーは `algs_info.json` の `name`）
 - 生成：`node tools/gen-scrambles.js`（json を作る。ケースの状態にランダムな AUF を足したものを `js/cube-solver.js` で解き、その逆手順をスクランブルにする。種は固定）
   → `node tools/build-scrambles.js`（`js/pll-scrambles.js`・`js/oll-scrambles.js` = `window.PLL_SCRAMBLES = { "Aa": [...] }` を作る）
   - 各スクランブルで崩した状態が、そのケースになるかを確かめる（`js/case-check.js` の `fitSetup`。`test/scrambles.test.js` が全件を確かめる）
@@ -20,7 +20,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
   - グループ：「すべてのグループ」または選んだグループ（例：`Dot, Square`）。押すとグループのボタンが並ぶ欄が開き、押したグループだけを出題する（1つも選んでいなければすべて。「選択を解除」で戻す）。グループのボタンにマウスを乗せると説明とケースの数が出る。PLL・OLL それぞれで覚えておく
   - 対象：未習得 / 練習中 / 習得済み / すべて（それぞれ件数付き。グループで絞った中の件数）
   - 習得の目安：2秒 / 3秒 / 5秒 / 8秒（既定は 3秒）、または入力欄に数値（1〜120 秒）。入力した秒数はボタンには足さず、入力欄を強調する
-  - 「グループ順 / 覚える順」の切り替えと、OLL の範囲（No Dot / Dot）は無い（Megaminx 版にだけある。覚える順は、`<set>/learn_order.json` を置いてデータを作り直せば出る）
+  - 「グループ順 / 覚える順」の切り替えと、OLL の範囲（No Dot / Dot）は無い（Megaminx 版にだけある。覚える順は、`data/<set>/learn_order.json` を置いてデータを作り直せば出る）
 - 出題：対象に当てはまるケースからランダム（直前と同じケースは避ける）、そのケースのスクランブル 20 本からランダムに選び、**そのまま出す**
   （ランダムな AUF 込みで作ってあるので、出題のときに AUF は足さない）。ケースの名前と画像は解き終わるまで出さない。対象が0件なら「対象のケースがありません」
 - タイマー

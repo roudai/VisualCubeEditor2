@@ -1,11 +1,11 @@
 // 実行: node --test test/oll-data.test.js
-// OLL 57ケースのデータ（oll/algs_info.json → js/oll-data.js）。仕様: reference/OLL_SPEC.md
+// OLL 57ケースのデータ（data/oll/algs_info.json → js/oll-data.js）。仕様: reference/OLL_SPEC.md
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const M = require('../js/cube-state.js');
 const OLL = require('../js/oll-data.js');
-const SRC = require('../oll/algs_info.json');
+const SRC = require('../data/oll/algs_info.json');
 const NOTES = require('../js/oll-groups.js');
 const { build, check, OUT } = require('../tools/build-oll-data.js');
 

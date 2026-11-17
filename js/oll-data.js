@@ -1,5 +1,5 @@
 // 自動生成ファイル。手で編集しないこと。
-// 元データ: oll/algs_info.json / 生成: node tools/build-oll-data.js
+// 元データ: data/oll/algs_info.json / 生成: node tools/build-oll-data.js
 (function (root, data) {
   if (typeof module === 'object' && module.exports) module.exports = data;
   else root.OLL_DATA = data;

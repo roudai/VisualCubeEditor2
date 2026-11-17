@@ -1,8 +1,8 @@
-// <pll|oll>/algs_info.json から js/<pll|oll>-data.js を生成する共通部分。
+// data/<pll|oll>/algs_info.json から js/<pll|oll>-data.js を生成する共通部分。
 // tools/build-pll-data.js・tools/build-oll-data.js から使う（それぞれ createBuilder('pll') / createBuilder('oll') を呼ぶだけ）。
 // 仕様: reference/PLL_SPEC.md・reference/OLL_SPEC.md
 //
-//   元データ <set>/algs_info.json = { "番号": { name, group, algset, s, a } }
+//   元データ data/<set>/algs_info.json = { "番号": { name, group, algset, s, a } }
 //     a: [前AUF] 手順              解く手順。例: "(U') R U R' ..."。最後の AUF は付けない。
 //                                  最後の持ち替えは、x … x' のように向きを元に戻すものだけ書いてよい
 //     s: [AUF] setup [AUF]         そのケースになる手順。センターを動かさないこと
@@ -16,7 +16,7 @@
 //     共通: a の最後に AUF・向きを戻さない持ち替えが無い / 名前が重複しない
 //     手順中の持ち替え・2層回し・中層回しによる完成後の向きの違いは無視する（cancelRotation）
 //
-//   覚える順番 <set>/learn_order.json（段階ごとのケース名の配列）があれば、各ケースに stage（段階）と
+//   覚える順番 data/<set>/learn_order.json（段階ごとのケース名の配列）があれば、各ケースに stage（段階）と
 //   order（覚える順の通し番号）を付ける。全ケースがちょうど1回ずつ無ければエラー。無ければ付けない
 //
 //   出力 js/<set>-data.js = [{ name, group, (stage, order,) alg, setup }, …]（ブラウザでは window.PLL_DATA / OLL_DATA）
@@ -55,10 +55,10 @@ const MESSAGES = {
  */
 function createBuilder(set, options) {
   const root = (options && options.root) || ROOT;
-  const SRC = path.join(root, set, 'algs_info.json');
+  const SRC = path.join(root, 'data', set, 'algs_info.json');
   const OUT = path.join(root, 'js', set + '-data.js');
-  const ORDER_SRC = path.join(root, set, 'learn_order.json');
-  const srcName = set + '/algs_info.json';
+  const ORDER_SRC = path.join(root, 'data', set, 'learn_order.json');
+  const srcName = 'data/' + set + '/algs_info.json';
 
   // a・s を確認し、問題があればその内容を返す
   function check(a, s) {

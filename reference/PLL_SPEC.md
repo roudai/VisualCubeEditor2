@@ -3,11 +3,11 @@
 3x3x3 の PLL（全21ケース）の名前・解く手順・そのケースになる手順を持ち、エディタ・一覧・練習で使う。
 MegaminxImageEditor の `reference/PLL_SPEC.md` を 3x3 用に書き直したもの。コードと食い違うときはコードを正とする。
 
-- データと確認：`pll/algs_info.json`、`tools/build-pll-data.js`（共通部分は `tools/build-case-data.js`）、
+- データと確認：`data/pll/algs_info.json`、`tools/build-pll-data.js`（共通部分は `tools/build-case-data.js`）、
   `js/pll-data.js`（生成物）、`js/pll-groups.js`、`js/case-check.js`、`js/custom-algs.js`、`test/pll-data.test.js`
 - 画面（エディタのケース選択、一覧 `pll.html`、一括ダウンロード）：`js/editor-cases.js`、`js/cases.js`、`js/cube-draw.js`（「画面」の節）。練習と記録は `reference/PRACTICE_SPEC.md`
 
-## 元データ：`pll/algs_info.json`
+## 元データ：`data/pll/algs_info.json`
 
 ```json
 "8": {
@@ -102,11 +102,11 @@ PLL 表の図の向き（＝その手順を回し始める向き）とし、下�
 | Gc | UBL>UFL>UFR UR>UF>UL | ヘッドライトが左、ブロックは UBR と UB | `R2 U' R U' R U R' U R2 U D' R U' R' D` |
 | Gd | UBL>UBR>UFL UB>UL>UF | ヘッドライトが左、ブロックは UFR と UR | `R U R' U' D R2 U' R U' R' U R' U R2 D'` |
 
-`s`（そのケースになる手順）は `pll/algs_info.json` を参照。AUF が付くのは Z（最後に `(U')`）と Ja（最後に `(U)`）。
+`s`（そのケースになる手順）は `data/pll/algs_info.json` を参照。AUF が付くのは Z（最後に `(U')`）と Ja（最後に `(U)`）。
 
 ## データファイル（生成）
 
-- `node tools/build-pll-data.js`：`pll/algs_info.json` を読み、上の条件を確認して `js/pll-data.js` を書き出す。
+- `node tools/build-pll-data.js`：`data/pll/algs_info.json` を読み、上の条件を確認して `js/pll-data.js` を書き出す。
   処理は `tools/build-case-data.js` の `createBuilder('pll')`（OLL と共通）。`tools/build-pll-data.js` はそれを呼ぶだけで、
   `require` すると `{ SRC, OUT, check, suggest, cases, build, main }` が返る
 - 次の場合はエラーで止め、ケース名と理由を表示する（`js/pll-data.js` は書き出さない）
@@ -119,7 +119,7 @@ PLL 表の図の向き（＝その手順を回し始める向き）とし、下�
   - 書かれた `a` の前AUFは活かし、`s` の前後の AUF を 4×4 通り試す。`a` の最後の AUF・持ち替えは外し、`a` を変えたときだけ「候補 a」も出す
   - 候補が複数あるときは `s` に付ける AUF が少ない → `s` の前に AUF を付けない を優先する
   ```
-  pll/algs_info.json に問題があります:
+  data/pll/algs_info.json に問題があります:
     T: a で s のケースが揃いません（最後の AUF を除いても揃わない）
       候補 s: F R U' R' U R U R2 F' R U R U' R' (U')
   ```
@@ -131,12 +131,12 @@ PLL 表の図の向き（＝その手順を回し始める向き）とし、下�
     ...
   ]
   ```
-- 練習用のスクランブル（`pll/scrambles.json` → `js/pll-scrambles.js`）は別のツール（`tools/gen-scrambles.js`・`tools/build-scrambles.js`）で作る。
+- 練習用のスクランブル（`data/pll/scrambles.json` → `js/pll-scrambles.js`）は別のツール（`tools/gen-scrambles.js`・`tools/build-scrambles.js`）で作る。
   このスクリプトは作らない（Megaminx では `build-pll-data.js` が両方作っていた）
 
 ## 覚える順番
 
-3x3 では置かない（`pll/learn_order.json` は無い。`js/pll-data.js` に `stage`・`order` は付かない）。
+3x3 では置かない（`data/pll/learn_order.json` は無い。`js/pll-data.js` に `stage`・`order` は付かない）。
 `tools/build-case-data.js` と `js/case-sections.js` には、`learn_order.json` があれば読む仕組みだけが残っている。
 
 ## 自分の手順（PLL・OLL 共通）

@@ -4,8 +4,8 @@ OLL 57ケースのデータと、その生成・確認について書く。仕�
 画面（エディタのケース選択、一覧 `oll.html`）も PLL と共通のコードで、下の「画面」には違いだけを書く。練習と記録は `reference/PRACTICE_SPEC.md`。
 
 ## データ
-- 元データ：`oll/algs_info.json`（57ケース、14グループ）
-- 形式は `pll/algs_info.json` と同じ
+- 元データ：`data/oll/algs_info.json`（57ケース、14グループ）
+- 形式は `data/pll/algs_info.json` と同じ
   ```json
   "9": { "name": "5", "group": "Square", "algset": "OLL", "s": "L' B' R B' R' B2 L", "a": "r' U2 R U R' U r" }
   ```

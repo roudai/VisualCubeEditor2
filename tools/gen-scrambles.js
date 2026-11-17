@@ -1,4 +1,4 @@
-// PLL・OLL の練習用のスクランブル（<pll|oll>/scrambles.json）を作る。
+// PLL・OLL の練習用のスクランブル（data/<pll|oll>/scrambles.json）を作る。
 // 実行: node tools/gen-scrambles.js [pll] [oll] [--seed=数] [--count=本数]（引数なしで両方。既定は種 1・各 20 本）
 //       そのあと node tools/build-scrambles.js で js/<set>-scrambles.js を作る
 //
@@ -15,7 +15,7 @@
 //   乱数はケースごとに「種・セット・ケース名」から決めるので、同じ種なら何度作っても同じ結果になる
 //   （ケースを足しても、ほかのケースのスクランブルは変わらない）。
 //
-//   出力 <set>/scrambles.json = { ケース名: [スクランブル, ...] }
+//   出力 data/<set>/scrambles.json = { ケース名: [スクランブル, ...] }
 //   （移植元はケース番号をキーにしていたが、ここでは js/<set>-data.js の name をキーにする。生成物と同じキー）
 'use strict';
 const fs = require('fs');

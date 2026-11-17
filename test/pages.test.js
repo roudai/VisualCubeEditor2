@@ -134,8 +134,16 @@ test('tools/serve.js：.html の無い URL でページを返し、リポジト�
   Object.entries(PAGE_URLS).forEach(([url, file]) => assert.equal(resolveFile(url), path.join(ROOT, file), url));
   assert.equal(resolveFile('/pll.html'), path.join(ROOT, 'pll.html')); // 古いリンク
   assert.equal(resolveFile('/js/navbar.js'), path.join(ROOT, 'js/navbar.js'));
-  assert.equal(resolveFile('/pll/algs_info.json'), path.join(ROOT, 'pll/algs_info.json'));
+  assert.equal(resolveFile('/data/pll/algs_info.json'), path.join(ROOT, 'data/pll/algs_info.json'));
   assert.equal(resolveFile('/nope'), null);
   assert.equal(resolveFile('/../PROGRESS.md'), null);
   assert.equal(resolveFile('/%2e%2e/PROGRESS.md'), null);
+});
+
+test('ルートにページと同じ名前のフォルダを置かない（GitHub Pages で /pll が pll/ フォルダの方を見てしまう）', () => {
+  const clash = Object.keys(PAGE_URLS)
+    .filter((u) => u !== '/')
+    .map((u) => u.slice(1))
+    .filter((name) => fs.existsSync(path.join(ROOT, name)));
+  assert.deepEqual(clash, []);
 });

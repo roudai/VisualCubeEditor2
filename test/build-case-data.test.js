@@ -17,10 +17,10 @@ const SUNE_SETUP = "R U2 R' U' R U' R'";
 function withSource(set, src, fn, order) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'build-case-data-'));
   try {
-    fs.mkdirSync(path.join(root, set));
+    fs.mkdirSync(path.join(root, 'data', set), { recursive: true });
     fs.mkdirSync(path.join(root, 'js'));
-    fs.writeFileSync(path.join(root, set, 'algs_info.json'), JSON.stringify(src));
-    if (order) fs.writeFileSync(path.join(root, set, 'learn_order.json'), JSON.stringify(order));
+    fs.writeFileSync(path.join(root, 'data', set, 'algs_info.json'), JSON.stringify(src));
+    if (order) fs.writeFileSync(path.join(root, 'data', set, 'learn_order.json'), JSON.stringify(order));
     return fn(createBuilder(set, { root: root }), root);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -39,7 +39,7 @@ test('PLL：元データの順に { name, group, alg, setup } を出力する', 
       { name: 'Jb', group: 'Adjacent swap', alg: JB, setup: JB_SETUP },
     ]);
     const text = b.build();
-    assert.match(text, /^\/\/ 自動生成ファイル。手で編集しないこと。\n\/\/ 元データ: pll\/algs_info\.json \/ 生成: node tools\/build-pll-data\.js\n/);
+    assert.match(text, /^\/\/ 自動生成ファイル。手で編集しないこと。\n\/\/ 元データ: data\/pll\/algs_info\.json \/ 生成: node tools\/build-pll-data\.js\n/);
     assert.match(text, /root\.PLL_DATA = data;/);
     // 生成したファイルは node から読める
     const out = path.join(path.dirname(b.OUT), 'pll-data.js');
@@ -59,7 +59,7 @@ test('合わないケースは、内容と直し方の候補を付けてエラ�
   // a に前AUFを足したのに s を合わせていない → s の候補が出る
   withSource('pll', { 1: { name: 'T', group: 'G', s: T, a: `(U) ${T}` } }, (b) => {
     assert.throws(() => b.build(), (e) => {
-      assert.match(e.message, /pll\/algs_info\.json に問題があります/);
+      assert.match(e.message, /data\/pll\/algs_info\.json に問題があります/);
       assert.match(e.message, /T: a で s のケースが揃いません/);
       assert.ok(e.message.includes(`候補 s: ${T} (U')`), e.message);
       return true;

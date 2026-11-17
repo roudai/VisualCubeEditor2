@@ -21,7 +21,8 @@ Bootstrap - 5.3.9
 | `/privacy` / `/terms` (`privacy.html` / `terms.html`) | Privacy policy and terms of use |
 
 Page URLs have no `.html` (GitHub Pages serves `pll.html` for `/pll`). Old links such as `/index.html?alg=…`
-still work, and the address bar is rewritten to `/?alg=…` (`js/navbar.js`).
+still work, and the address bar is rewritten to `/?alg=…` (`js/navbar.js`). Do not put a folder named like a page
+(`pll/`, `oll/`, …) at the root: GitHub Pages would serve the folder for `/pll`. Source data lives in `data/`.
 
 The UI is available in English and Japanese. Settings and records are kept in the browser (localStorage);
 signing in (Google / Facebook / GitHub, via Firebase) also saves them to your account.
@@ -47,9 +48,9 @@ node --test
 Generated data — edit the json, then regenerate (the tests fail if the generated files are stale):
 
 ```sh
-node tools/build-pll-data.js     # pll/algs_info.json -> js/pll-data.js
-node tools/build-oll-data.js     # oll/algs_info.json -> js/oll-data.js
-node tools/gen-scrambles.js      # case scrambles -> pll/scrambles.json, oll/scrambles.json
+node tools/build-pll-data.js     # data/pll/algs_info.json -> js/pll-data.js
+node tools/build-oll-data.js     # data/oll/algs_info.json -> js/oll-data.js
+node tools/gen-scrambles.js      # case scrambles -> data/pll/scrambles.json, data/oll/scrambles.json
 node tools/build-scrambles.js    # -> js/pll-scrambles.js, js/oll-scrambles.js
 ```
 

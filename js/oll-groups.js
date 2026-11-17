@@ -1,6 +1,6 @@
 // OLL のグループの説明（選択肢や一覧の見出しに「Dot (No edges oriented)」のように括弧付きで添える）。
 // エディタと一覧・練習ページで使う。PLL は js/pll-groups.js（どちらを先に読み込んでもよい）。
-// キーは oll/algs_info.json の group と同じ（並びもデータの順）。番号は標準の OLL 番号。
+// キーは data/oll/algs_info.json の group と同じ（並びもデータの順）。番号は標準の OLL 番号。
 //   Dot              : 1 2 3 4 17 18 19 20（エッジが1枚も向いていない）
 //   Square           : 5 6
 //   Lightning        : 7 8 11 12 39 40

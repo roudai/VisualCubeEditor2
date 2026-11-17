@@ -1,5 +1,5 @@
 // 自動生成ファイル。手で編集しないこと。
-// 元データ: pll/algs_info.json / 生成: node tools/build-pll-data.js
+// 元データ: data/pll/algs_info.json / 生成: node tools/build-pll-data.js
 (function (root, data) {
   if (typeof module === 'object' && module.exports) module.exports = data;
   else root.PLL_DATA = data;
