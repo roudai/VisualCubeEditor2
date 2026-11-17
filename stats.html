@@ -74,9 +74,10 @@
       <section class="stats-panel mt-3">
         <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
           <h2 class="stats-title" id="statsTableTitle" data-i18n="stats.byCase">By case</h2>
-          <button id="statsCsv" type="button" class="btn btn-outline-secondary btn-sm" data-i18n="stats.csv">Export CSV</button>
+          <!-- PLL・OLL：ケースごと / 記録の一覧 の切り替え（js/stats.js） -->
+          <div id="statsTableTabs"></div>
         </div>
-        <!-- 通しの記録の削除（選んだ記録をまとめて削除。確認・元に戻す。js/stats.js） -->
+        <!-- 記録の一覧の削除（選んだ記録をまとめて削除。確認・元に戻す。js/stats.js） -->
         <div id="statsDeleteBar" class="stats-delete-bar" hidden></div>
         <div class="table-responsive">
           <table id="statsTable" class="table table-sm align-middle stats-table mb-0">

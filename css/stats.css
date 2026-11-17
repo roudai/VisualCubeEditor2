@@ -278,6 +278,11 @@
   background: rgba(240, 173, 0, .16);
   color: #7a5a00;
 }
+.stats-hint {
+  margin-left: .35rem;
+  color: #adb5bd;
+  font-size: .72rem;
+}
 .stats-status.learned {
   background: rgba(25, 135, 84, .12);
   color: #146c43;

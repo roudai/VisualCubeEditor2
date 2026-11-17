@@ -1,11 +1,11 @@
 // 記録のページ（stats.html）：練習の記録（store.js の practice.log）を、期間の集計・タイムの推移・ケースごとの表で見る。
 // 通し（practice.full.log）は、回数・ベスト・ベスト ao5/ao12（今の ao5/ao12）、タイムの推移、記録の一覧で見る。
-// 通しの記録は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて削除できる（どちらも元に戻せる）。
+// PLL・OLL は「ケースごと」の表と「記録の一覧」を切り替えられる（記録の一覧は日時・ケース・タイム・判定）。
+// 記録の一覧（通し・PLL・OLL）は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて削除できる（どちらも元に戻せる）。
 // 仕様: reference/PRACTICE_SPEC.md「記録」
 //   - 種類（PLL / OLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
 //   - 集計（回数・平均・解けなかった・習得済みの数）、タイムの推移（横軸＝1回ごと、点＝タイム、線＝ao5・ao12）の SVG、
 //     ケースごとの表（既定は平均の遅い順。見出しで並べ替え。ケースを押すとそのケースを練習ページで出題）
-//   - 期間内の記録を CSV で書き出す
 (function () {
   'use strict';
   const S = window.Store;
@@ -38,6 +38,7 @@
     period: Object.prototype.hasOwnProperty.call(PERIODS, saved.period) ? saved.period : '30',
     sort: saved.sort || 'avg',
     desc: saved.desc !== false,
+    tab: saved.tab === 'solves' ? 'solves' : 'cases', // PLL・OLL の表：ケースごと / 記録の一覧
   };
   // 練習ページの「すべての記録を見る」から開いたとき（?set=oll など）は、その種類を出す（表示の設定として保存する）
   const params = new URLSearchParams(location.search);
@@ -100,6 +101,12 @@
   }
 
   function change(next) {
+    // 種類・表を変えたら、記録の選択と削除のメッセージを消す
+    if ((next.set && next.set !== view.set) || (next.tab && next.tab !== view.tab)) {
+      selected.clear();
+      confirmingDelete = false;
+      deleteMessage = null;
+    }
     Object.assign(view, next);
     saveView();
     render();
@@ -430,38 +437,6 @@
     );
   }
 
-  // ---- CSV の書き出し ----
-  function exportCsv() {
-    const f = from();
-    if (view.set === 'full') {
-      const recs = fullLog().filter((r) => r.at >= f);
-      const q = (v) => `"${String(v).replace(/"/g, '""')}"`;
-      const out = [['date', 'time', 'penalty', 'result', 'scramble'].join(',')].concat(
-        recs.map((r) => [new Date(r.at).toISOString(), r.sec.toFixed(2), r.penalty || 'OK', showTime(r), q(window.WcaScramble.textOf(r))].join(','))
-      );
-      download(out, 'visualcube-full-solves.csv');
-      return;
-    }
-    const names = new Set(casesInScope().map((c) => c.name));
-    const list = (practice().log || []).filter((e) => e && e.set === view.set && names.has(e.name) && e.at >= f);
-    const quote = (v) => `"${String(v).replace(/"/g, '""')}"`;
-    const lines = [['date', 'set', 'case', 'time', 'status', 'hint'].join(',')].concat(
-      list.map((e) =>
-        [new Date(e.at).toISOString(), e.set, quote(e.name), e.sec == null ? 'DNF' : e.sec.toFixed(2), e.status, e.hint ? 1 : 0].join(',')
-      )
-    );
-    download(lines, `visualcube-${view.set}-practice.csv`);
-  }
-
-  function download(lines, name) {
-    const blob = new Blob(['\ufeff' + lines.join('\n') + '\n'], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = name;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(link.href), 10000);
-  }
-
   // ---- 通し ----
   // 通しの記録（practice.full.log、新しい順）
   const fullLog = () => {
@@ -493,11 +468,10 @@
     );
   }
 
-  // 記録の一覧（新しい順）：日時・タイム・その時点の ao5・ao12・スクランブル（押すと開く）
-  // ---- 通しの記録の削除 ----
+  // ---- 記録の削除（通しは practice.full.log、PLL・OLL は practice.log のその種類の記録） ----
   // 個別：各行の × で1件を削除。一括：行のチェックで選び（見出しのチェックで表示中をすべて）、「選択した記録を削除」→ 確認 → 削除。
   // どちらも削除のあとに「元に戻す」を出す（ブラウザの確認ダイアログは使わない）
-  const selected = new Set(); // 選んだ記録の at
+  const selected = new Set(); // 選んだ記録の at（表示中の種類の中で）
   const openScrambles = new Set(); // スクランブルを開いている記録の at
   let confirmingDelete = false;
   let deleteMessage = null; // { text, undo }
@@ -508,19 +482,29 @@
     S.set('practice', Object.assign({}, p, { full: full }));
   }
 
-  // ats の記録を削除し、元に戻す関数を返す
+  // 種類ごとの記録の読み書き（PLL・OLL の記録は1つの配列 practice.log に混ざっている）
+  const caseLog = () => (Array.isArray(practice().log) ? practice().log.filter(Boolean) : []);
+  const saveCaseLog = (log) => S.set('practice', Object.assign({}, practice(), { log: log }));
+  const logStore = (kind) =>
+    kind === 'full'
+      ? { read: fullLog, write: saveFullLog, mine: () => true, id: (r) => String(r.at) }
+      : { read: caseLog, write: saveCaseLog, mine: (r) => r.set === kind, id: (r) => r.set + '|' + r.at };
+
+  // 表示中の種類の ats の記録を削除し、元に戻す関数を返す
   function deleteRecords(ats) {
     const set = new Set(ats);
-    const before = fullLog();
-    const removed = before.filter((r) => set.has(r.at));
-    saveFullLog(before.filter((r) => !set.has(r.at)));
+    const store = logStore(view.set); // 元に戻すときも同じ種類に戻す（そのあとに種類を切り替えても）
+    const hit = (r) => store.mine(r) && set.has(r.at);
+    const before = store.read();
+    const removed = before.filter(hit);
+    store.write(before.filter((r) => !hit(r)));
     ats.forEach((at) => selected.delete(at));
     return () => {
       // 削除したあとに増えた記録も残し、消したものを日時の順（新しい順）に戻す
-      const now = fullLog();
-      const have = new Set(now.map((r) => r.at));
-      const merged = now.concat(removed.filter((r) => !have.has(r.at))).sort((x, y) => y.at - x.at);
-      saveFullLog(merged);
+      const now = store.read();
+      const have = new Set(now.map(store.id));
+      const merged = now.concat(removed.filter((r) => !have.has(store.id(r)))).sort((x, y) => y.at - x.at);
+      store.write(merged);
       deleteMessage = { key: 'stats.restored', params: { n: removed.length } };
       render();
     };
@@ -559,7 +543,7 @@
       bar.append(text, yes, no);
       return;
     }
-    // スマホでは表の見出しを隠すので、「すべて選ぶ」をここに出す
+    // スマホでは通しの一覧の見出しを隠すので、「すべて選ぶ」をここに出す（PLL・OLL の一覧は見出しを出したまま）
     const allLabel = el('label', 'stats-select-all-mobile');
     const allBox = el('input', 'form-check-input');
     allBox.type = 'checkbox';
@@ -573,7 +557,7 @@
     const allText = el('span');
     I.set(allText, 'stats.selectAllShort');
     allLabel.append(allBox, allText);
-    bar.append(allLabel);
+    if (view.set === 'full') bar.append(allLabel);
     const del = el('button', 'btn btn-outline-danger btn-sm');
     del.type = 'button';
     I.set(del, 'stats.deleteSelected', { n: n });
@@ -702,11 +686,100 @@
     );
   }
 
+  // PLL・OLL の記録の一覧（新しい順）：日時・ケース・タイム・判定・削除
+  function renderCaseSolves(recs) {
+    const head = el('tr');
+    const checkTh = el('th', 'stats-check');
+    const all1 = el('input', 'form-check-input');
+    all1.type = 'checkbox';
+    all1.checked = recs.length > 0 && recs.every((r) => selected.has(r.at));
+    all1.indeterminate = !all1.checked && recs.some((r) => selected.has(r.at));
+    I.set(all1, 'stats.selectAll', null, 'aria-label');
+    all1.addEventListener('change', () => {
+      recs.forEach((r) => (all1.checked ? selected.add(r.at) : selected.delete(r.at)));
+      confirmingDelete = false;
+      render();
+    });
+    checkTh.append(all1);
+    head.append(checkTh);
+    ['stats.col.date', 'stats.col.case', 'stats.col.time', 'stats.col.verdict'].forEach((key, i) => {
+      const th = el('th', 'stats-shrink' + (i === 2 ? ' text-end' : ''));
+      I.set(th, key);
+      head.append(th);
+    });
+    head.append(el('th'));
+    $('statsHead').replaceChildren(head);
+    $('statsEmpty').hidden = recs.length > 0;
+    renderDeleteBar(recs);
+    $('statsBody').replaceChildren(
+      ...recs.map((r) => {
+        const date = dateTime(r.at);
+        const tr = el('tr');
+        tr.classList.toggle('table-active', selected.has(r.at));
+        const checkTd = el('td', 'stats-check');
+        const check = el('input', 'form-check-input');
+        check.type = 'checkbox';
+        check.checked = selected.has(r.at);
+        I.set(check, 'stats.selectRow', { date: date }, 'aria-label');
+        check.addEventListener('change', () => {
+          if (check.checked) selected.add(r.at);
+          else selected.delete(r.at);
+          confirmingDelete = false;
+          render();
+        });
+        checkTd.append(check);
+        const statusTd = el('td', 'stats-shrink');
+        const badge = el('span', 'stats-status ' + (r.status === 'learned' ? 'learned' : 'learning'));
+        I.set(badge, 'status.' + (r.status === 'learned' ? 'learned' : 'learning'));
+        statusTd.append(badge);
+        if (r.hint) {
+          const hint = el('span', 'stats-hint');
+          I.set(hint, 'stats.hintUsed');
+          statusTd.append(hint);
+        }
+        const timeTd = el('td', 'text-end fw-semibold stats-shrink');
+        if (typeof r.sec === 'number') timeTd.textContent = fmt(r.sec);
+        else I.set(timeTd, 'stats.dnf');
+        const delTd = el('td', 'text-end');
+        const del = el('button', 'stats-row-delete');
+        del.type = 'button';
+        del.textContent = '×';
+        I.set(del, 'stats.deleteRow', { date: date }, 'aria-label');
+        I.set(del, 'stats.deleteRow', { date: date }, 'title');
+        del.addEventListener('click', () => afterDelete(1, deleteRecords([r.at])));
+        delTd.append(del);
+        tr.append(checkTd, el('td', 'text-muted stats-shrink', date), el('td', 'stats-shrink fw-semibold', r.name), timeTd, statusTd, delTd);
+        return tr;
+      })
+    );
+  }
+
+  // 表の見出しの右：PLL・OLL では「ケースごと / 記録の一覧」の切り替え
+  function renderTableTabs() {
+    const box = $('statsTableTabs');
+    if (view.set === 'full') {
+      box.replaceChildren();
+      return;
+    }
+    box.replaceChildren(
+      segment(
+        [
+          { value: 'cases', key: 'stats.byCase' },
+          { value: 'solves', key: 'stats.solves' },
+        ],
+        view.tab,
+        (v) => change({ tab: v })
+      )
+    );
+  }
+
   function render() {
     renderControls();
+    renderTableTabs();
     const full = view.set === 'full';
-    I.set($('statsTableTitle'), full ? 'stats.solves' : 'stats.byCase');
-    if (!full) $('statsDeleteBar').hidden = true;
+    const solves = full || view.tab === 'solves';
+    I.set($('statsTableTitle'), solves ? 'stats.solves' : 'stats.byCase');
+    if (!solves) $('statsDeleteBar').hidden = true;
     $('statsTable').classList.toggle('stats-full-table', full); // スマホでは通しの一覧を2段のカード風にする
     if (full) {
       const all = fullLog(); // 読むたびに別のオブジェクトになるので1回だけ読む
@@ -719,10 +792,10 @@
     const log = logInScope();
     renderCards(log);
     renderChart(log.map((e) => ({ at: e.at, sec: e.sec, penalty: e.sec == null ? 'DNF' : '', name: e.name, status: e.status })));
-    renderTable(log);
+    if (view.tab === 'solves') renderCaseSolves(log.filter((e) => e.at >= from()));
+    else renderTable(log);
   }
 
-  $('statsCsv').addEventListener('click', exportCsv);
   // 幅が変わったらグラフを描き直す（グラフは表示する幅で描くため）
   let lastWidth = 0;
   let resizeTimer = null;

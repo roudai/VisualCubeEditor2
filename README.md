@@ -17,7 +17,7 @@ Bootstrap - 5.3.9
 | `/` (`index.html`) | Editor. Pick a PLL / OLL case (`/?pll=Aa`, `/?oll=27`) or type an algorithm (`/?alg=`, `/?case=`), save your own algorithm for a case, download the image |
 | `/pll` / `/oll` (`pll.html` / `oll.html`) | All 21 PLL / 57 OLL cases with images, learning status, filters and a ZIP download |
 | `/practice` (`practice.html`) | Timer practice for PLL / OLL cases (auto-marks cases as learned) and full solves (WCA-style random-state scrambles, inspection, +2 / DNF, ao5 / ao12) |
-| `/stats` (`stats.html`) | Practice records: totals, daily chart, per-case table, CSV export |
+| `/stats` (`stats.html`) | Practice records: totals, solve-time chart, per-case table, solve list (delete / undo) |
 | `/privacy` / `/terms` (`privacy.html` / `terms.html`) | Privacy policy and terms of use |
 
 Page URLs have no `.html` (GitHub Pages serves `pll.html` for `/pll`). Old links such as `/index.html?alg=…`
