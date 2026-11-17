@@ -107,6 +107,8 @@
       confirmingDelete = false;
       deleteMessage = null;
     }
+    // 種類・範囲・期間・表を変えたら 1 ページ目に戻す
+    if (['set', 'scope', 'period', 'tab'].some((k) => k in next && next[k] !== view[k])) page = 1;
     Object.assign(view, next);
     saveView();
     render();
@@ -468,6 +470,60 @@
     );
   }
 
+  // ---- 記録の一覧のページ分け（1ページ PAGE_SIZE 件。ページは保存しない） ----
+  const PAGE_SIZE = 50;
+  let page = 1;
+  // 今のページの記録（削除などで件数が減ったら、最後のページに収める）
+  function pageOf(recs) {
+    const pages = Math.max(1, Math.ceil(recs.length / PAGE_SIZE));
+    page = Math.min(Math.max(1, page), pages);
+    return recs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  }
+  // 出すページ番号：7 ページまではすべて。それより多いときは最初・最後・今のページの前後 1 つで、あいだは「…」（null）
+  function pageNumbers(pages) {
+    const out = [];
+    for (let i = 1; i <= pages; i++) {
+      if (pages <= 7 || i === 1 || i === pages || Math.abs(i - page) <= 1) out.push(i);
+      else if (out[out.length - 1] !== null) out.push(null);
+    }
+    return out;
+  }
+  function goPage(n) {
+    page = n;
+    render();
+    // 下のページ送りで変えたときは、表の頭が見えるところまで戻す
+    const panel = $('statsTableTitle').closest('.stats-panel');
+    if (panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ block: 'start' });
+  }
+  function renderPager(total) {
+    const box = $('statsPager');
+    const pages = Math.ceil(total / PAGE_SIZE);
+    box.hidden = pages <= 1;
+    box.replaceChildren();
+    if (pages <= 1) return;
+    const info = el('span', 'stats-pager-info');
+    I.set(info, 'stats.pageRange', { n: total, from: (page - 1) * PAGE_SIZE + 1, to: Math.min(total, page * PAGE_SIZE) });
+    const nav = el('nav', 'stats-pager-nav');
+    I.set(nav, 'stats.pagerAria', null, 'aria-label');
+    const button = (key, text, target, disabled, current) => {
+      const b = el('button', 'stats-page' + (current ? ' active' : ''));
+      b.type = 'button';
+      if (key) I.set(b, key);
+      else {
+        b.textContent = text;
+        I.set(b, 'stats.pageN', { n: target }, 'aria-label');
+      }
+      b.disabled = disabled;
+      if (current) b.setAttribute('aria-current', 'page');
+      b.addEventListener('click', () => goPage(target));
+      return b;
+    };
+    nav.append(button('common.prev', null, page - 1, page === 1));
+    pageNumbers(pages).forEach((n) => nav.append(n === null ? el('span', 'stats-page-gap', '…') : button(null, String(n), n, false, n === page)));
+    nav.append(button('common.next', null, page + 1, page === pages));
+    box.append(info, nav);
+  }
+
   // ---- 記録の削除（通しは practice.full.log、PLL・OLL は practice.log のその種類の記録） ----
   // 個別：各行の × で1件を削除。一括：行のチェックで選び（見出しのチェックで表示中をすべて）、「選択した記録を削除」→ 確認 → 削除。
   // どちらも削除のあとに「元に戻す」を出す（ブラウザの確認ダイアログは使わない）
@@ -516,7 +572,8 @@
     render();
   }
 
-  function renderDeleteBar(recs) {
+  // recs：期間内の記録すべて、shown：今のページに出している記録
+  function renderDeleteBar(recs, shown) {
     const bar = $('statsDeleteBar');
     bar.hidden = false;
     bar.replaceChildren();
@@ -547,10 +604,10 @@
     const allLabel = el('label', 'stats-select-all-mobile');
     const allBox = el('input', 'form-check-input');
     allBox.type = 'checkbox';
-    allBox.checked = recs.length > 0 && recs.every((r) => selected.has(r.at));
-    allBox.indeterminate = !allBox.checked && recs.some((r) => selected.has(r.at));
+    allBox.checked = shown.length > 0 && shown.every((r) => selected.has(r.at));
+    allBox.indeterminate = !allBox.checked && shown.some((r) => selected.has(r.at));
     allBox.addEventListener('change', () => {
-      recs.forEach((r) => (allBox.checked ? selected.add(r.at) : selected.delete(r.at)));
+      shown.forEach((r) => (allBox.checked ? selected.add(r.at) : selected.delete(r.at)));
       confirmingDelete = false;
       render();
     });
@@ -594,16 +651,17 @@
 
   // all：通しの記録すべて（新しい順）。recs はその中の期間内のもの（同じ配列の要素）
   function renderFullTable(recs, all) {
+    const shown = pageOf(recs); // 今のページの記録
     const head = el('tr');
     // 見出しのチェック：表示中の記録をすべて選ぶ・外す
     const checkTh = el('th', 'stats-check');
     const all1 = el('input', 'form-check-input');
     all1.type = 'checkbox';
-    all1.checked = recs.length > 0 && recs.every((r) => selected.has(r.at));
-    all1.indeterminate = !all1.checked && recs.some((r) => selected.has(r.at));
+    all1.checked = shown.length > 0 && shown.every((r) => selected.has(r.at));
+    all1.indeterminate = !all1.checked && shown.some((r) => selected.has(r.at));
     I.set(all1, 'stats.selectAll', null, 'aria-label');
     all1.addEventListener('change', () => {
-      recs.forEach((r) => (all1.checked ? selected.add(r.at) : selected.delete(r.at)));
+      shown.forEach((r) => (all1.checked ? selected.add(r.at) : selected.delete(r.at)));
       confirmingDelete = false;
       render();
     });
@@ -618,11 +676,12 @@
     head.append(el('th', 'stats-shrink'));
     $('statsHead').replaceChildren(head);
     $('statsEmpty').hidden = recs.length > 0;
-    renderDeleteBar(recs);
+    renderDeleteBar(recs, shown);
+    renderPager(recs.length);
     // その時点の平均は期間に関係なく、それまでの記録から出す
     // スクランブルは「見る」で、その行のすぐ下に表の幅いっぱいの行として開く（表の列の幅を崩さないように）
     $('statsBody').replaceChildren(
-      ...recs.flatMap((r) => {
+      ...shown.flatMap((r) => {
         const i = all.indexOf(r);
         const d = new Date(r.at);
         const date = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -688,15 +747,16 @@
 
   // PLL・OLL の記録の一覧（新しい順）：日時・ケース・タイム・判定・削除
   function renderCaseSolves(recs) {
+    const shown = pageOf(recs); // 今のページの記録
     const head = el('tr');
     const checkTh = el('th', 'stats-check');
     const all1 = el('input', 'form-check-input');
     all1.type = 'checkbox';
-    all1.checked = recs.length > 0 && recs.every((r) => selected.has(r.at));
-    all1.indeterminate = !all1.checked && recs.some((r) => selected.has(r.at));
+    all1.checked = shown.length > 0 && shown.every((r) => selected.has(r.at));
+    all1.indeterminate = !all1.checked && shown.some((r) => selected.has(r.at));
     I.set(all1, 'stats.selectAll', null, 'aria-label');
     all1.addEventListener('change', () => {
-      recs.forEach((r) => (all1.checked ? selected.add(r.at) : selected.delete(r.at)));
+      shown.forEach((r) => (all1.checked ? selected.add(r.at) : selected.delete(r.at)));
       confirmingDelete = false;
       render();
     });
@@ -710,9 +770,10 @@
     head.append(el('th'));
     $('statsHead').replaceChildren(head);
     $('statsEmpty').hidden = recs.length > 0;
-    renderDeleteBar(recs);
+    renderDeleteBar(recs, shown);
+    renderPager(recs.length);
     $('statsBody').replaceChildren(
-      ...recs.map((r) => {
+      ...shown.map((r) => {
         const date = dateTime(r.at);
         const tr = el('tr');
         tr.classList.toggle('table-active', selected.has(r.at));
@@ -779,7 +840,10 @@
     const full = view.set === 'full';
     const solves = full || view.tab === 'solves';
     I.set($('statsTableTitle'), solves ? 'stats.solves' : 'stats.byCase');
-    if (!solves) $('statsDeleteBar').hidden = true;
+    if (!solves) {
+      $('statsDeleteBar').hidden = true;
+      $('statsPager').hidden = true;
+    }
     $('statsTable').classList.toggle('stats-full-table', full); // スマホでは通しの一覧を2段のカード風にする
     if (full) {
       const all = fullLog(); // 読むたびに別のオブジェクトになるので1回だけ読む

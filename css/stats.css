@@ -322,6 +322,59 @@
   color: #495057;
 }
 
+/* 記録の一覧のページ送り */
+.stats-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-top: .75rem;
+  font-size: .82rem;
+}
+.stats-pager[hidden] {
+  display: none;
+}
+.stats-pager-info {
+  color: #6c757d;
+  font-variant-numeric: tabular-nums;
+}
+.stats-pager-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem;
+}
+.stats-page {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 .55rem;
+  border: 1px solid #dee2e6;
+  border-radius: .5rem;
+  background: #fff;
+  color: #495057;
+  font-variant-numeric: tabular-nums;
+}
+.stats-page:hover:not(:disabled):not(.active) {
+  background: #f1f3f5;
+}
+.stats-page.active {
+  border-color: #0d6efd;
+  background: #0d6efd;
+  color: #fff;
+}
+.stats-page:disabled {
+  opacity: .4;
+}
+.stats-page:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.stats-page-gap {
+  padding: 0 .15rem;
+  color: #adb5bd;
+}
+
 /* 通しの記録の削除 */
 .stats-delete-bar {
   display: flex;
