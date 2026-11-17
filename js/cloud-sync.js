@@ -4,7 +4,7 @@
 //   - Firestore の users/{uid}/apps/visualcube-editor の1文書に、store.js の snapshot を JSON 文字列で保存する（{ json, savedAt }）
 //     同じ Firebase プロジェクトのほかのアプリ（Megaminx Image Editor など）は users/{uid}/apps/<アプリ名> に保存し、ログインは共通
 //   - ログインしたとき（ページを開いたときも）：クラウドを読み → Store.merge で手元と合わせ → 両方に書く。
-//     この端末で初めてそのアカウントと合わせるときは、覚えた度・自分の手順をケースごとに合わせる（union）。
+//     この端末で初めてそのアカウントと合わせるときは、習得状況・自分の手順をケースごとに合わせる（union）。
 //     手元の内容が変わったら、画面に反映するためにページを1回読み直す
 //   - 手元のデータがどのアカウントのものかを SYNCED_KEY に覚え、別のアカウントでログインしたときは手元の内容を持ち込まず、
 //     そのアカウントの内容に入れ替える（Store.resolveLogin）

@@ -6,7 +6,7 @@
 //       PLL: 保存した配色。OLL 配色のときは OLL を選ぶ前の配色、それも無いときは Standard
 //       OLL: 保存した U の色だけを残した OLL 配色（他の面はグレー #404040）
 //   - ケースをクリックすると、そのケースを選んだ状態でエディタ（/?pll=… / /?oll=…）を開く
-//   - 覚えた度：各カード右上のバッジをタップで 未着手 → 練習中 → 覚えた と切り替え、localStorage に保存する。
+//   - 習得状況：各カード右上のバッジをタップで 未着手 → 練習中 → 覚えた と切り替え、localStorage に保存する。
 //     上部に進み具合（積み上げバー・件数）と絞り込みチップ、グループ見出しに「覚えた数 / 全体」を出す
 //   - 絞り込みチップの右の「すべて未習得に戻す」：確認を出してから、その種類の習得状況をまとめて消す（「元に戻す」で戻せる）
 //   - 覚える順（data/<set>/learn_order.json）のデータがあるときだけ「グループ順 / 覚える順」を切り替えられる
@@ -29,7 +29,7 @@
   const NOTES = (window.CASE_GROUP_NOTES || {})[SET] || {};
   const IMAGE_SIZE = 120; // 表示サイズ（px）
 
-  const P = window.Progress; // 覚えた度・画像の色（progress.js。練習ページと共通）
+  const P = window.Progress; // 習得状況・画像の色（progress.js。練習ページと共通）
   // エディタで保存した設定から、画像の配色・線の色・背景・サイズを決める
   const savedSettings = () => P.displaySettings(SET);
 
@@ -44,7 +44,7 @@
   // solve case（alg の逆手順を適用、持ち替えは打ち消す）の状態の画像の色
   const caseColors = (c, settings) => P.caseColors(c, settings.scheme);
 
-  // ---- 覚えた度 ----
+  // ---- 習得状況 ----
   // { pll: { 'Aa': 'learning', ... }, oll: { ... } }。未着手（new）は保存しない
   // 保存は store.js 経由（ログイン中はクラウドにも）
   const FILTER_KEY = 'list-filter';
@@ -58,7 +58,7 @@
   };
   const writeJSON = (name, value) => window.Store.set(name, value);
 
-  // 表示中は覚えた度を手元に持っておき（件数を数えるたびに読み直さないように）、変えるときは progress.js で保存する
+  // 表示中は習得状況を手元に持っておき（件数を数えるたびに読み直さないように）、変えるときは progress.js で保存する
   let progress = P.statuses(SET);
   const statusOf = (c) => (STATUSES.includes(progress[c.name]) ? progress[c.name] : 'new');
   function setStatus(c, status) {

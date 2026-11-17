@@ -11,12 +11,14 @@ MegaminxImageEditor の `reference/I18N_SPEC.md` を VisualCube Editor 用に書
 ## 訳す範囲
 - ナビバー、エディタの見出し・ボタン・選択肢・ツールチップ（もともとある項目＝Puzzle Type、Arrow Definition、Stage Mask なども含む）
 - 自分の手順の欄・メッセージ・エラー、手順の解析エラー（`Invalid move` など）
-- 一覧ページの見出し・説明・件数・絞り込み・覚えた度の名前・一括ダウンロードのボタン、練習・記録のページ
+- 一覧ページの見出し・説明・件数・絞り込み・習得状況の名前・一括ダウンロードのボタン、練習・記録のページ
 - 訳さないもの：ケース名・グループ名とその説明（`Edges only (EPLL)` など）、回転記号、ステージマスクの名前（`F2L` など）、`PLL` / `OLL`、`ao5` / `ao12` / `DNF`、`presented by`、エディタの「Show Parameter」で出るパラメータ
-- 覚えた度の日本語：未習得 / 練習中 / 習得済み
+- 習得状況の日本語：未習得 / 練習中 / 習得済み
 
 ## 仕組み（`js/i18n.js`）
 - 訳は `DICT.en` / `DICT.ja` に key ごとに書く。`{name}` のような部分は params で埋める
+- 英語で数によって形が変わる文は `{ one: '{n} case', other: '{n} cases' }` と書き、`params.n` が 1 なら `one` を使う（日本語は文字列のまま）
+- 文言の決まり：英語の記録は solve（`3 solves`）。日本語のコロンは全角（`アカウント：`）、習得の度合いは「習得状況」
 - HTML の文は `data-i18n="key"`（属性は `data-i18n-title` / `data-i18n-placeholder` / `data-i18n-aria-label`、埋める値は `data-i18n-params`）。HTML には英語の文をそのまま書いておく
 - JS で作る文は `I18N.set(el, key, params, attr)` で入れる（言語を切り替えたときに自動で入れ直す）。件数など毎回作る文は `I18N.onChange(fn)` で作り直す
 - **エディタ（`index.html`）の Vue の中（`#app`）** は Vue が描き直すので `data-i18n` を使わず、`{{ t('key') }}`・`:title="t('key')"` と書く

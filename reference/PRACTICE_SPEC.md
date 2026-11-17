@@ -40,7 +40,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 - 画像は上面図（`js/cube-draw.js`。srVisualizer の Plan 表示）。配色は一覧と同じ（`Progress.displaySettings`）
 
 ## 保存（`js/store.js` 経由。ログイン中はクラウドにも）
-- 覚えた度：一覧と同じ `progress` を書き換える（`js/progress.js`。一覧と練習で共通）
+- 習得状況：一覧と同じ `progress` を書き換える（`js/progress.js`。一覧と練習で共通）
 - `practice`：`{ set, filter, threshold, groups: { pll: ["Edges only"], oll: [] }, stats: { 記録のページの表示 }, log: [日時付きの記録], times: { pll: { "Aa": [最近のタイム(秒) 新しい順 最大10件] }, oll: {…} }, full: { 通しの設定と記録 } }`
 - URL `?set=oll&filter=new` で設定の初期値を指定できる（その値で保存し直す）。`&groups=Dot,Square` で出題するグループ、`&case=Aa` で最初の1問のケース
 
@@ -53,7 +53,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 - 判定のたびに `practice.log` に `{ at: 日時(ms), set, name, sec(null=解けなかった), status, hint }` を足す（新しい順、PLL と OLL を合わせて最大 2000 件。「取り消す」でその1件も消す）。集計は `js/progress.js` の `addLog`・`summarize`・`daily`・`perCase`
 - ナビバーの「記録 / Stats」、練習ページの「すべての記録を見る」（`/stats?set=oll` のように今の種類を渡す）から開く
 - 種類（PLL / OLL / 通し）・期間（7日 / 30日 / すべて）で絞る（`practice.stats` に保存）
-- 集計のカード：練習回数、平均（とベスト）、解けなかった回数、習得済みの数（今の覚えた度）
+- 集計のカード：練習回数、平均（とベスト）、解けなかった回数、習得済みの数（今の習得状況）
 - タイムの推移：横軸＝期間内の1回ごとの記録（古い順、1 から数える）、縦軸＝タイム。ライブラリを使わず SVG で描く（表示する幅で描く）
   - 通し：点＝1回のタイム、線＝その時点の ao5・ao12（`Progress.rollingAverages`。期間より前の記録も使って出す。DNF・回数が足りないところは線が途切れる）
   - PLL・OLL：ao は出さず、1回ごとのタイムを線で結ぶ（解けなかったところは飛ばして前後を結ぶ）。点の色＝判定（習得済み＝緑、練習中＝琥珀）。破線＝今の習得の目安
@@ -84,7 +84,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 - 結果：タイム（+2 なら `12.10+`）、**OK / +2 / DNF** の切り替え（あとから変えられる）、**削除**、スクランブル
 - 直近の記録の上に、今の ao5・ao12、ベスト（単発・ao5・ao12）。直近の記録は保存してある最新 12 件
 - 平均（`js/progress.js`）：`average(recs, n)` は直近 n 回から最速と最遅を除いた平均。DNF は最遅とみなし、DNF が2つ以上なら DNF。足りなければ「–」。`bestAverage`・`bestSingle`・`effectiveTime`（+2 込みのタイム）
-- 保存：`practice.full = { inspection, log: [{ at, sec, penalty: '' | '+2' | 'DNF', s }] }`（新しい順、最大 2000 件。ログイン中はアカウントにも）。覚えた度は変えない
+- 保存：`practice.full = { inspection, log: [{ at, sec, penalty: '' | '+2' | 'DNF', s }] }`（新しい順、最大 2000 件。ログイン中はアカウントにも）。習得状況は変えない
   - `s` はスクランブルの短い形：1 手 = 1 文字（`U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'` の順に `A`〜`R`。`WcaScramble.encode`・`decode`）。
     1件 約 75 文字で、2000 件でも約 15 万文字（アカウントの保存の上限 50 万文字に、PLL・OLL の記録 2000 件（約 18 万文字）と合わせて収まる）
   - 18 通り以外の記号を含むスクランブルは全文（`scramble`）で保存する逃げ道がある（今の生成では起きない）。表示は `WcaScramble.textOf`（どちらの形も読める）

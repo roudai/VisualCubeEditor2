@@ -1,5 +1,5 @@
 // 実行: node --test
-// js/progress.js（覚えた度・練習の判定と記録・画像の配色）
+// js/progress.js（習得状況・練習の判定と記録・画像の配色）
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const P = require('../js/progress.js');
@@ -33,7 +33,7 @@ test('addTime：新しい順に足し、最大件数を超えた古いものは�
   assert.equal(P.addTime(new Array(10).fill(1), 2).length, 10);
 });
 
-test('statusOf / setStatus：覚えた度を読み書きし、未着手は保存しない（ほかの種類は消さない）', () => {
+test('statusOf / setStatus：習得状況を読み書きし、未着手は保存しない（ほかの種類は消さない）', () => {
   withStorage({ 'visualcube-editor:progress': '{"oll":{"27":"learned"}}' }, (map) => {
     assert.equal(P.statusOf('pll', 'Aa'), 'new');
     P.setStatus('pll', 'Aa', 'learned');

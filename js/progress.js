@@ -1,11 +1,11 @@
 /*
- * 覚えた度と練習の記録、ケースの画像の色（一覧ページ cases.js と練習ページ practice.js で共通）。
+ * 習得状況と練習の記録、ケースの画像の色（一覧ページ cases.js と練習ページ practice.js で共通）。
  * 保存は store.js 経由（ログイン中はクラウドにも）。仕様: reference/PLL_SPEC.md「一覧ページ」、reference/PRACTICE_SPEC.md
  *
  *   STATUSES                        ['new', 'learning', 'learned']（表示名は i18n.js の status.*）
  *   statuses(set)                   { ケース名: 'learning' | 'learned' }（未着手は入っていない）
  *   statusOf(set, name)             'new' | 'learning' | 'learned'
- *   setStatus(set, name, status)    覚えた度を書く（'new' なら消す）
+ *   setStatus(set, name, status)    習得状況を書く（'new' なら消す）
  *   judge(time, threshold)          練習の判定：time（秒）がしきい値以内なら 'learned'、超えた・null（解けなかった）なら 'learning'
  *   addTime(list, time, max)        最近のタイムの配列に足した新しい配列（新しい順、最大 max 件）
  *   displaySettings(set)            エディタで保存した設定から、画像の配色・線の色・背景・サイズを決める

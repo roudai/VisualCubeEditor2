@@ -9,7 +9,7 @@
  *   Store.merge(local, remote, { union })
  *                                手元とクラウドの snapshot を合わせた snapshot を返す（DOM 非依存）
  *                                  - 名前ごとに更新時刻の新しい方を使う
- *                                  - union: true（この端末で初めてそのアカウントと合わせるとき）は、覚えた度（progress）と
+ *                                  - union: true（この端末で初めてそのアカウントと合わせるとき）は、習得状況（progress）と
  *                                    自分の手順（custom-algs）をケースごとに合わせる（両方にあれば新しい方、片方だけなら残す）
  *
  *   Store.resolveLogin(local, remote, { owner, uid })
@@ -34,7 +34,7 @@
   'use strict';
 
   const PREFIX = 'visualcube-editor:';
-  // settings: 配色・画像の設定 / progress: 覚えた度 / list-filter: 一覧の絞り込み / custom-algs: 自分の手順 / lang: 言語
+  // settings: 配色・画像の設定 / progress: 習得状況 / list-filter: 一覧の絞り込み / custom-algs: 自分の手順 / lang: 言語
   // practice: 練習の設定と最近のタイム（practice.js）
   const NAMES = ['settings', 'progress', 'list-filter', 'custom-algs', 'lang', 'practice'];
   const PER_CASE = ['progress', 'custom-algs']; // { pll: { name: … }, oll: { … } } の形で、ケースごとに合わせられるもの

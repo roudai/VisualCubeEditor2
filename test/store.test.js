@@ -64,7 +64,7 @@ test('merge：名前ごとに新しい方を使う（片方にしかない名前
   });
 });
 
-test('merge：union なら覚えた度・自分の手順をケースごとに合わせる（両方にあれば新しい方）', () => {
+test('merge：union なら習得状況・自分の手順をケースごとに合わせる（両方にあれば新しい方）', () => {
   const local = {
     data: { progress: { pll: { 'A1+': 'learned', 'A1-': 'learning' } }, 'custom-algs': { oll: { '1A': { alg: 'x', setup: 'y' } } } },
     updated: { progress: 20, 'custom-algs': 1 },
