@@ -395,6 +395,9 @@ async function main() {
         .forEach(([key, icon, label]) => menu.append(menuItem(icon, label, () => signIn(key))));
       menu.append(
         el('div', 'account-menu-divider'),
+        menuItem(null, 'account.guide', () => {
+          location.href = '/guide';
+        }, 'muted'),
         menuItem(null, 'account.privacyPolicy', () => {
           location.href = '/privacy';
         }, 'muted'),
@@ -452,6 +455,9 @@ async function main() {
     if (message) menu.append(messageBox());
     menu.append(
       el('div', 'account-menu-divider'),
+      menuItem(null, 'account.guide', () => {
+        location.href = '/guide';
+      }, 'muted'),
       menuItem(null, 'account.privacyPolicy', () => {
         location.href = '/privacy';
       }, 'muted'),

@@ -47,6 +47,7 @@ URL：https://visualcube.roudai.net/
 - 内容はすべてブラウザに保存されます。Google・Facebook・GitHub でログインすると（Firebase）、設定・習得状況・自分の手順・練習の記録を
   アカウントにも保存し、どの端末でも同じ状態で使えます。アカウントは [Megaminx Image Editor](https://github.com/roudai/MegaminxImageEditor) と共通です
 - アカウントのデータは、プライバシーポリシーのページからいつでもご自身で削除できます
+- 使い方のページ（`/guide`。日本語・英語）があり、アカウントのメニューから開けます
 
 ## URL パラメータ
 
@@ -105,7 +106,7 @@ node tools/build-scrambles.js    # → js/{pll,oll,coll}-scrambles.js
 
 | 場所 | 内容 |
 |---|---|
-| `index.html`・`pll.html`・`oll.html`・`coll.html`・`practice.html`・`stats.html`・`privacy.html`・`terms.html` | 各ページ |
+| `index.html`・`pll.html`・`oll.html`・`coll.html`・`practice.html`・`stats.html`・`guide.html`・`privacy.html`・`terms.html` | 各ページ |
 | `js/` | スクリプト（モジュールやバンドラーは使わない）：`cube-state.js`（3x3x3 の状態）、`case-check.js`（手順の確認）、`cube-solver.js`（ソルバ）、`store.js`・`cloud-sync.js`（保存）、`i18n.js`（訳）、各ページのスクリプト |
 | `css/` | スタイル |
 | `data/` | 元データ（手順・覚える順・スクランブル）。ページと同じ名前のフォルダ（`pll/`・`oll/` など）をルートに置かないこと（GitHub Pages で `/pll` がフォルダの方を見てしまうため） |

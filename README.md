@@ -51,6 +51,7 @@ URL: https://visualcube.roudai.net/
   progress, own algorithms and practice records to your account, so you can use them on any device.
   The account is shared with [Megaminx Image Editor](https://github.com/roudai/MegaminxImageEditor)
 - You can delete your account data yourself from the privacy policy page
+- A how-to page in English and Japanese (`/guide`), linked from the account menu
 
 ## URL parameters
 
@@ -111,7 +112,7 @@ and every scramble is verified.
 
 | Path | Contents |
 |---|---|
-| `index.html`, `pll.html`, `oll.html`, `coll.html`, `practice.html`, `stats.html`, `privacy.html`, `terms.html` | Pages |
+| `index.html`, `pll.html`, `oll.html`, `coll.html`, `practice.html`, `stats.html`, `guide.html`, `privacy.html`, `terms.html` | Pages |
 | `js/` | Scripts (plain scripts, no modules or bundler): `cube-state.js` (3x3x3 state), `case-check.js` (algorithm checks), `cube-solver.js` (solver), `store.js` / `cloud-sync.js` (saving), `i18n.js` (translations), and one script per page |
 | `css/` | Styles |
 | `data/` | Source data (algorithms, learning order, scrambles). Do not put a folder named like a page (`pll/`, `oll/`, …) at the root: GitHub Pages would serve the folder for `/pll` |

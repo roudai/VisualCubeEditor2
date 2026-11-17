@@ -8,7 +8,7 @@ const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
-const PAGES = ['index.html', 'pll.html', 'oll.html', 'coll.html', 'practice.html', 'stats.html', 'privacy.html', 'terms.html'];
+const PAGES = ['index.html', 'pll.html', 'oll.html', 'coll.html', 'practice.html', 'stats.html', 'guide.html', 'privacy.html', 'terms.html'];
 const SCREEN_JS = ['cases.js', 'practice.js', 'stats.js', 'editor-cases.js', 'main.js', 'cube-draw.js', 'cloud-sync.js', 'privacy.js', 'navbar.js', 'legal.js'];
 
 // js/i18n.js の DICT の en・ja それぞれのキー
@@ -101,7 +101,7 @@ test('一覧・練習・記録のページは、描画に使うスクリプト�
 });
 
 // ページの URL は .html を付けない（/、/pll など。公開先の GitHub Pages が pll.html を返す）
-const PAGE_URLS = { '/': 'index.html', '/pll': 'pll.html', '/oll': 'oll.html', '/coll': 'coll.html', '/practice': 'practice.html', '/stats': 'stats.html', '/privacy': 'privacy.html', '/terms': 'terms.html' };
+const PAGE_URLS = { '/': 'index.html', '/pll': 'pll.html', '/oll': 'oll.html', '/coll': 'coll.html', '/practice': 'practice.html', '/stats': 'stats.html', '/guide': 'guide.html', '/privacy': 'privacy.html', '/terms': 'terms.html' };
 
 test('ページへのリンクに .html を付けない（/、/pll、/practice?… の形）', () => {
   const pageName = /\b(index|pll|oll|practice|stats|privacy|terms)\.html\b/;
