@@ -161,7 +161,7 @@
     );
     // 「すべての記録を見る」は今の種類の記録を開く
     const statsQuery = new URLSearchParams({ set: prefs.set });
-    $('allStatsLink').href = 'stats.html?' + statsQuery;
+    $('allStatsLink').href = '/stats?' + statsQuery;
     const box = $('practiceSettings');
     box.replaceChildren();
     document.body.classList.toggle('practice-full', isFull());

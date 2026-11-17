@@ -99,3 +99,43 @@ test('一覧・練習・記録のページは、描画に使うスクリプト�
   const editor = order('index.html');
   assert.ok(editor.findIndex((r) => r.endsWith('editor-cases.js')) < editor.findIndex((r) => r.endsWith('main.js')), 'editor-cases.js は main.js より先');
 });
+
+// ページの URL は .html を付けない（/、/pll など。公開先の GitHub Pages が pll.html を返す）
+const PAGE_URLS = { '/': 'index.html', '/pll': 'pll.html', '/oll': 'oll.html', '/practice': 'practice.html', '/stats': 'stats.html', '/privacy': 'privacy.html', '/terms': 'terms.html' };
+
+test('ページへのリンクに .html を付けない（/、/pll、/practice?… の形）', () => {
+  const pageName = /\b(index|pll|oll|practice|stats|privacy|terms)\.html\b/;
+  const found = [];
+  PAGES.forEach((page) => {
+    [...read(page).matchAll(/<a\b[^>]*\bhref="([^"]*)"/g)].forEach((m) => {
+      if (pageName.test(m[1])) found.push(`${page}: ${m[1]}`);
+    });
+  });
+  SCREEN_JS.forEach((file) => {
+    // コメントを除いた行で、文字列の中にページのファイル名があるもの
+    read('js/' + file)
+      .split('\n')
+      .filter((line) => !/^\s*\/\//.test(line))
+      .forEach((line) => {
+        const m = /['"`][^'"`]*\b(index|pll|oll|practice|stats|privacy|terms)\.html\b/.exec(line);
+        if (m) found.push(`js/${file}: ${line.trim()}`);
+      });
+  });
+  assert.deepEqual(found, []);
+  // 使っているページの URL は、どれも実際のページになる
+  const used = new Set();
+  PAGES.forEach((page) => [...read(page).matchAll(/<a\b[^>]*\bhref="(\/[\w-]*)[?#"]/g)].forEach((m) => used.add(m[1])));
+  assert.deepEqual([...used].filter((u) => !PAGE_URLS[u]), []);
+  assert.ok(used.size >= 6, `ナビバーのリンクが見つからない（${[...used]}）`);
+});
+
+test('tools/serve.js：.html の無い URL でページを返し、リポジトリの外は返さない', () => {
+  const { resolveFile } = require('../tools/serve.js');
+  Object.entries(PAGE_URLS).forEach(([url, file]) => assert.equal(resolveFile(url), path.join(ROOT, file), url));
+  assert.equal(resolveFile('/pll.html'), path.join(ROOT, 'pll.html')); // 古いリンク
+  assert.equal(resolveFile('/js/navbar.js'), path.join(ROOT, 'js/navbar.js'));
+  assert.equal(resolveFile('/pll/algs_info.json'), path.join(ROOT, 'pll/algs_info.json'));
+  assert.equal(resolveFile('/nope'), null);
+  assert.equal(resolveFile('/../PROGRESS.md'), null);
+  assert.equal(resolveFile('/%2e%2e/PROGRESS.md'), null);
+});

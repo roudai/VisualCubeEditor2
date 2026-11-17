@@ -12,13 +12,16 @@ Bootstrap - 5.3.9
 
 ## Pages
 
-| Page | What it does |
+| URL (file) | What it does |
 |---|---|
-| `index.html` | Editor. Pick a PLL / OLL case (`?pll=Aa`, `?oll=27`) or type an algorithm (`?alg=`, `?case=`), save your own algorithm for a case, download the image |
-| `pll.html` / `oll.html` | All 21 PLL / 57 OLL cases with images, learning status, filters and a ZIP download |
-| `practice.html` | Timer practice for PLL / OLL cases (auto-marks cases as learned) and full solves (WCA-style random-state scrambles, inspection, +2 / DNF, ao5 / ao12) |
-| `stats.html` | Practice records: totals, daily chart, per-case table, CSV export |
-| `privacy.html` / `terms.html` | Privacy policy and terms of use |
+| `/` (`index.html`) | Editor. Pick a PLL / OLL case (`/?pll=Aa`, `/?oll=27`) or type an algorithm (`/?alg=`, `/?case=`), save your own algorithm for a case, download the image |
+| `/pll` / `/oll` (`pll.html` / `oll.html`) | All 21 PLL / 57 OLL cases with images, learning status, filters and a ZIP download |
+| `/practice` (`practice.html`) | Timer practice for PLL / OLL cases (auto-marks cases as learned) and full solves (WCA-style random-state scrambles, inspection, +2 / DNF, ao5 / ao12) |
+| `/stats` (`stats.html`) | Practice records: totals, daily chart, per-case table, CSV export |
+| `/privacy` / `/terms` (`privacy.html` / `terms.html`) | Privacy policy and terms of use |
+
+Page URLs have no `.html` (GitHub Pages serves `pll.html` for `/pll`). Old links such as `/index.html?alg=…`
+still work, and the address bar is rewritten to `/?alg=…` (`js/navbar.js`).
 
 The UI is available in English and Japanese. Settings and records are kept in the browser (localStorage);
 signing in (Google / Facebook / GitHub, via Firebase) also saves them to your account.
@@ -27,10 +30,12 @@ The PLL / OLL lists, practice and stats were ported from [Megaminx Image Editor]
 
 ## Development
 
-Static site: no build step and no dependencies to install. Serve the directory with any static file server, e.g.
+Static site: no build step and no dependencies to install. Serve the directory with the bundled server, which
+resolves `/pll` to `pll.html` like GitHub Pages does (a plain static server such as `python3 -m http.server`
+does not, so links between pages return 404 there):
 
 ```sh
-python3 -m http.server 8000
+node tools/serve.js 8000   # http://localhost:8000/
 ```
 
 Tests (Node.js built-in test runner; checked with Node.js 24):

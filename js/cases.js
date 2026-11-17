@@ -5,7 +5,7 @@
 //   - Cube Color はエディタで保存した設定（localStorage）を使う。配色は
 //       PLL: 保存した配色。OLL 配色のときは OLL を選ぶ前の配色、それも無いときは Standard
 //       OLL: 保存した U の色だけを残した OLL 配色（他の面はグレー #404040）
-//   - ケースをクリックすると、そのケースを選んだ状態でエディタ（index.html?pll=… / ?oll=…）を開く
+//   - ケースをクリックすると、そのケースを選んだ状態でエディタ（/?pll=… / /?oll=…）を開く
 //   - 覚えた度：各カード右上のバッジをタップで 未着手 → 練習中 → 覚えた と切り替え、localStorage に保存する。
 //     上部に進み具合（積み上げバー・件数）と絞り込みチップ、グループ見出しに「覚えた数 / 全体」を出す
 //   - 覚える順（<set>/learn_order.json）のデータがあるときだけ「グループ順 / 覚える順」を切り替えられる
@@ -79,7 +79,7 @@
     col.dataset.name = c.name;
     const card = el('div', 'card h-100 case-card');
     const link = el('a', 'case-link d-block h-100');
-    link.href = `index.html?${SET}=${encodeURIComponent(c.name)}`;
+    link.href = `/?${SET}=${encodeURIComponent(c.name)}`;
     I.set(link, 'list.openTitle', { name: c.name }, 'title');
 
     const image = el('div', 'case-image mx-auto mt-2');
@@ -269,7 +269,7 @@
       if (HAS_STAGES) q.set('order', byStage ? 'learn' : 'group');
       const picked = sections.filter((s) => chosen.has(s.key));
       q.set('groups', picked.map((s) => (byStage ? s.stage : s.key)).join(','));
-      practice.href = 'practice.html?' + q.toString();
+      practice.href = '/practice?' + q.toString();
     }
     const zip = $('downloadZip');
     if (!zip.disabled) {

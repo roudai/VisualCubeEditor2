@@ -396,10 +396,10 @@ async function main() {
       menu.append(
         el('div', 'account-menu-divider'),
         menuItem(null, 'account.privacyPolicy', () => {
-          location.href = 'privacy.html';
+          location.href = '/privacy';
         }, 'muted'),
         menuItem(null, 'account.terms', () => {
-          location.href = 'terms.html';
+          location.href = '/terms';
         }, 'muted')
       );
       if (message) menu.append(messageBox());
@@ -453,10 +453,10 @@ async function main() {
     menu.append(
       el('div', 'account-menu-divider'),
       menuItem(null, 'account.privacyPolicy', () => {
-        location.href = 'privacy.html';
+        location.href = '/privacy';
       }, 'muted'),
       menuItem(null, 'account.terms', () => {
-        location.href = 'terms.html';
+        location.href = '/terms';
       }, 'muted'),
       menuItem(null, 'account.signOut', signOutNow, 'signout')
     );

@@ -46,16 +46,16 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 
 ## ほかのページ
 - 全ページのナビバーに「練習 / Practice」
-- PLL・OLL 一覧の上部に **練習する** ボタン：今の絞り込み・選んだグループのまま `practice.html?set=…&filter=…&groups=…` を開く
+- PLL・OLL 一覧の上部に **練習する** ボタン：今の絞り込み・選んだグループのまま `/practice?set=…&filter=…&groups=…` を開く
   - `groups` は一覧で選んだグループ。空ならすべて。練習ページはその選択で保存し直す（一覧で何も選んでいなければ、練習ページの選択も外れる）
 
 ## 記録（`stats.html`・`js/stats.js`・`css/stats.css`）
 - 判定のたびに `practice.log` に `{ at: 日時(ms), set, name, sec(null=解けなかった), status, hint }` を足す（新しい順、PLL と OLL を合わせて最大 2000 件。「取り消す」でその1件も消す）。集計は `js/progress.js` の `addLog`・`summarize`・`daily`・`perCase`
-- ナビバーの「記録 / Stats」、練習ページの「すべての記録を見る」（`stats.html?set=oll` のように今の種類を渡す）から開く
+- ナビバーの「記録 / Stats」、練習ページの「すべての記録を見る」（`/stats?set=oll` のように今の種類を渡す）から開く
 - 種類（PLL / OLL / 通し）・期間（7日 / 30日 / すべて）で絞る（`practice.stats` に保存）
 - 集計のカード：練習回数、平均（とベスト）、解けなかった回数、習得済みの数（今の覚えた度）
 - 日ごとの練習：棒＝回数、線＝平均タイム（練習した日だけを結ぶ）。期間が「すべて」のときは直近 90 日。棒にマウスを乗せると日付・回数・平均。ライブラリを使わず SVG で描く
-- ケースごとの表：画像・ケース・グループ・覚えた度・回数（解けなかった回数）・ベスト・平均・最後に練習した日。既定は平均の遅い順（苦手なケースが上）。見出しを押すと並べ替え。ケースを押すと、そのケースを最初に出題する練習ページ（`practice.html?set=…&case=…`）を開く
+- ケースごとの表：画像・ケース・グループ・覚えた度・回数（解けなかった回数）・ベスト・平均・最後に練習した日。既定は平均の遅い順（苦手なケースが上）。見出しを押すと並べ替え。ケースを押すと、そのケースを最初に出題する練習ページ（`/practice?set=…&case=…`）を開く
 - 「CSV で書き出す」：期間内の記録（`visualcube-<pll|oll>-practice.csv`。date, set, case, time（DNF）, status, hint）
 - 別のタブで練習したら、記録のページにも反映する（storage イベント）
 

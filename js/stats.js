@@ -274,7 +274,7 @@
         const nameTd = el('td');
         const link = el('a', 'stats-case');
         const q = new URLSearchParams({ set: view.set, case: r.name, filter: 'all' });
-        link.href = 'practice.html?' + q.toString();
+        link.href = '/practice?' + q.toString();
         link.textContent = r.name;
         I.set(link, 'stats.practiceThis', { name: r.name }, 'title');
         nameTd.append(link);
