@@ -1,6 +1,6 @@
 // 練習ページ（practice.html）：スクランブルを出し、手元のパズルで解くタイムを測って習得状況を自動で変える。
 // 仕様: reference/PRACTICE_SPEC.md
-//   - 出題：選んだ種類（PLL / OLL）・グループ（選んでいなければすべて）・対象（習得状況）に当てはまるケースからランダム
+//   - 出題：選んだ種類（PLL / OLL / COLL）・グループ（選んでいなければすべて）・対象（習得状況）に当てはまるケースからランダム
 //     （直前と同じケースは避ける）、そのケースのスクランブル（js/<pll|oll>-scrambles.js。各 20 本。ランダムな AUF 込みで
 //     作ってあるので、そのまま出す）からランダムに選ぶ。ケースの名前と画像は解き終わるまで出さない
 //   - グループを選ぶ欄で「グループ順 / 覚える順」（OLL は「番号順 / 覚える順」）を切り替えられる（覚える順は data/<set>/learn_order.json。
@@ -41,8 +41,9 @@
   const DATA = {
     pll: CA ? CA.merged('pll', window.PLL_DATA || []) : window.PLL_DATA || [],
     oll: CA ? CA.merged('oll', window.OLL_DATA || []) : window.OLL_DATA || [],
+    coll: CA ? CA.merged('coll', window.COLL_DATA || []) : window.COLL_DATA || [],
   };
-  const SCRAMBLES = { pll: window.PLL_SCRAMBLES || {}, oll: window.OLL_SCRAMBLES || {} };
+  const SCRAMBLES = { pll: window.PLL_SCRAMBLES || {}, oll: window.OLL_SCRAMBLES || {}, coll: window.COLL_SCRAMBLES || {} };
   const FILTERS = ['new', 'learning', 'learned', 'all'];
   const THRESHOLDS = [2, 3, 5, 8];
   const DEFAULT_THRESHOLD = 3;
@@ -53,7 +54,7 @@
   const saved = S.get('practice');
   const prefs = Object.assign({ set: 'pll', filter: 'new', threshold: DEFAULT_THRESHOLD, times: {} }, saved && typeof saved === 'object' ? saved : {});
   const params = new URLSearchParams(location.search);
-  const SETS = ['pll', 'oll', 'full'];
+  const SETS = ['pll', 'oll', 'coll', 'full'];
   if (SETS.includes(params.get('set'))) prefs.set = params.get('set');
   if (FILTERS.includes(params.get('filter'))) prefs.filter = params.get('filter');
   if (!SETS.includes(prefs.set)) prefs.set = 'pll';
@@ -157,6 +158,7 @@
         [
           { value: 'pll', text: 'PLL' },
           { value: 'oll', text: 'OLL' },
+          { value: 'coll', text: 'COLL' },
           { value: 'full', key: 'practice.full' },
         ],
         prefs.set,
@@ -599,7 +601,7 @@
 
     const display = P.displaySettings(set);
     const image = el('div', 'case-image');
-    const colors = P.caseColors(c, display.scheme);
+    const colors = P.caseColors(c, display.scheme, set);
     D.draw(image, colors.ucolor, colors.scolor, { size: 96, border: display.border });
 
     const body = el('div', 'practice-result-body');

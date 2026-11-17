@@ -23,7 +23,7 @@
   const I = window.I18N; // 日本語・英語の切り替え（i18n.js）
 
   const SET = document.body.dataset.set;
-  const BASE = { pll: window.PLL_DATA, oll: window.OLL_DATA }[SET] || [];
+  const BASE = { pll: window.PLL_DATA, oll: window.OLL_DATA, coll: window.COLL_DATA }[SET] || [];
   // 自分の手順（エディタの My algorithm で保存したもの）を重ねる。手順・画像・一括ダウンロードはこちらを使う
   const DATA = window.CustomAlgs ? window.CustomAlgs.merged(SET, BASE) : BASE;
   const NOTES = (window.CASE_GROUP_NOTES || {})[SET] || {};
@@ -42,7 +42,7 @@
   };
 
   // solve case（alg の逆手順を適用、持ち替えは打ち消す）の状態の画像の色
-  const caseColors = (c, settings) => P.caseColors(c, settings.scheme);
+  const caseColors = (c, settings) => P.caseColors(c, settings.scheme, SET);
 
   // ---- 習得状況 ----
   // { pll: { 'Aa': 'learning', ... }, oll: { ... } }。未着手（new）は保存しない

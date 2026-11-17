@@ -1,10 +1,12 @@
 // エディタ（index.html）に足す機能。js/main.js の Vue アプリに mixin として組み込む（window.EditorCases）。
 // MegaminxImageEditor の js/alg-input.js に当たる。仕様: reference/PLL_SPEC.md、reference/OLL_SPEC.md
 //
-// PLL・OLL の選択（pll-data.js / oll-data.js）: それぞれの行で Group → Case で選ぶ（同時に選べるのはどちらか1つ）。
+// PLL・OLL・COLL の選択（pll-data.js / oll-data.js / coll-data.js）: それぞれの行で Group → Case で選ぶ（同時に選べるのはどれか1つ）。
 //   選ぶと 3x3・Plan 表示に切り替え（保存しない）、種類に応じて手順の欄を差し替える
 //     alg（手順を回した状態）→ setup（そのケースになる手順） / case（この手順で揃う状態）→ alg（解く手順）
-//   OLL を選ぶと Color Preset を OLL にし、OLL 配色のまま PLL を選ぶと OLL を選ぶ前の配色に戻す（覚えていなければ Standard）
+//   OLL を選ぶと Color Preset を OLL にし、OLL 配色のまま PLL・COLL を選ぶと OLL を選ぶ前の配色に戻す（覚えていなければ Standard）
+//   COLL を選ぶと Stage Mask を COLL（側面のエッジのステッカーをグレー）にする。COLL 以外を選ぶ・選択を外すと、COLL で付けたマスクを外す
+//   （COLL を選んでいる間に手で Stage Mask を変えたら、それ以降は触らない）
 //   選んでいる間は手順の欄を書き換えても選択を外さず、その手順を自分の手順として保存できる（custom-algs.js。確認は case-check.js）
 //   パズルの種類を 3x3 以外に変えると選択を外す
 // 手順の確認（3x3 のときだけ）: js/cube-state.js で読めない記号・括弧の対応をその場で調べ、欄の下にエラーを出す。
@@ -14,7 +16,7 @@
 // 設定の保存: 配色（Color Preset・面の色・OLL を選ぶ前の配色・最後のカスタム配色）・画像サイズ・Cube Color・背景色・背景を
 //   store.js の 'settings' に保存し、次に開いたときに戻す（ログイン中はクラウドにも）。
 //   手順・種類・PLL/OLL の選択・ファイル名・パズルの種類・表示・マスク・回転・矢印は保存しない
-// URL パラメータ: ?alg=R U R' U' / ?case=R U R' U' / ?pll=Aa / ?oll=27（?pll → ?oll → ?case → ?alg の順に優先）
+// URL パラメータ: ?alg=R U R' U' / ?case=R U R' U' / ?pll=Aa / ?oll=27 / ?coll=21-1（?pll → ?oll → ?coll → ?case → ?alg の順に優先）
 (function () {
   'use strict';
   const M = window.CubeState;
@@ -22,8 +24,8 @@
   const I = window.I18N;
   const S = window.Store;
 
-  const SET_KEYS = ['pll', 'oll'];
-  const BASE = { pll: window.PLL_DATA || [], oll: window.OLL_DATA || [] };
+  const SET_KEYS = ['pll', 'oll', 'coll'];
+  const BASE = { pll: window.PLL_DATA || [], oll: window.OLL_DATA || [], coll: window.COLL_DATA || [] };
   const NOTES = window.CASE_GROUP_NOTES || {};
   const PRESETS = ['standard', 'oll', 'custom'];
   const DEFAULT_FILE = 'visualcube.png';
@@ -36,7 +38,8 @@
     data: () => ({
       caseSets: SET_KEYS.map((key) => ({ key: key, label: key.toUpperCase() })),
       // 選んでいるケース（group が空なら未選択）。ケースそのものは selectedCase で引く
-      caseSel: { pll: { group: '', name: '' }, oll: { group: '', name: '' } },
+      caseSel: { pll: { group: '', name: '' }, oll: { group: '', name: '' }, coll: { group: '', name: '' } },
+      collMaskSet: false, // COLL を選んで Stage Mask を COLL にしたか（外すときに戻すため）
       customVersion: 0, // 自分の手順を保存・消したら増やす（caseData を作り直す）
       myAlgMessage: { text: '', kind: '', undo: null, forAlg: null },
       colorPreset: 'standard',
@@ -108,7 +111,11 @@
         this.fillCaseAlg();
         this.setMyAlgMessage('');
       },
-      // PLL・OLL は 3x3 のケースなので、他の大きさにしたら選択を外す
+      // COLL で付けた Stage Mask を手で変えたら、それ以降は（選択を外しても）マスクに触らない（main.js の同名の監視とは別に動く）
+      stageMask(value) {
+        if (value !== 'coll') this.collMaskSet = false;
+      },
+      // PLL・OLL・COLL は 3x3 のケースなので、他の大きさにしたら選択を外す
       cubeSize(value) {
         if (value !== 3 && this.selectedCase) this.clearCaseSelection();
       },
@@ -128,8 +135,10 @@
       const params = new URLSearchParams(location.search);
       const urlPll = params.has('pll') ? this.findCaseByName('pll', params.get('pll')) : null;
       const urlOll = params.has('oll') ? this.findCaseByName('oll', params.get('oll')) : null;
+      const urlColl = params.has('coll') ? this.findCaseByName('coll', params.get('coll')) : null;
       if (urlPll) this.selectCase('pll', urlPll);
       else if (urlOll) this.selectCase('oll', urlOll);
+      else if (urlColl) this.selectCase('coll', urlColl);
       else if (params.has('case')) {
         this.algorithm = params.get('case');
         this.algtype = 'case';
@@ -171,6 +180,7 @@
         this.cubeSize = 3;
         this.cubeView = 'plan';
         this.applySetScheme(key);
+        this.applySetMask(key);
         if (!keepType) this.algtype = 'case';
         this.fillCaseAlg();
         this.setMyAlgMessage('');
@@ -179,7 +189,10 @@
       onCaseGroupChange(key, group) {
         const first = this.caseData[key].find((c) => c.group === group);
         if (first) this.selectCase(key, first);
-        else this.caseSel[key] = { group: '', name: '' };
+        else {
+          this.caseSel[key] = { group: '', name: '' };
+          this.applySetMask(null);
+        }
       },
       onCaseChange(key, name) {
         const c = this.caseData[key].find((x) => x.name === name);
@@ -198,6 +211,7 @@
         SET_KEYS.forEach((key) => {
           this.caseSel[key] = { group: '', name: '' };
         });
+        this.applySetMask(null);
         this.setMyAlgMessage('');
       },
       // Clear ボタン：手順を消し、選択も外す
@@ -338,6 +352,18 @@
             this.applyPreset();
           }
           this.schemeBeforeOll = null;
+        }
+      },
+      // COLL を選んだら Stage Mask を COLL にする。COLL 以外を選んだ・選択を外した（key が null）ときは、COLL で付けたマスクだけを外す
+      applySetMask(key) {
+        if (key === 'coll') {
+          if (this.stageMask !== 'coll') {
+            this.stageMask = 'coll';
+            this.collMaskSet = true;
+          }
+        } else if (this.collMaskSet) {
+          if (this.stageMask === 'coll') this.stageMask = '';
+          this.collMaskSet = false;
         }
       },
       // 面の色をまとめて変えたあとに描き直す（main.js の面の色の監視は、続けて変えると描かないことがある）

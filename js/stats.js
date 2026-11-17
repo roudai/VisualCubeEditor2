@@ -1,9 +1,9 @@
 // 記録のページ（stats.html）：練習の記録（store.js の practice.log）を、期間の集計・タイムの推移・ケースごとの表で見る。
 // 通し（practice.full.log）は、回数・ベスト・ベスト ao5/ao12（今の ao5/ao12）、タイムの推移、記録の一覧で見る。
-// PLL・OLL は「ケースごと」の表と「記録の一覧」を切り替えられる（記録の一覧は日時・ケース・タイム・判定）。
-// 記録の一覧（通し・PLL・OLL）は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて削除できる（どちらも元に戻せる）。
+// PLL・OLL・COLL は「ケースごと」の表と「記録の一覧」を切り替えられる（記録の一覧は日時・ケース・タイム・判定）。
+// 記録の一覧（通し・PLL・OLL・COLL）は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて削除できる（どちらも元に戻せる）。
 // 仕様: reference/PRACTICE_SPEC.md「記録」
-//   - 種類（PLL / OLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
+//   - 種類（PLL / OLL / COLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
 //   - 集計（回数・平均・解けなかった・習得済みの数）、タイムの推移（横軸＝1回ごと、点＝タイム、線＝ao5・ao12）の SVG、
 //     ケースごとの表（並び：苦手順（既定。直近 10 回の平均の遅い順）/ グループ順（OLL は番号順）/ 覚える順。見出しでも並べ替え。
 //     ケースを押すとそのケースを練習ページで出題）
@@ -25,7 +25,9 @@
   const DATA = {
     pll: CA ? CA.merged('pll', window.PLL_DATA || []) : window.PLL_DATA || [],
     oll: CA ? CA.merged('oll', window.OLL_DATA || []) : window.OLL_DATA || [],
+    coll: CA ? CA.merged('coll', window.COLL_DATA || []) : window.COLL_DATA || [],
   };
+  const SETS = ['pll', 'oll', 'coll', 'full'];
   const PERIODS = { 7: 7, 30: 30, all: null };
   const DAY = 24 * 60 * 60 * 1000;
 
@@ -35,7 +37,7 @@
   };
   const saved = practice().stats || {};
   const view = {
-    set: ['pll', 'oll', 'full'].includes(saved.set) ? saved.set : ['oll', 'full'].includes(practice().set) ? practice().set : 'pll',
+    set: SETS.includes(saved.set) ? saved.set : SETS.includes(practice().set) ? practice().set : 'pll',
     period: Object.prototype.hasOwnProperty.call(PERIODS, saved.period) ? saved.period : '30',
     // 並びの既定は苦手順。苦手順を足す前（sortV が無い）に保存した並び（平均の遅い順）は使わず、苦手順にする
     sort: saved.sortV === 2 && saved.sort ? saved.sort : 'weak',
@@ -45,7 +47,7 @@
   };
   // 練習ページの「すべての記録を見る」から開いたとき（?set=oll など）は、その種類を出す（表示の設定として保存する）
   const params = new URLSearchParams(location.search);
-  if (['pll', 'oll', 'full'].includes(params.get('set'))) view.set = params.get('set');
+  if (SETS.includes(params.get('set'))) view.set = params.get('set');
   if (params.has('set')) saveView();
   function saveView() {
     S.set('practice', Object.assign({}, practice(), { stats: Object.assign({}, view) }));
@@ -84,6 +86,7 @@
         [
           { value: 'pll', text: 'PLL' },
           { value: 'oll', text: 'OLL' },
+          { value: 'coll', text: 'COLL' },
           { value: 'full', key: 'practice.full' },
         ],
         view.set,
@@ -461,7 +464,7 @@
         const tr = el('tr');
         const imgTd = el('td', 'stats-img');
         const image = el('div', 'case-image');
-        const colors = P.caseColors(r.c, display.scheme);
+        const colors = P.caseColors(r.c, display.scheme, view.set);
         D.draw(image, colors.ucolor, colors.scolor, { size: 40, border: display.border });
         imgTd.append(image);
         const nameTd = el('td');

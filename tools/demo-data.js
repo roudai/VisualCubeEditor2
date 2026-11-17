@@ -1,5 +1,5 @@
 // 動作確認用のテストデータ（node tools/serve.js --demo で使う。本番のページは読まない）
-// 練習の記録（PLL・OLL・通し）・ケースごとの最近のタイム・習得状況を、今から過去 60 日ぶん作る。
+// 練習の記録（PLL・OLL・COLL・通し）・ケースごとの最近のタイム・習得状況を、今から過去 60 日ぶん作る。
 // 乱数は種を固定しているので、同じ日時なら毎回同じデータになる（日時は今に合わせてずらす）。
 // MegaminxImageEditor の tools/demo-data.js を 3x3 用にしたもの（タイム・習得の目安を 3x3 の速さに合わせ、
 // 覚える順・範囲（algset）が無いのでデータの順に使い、通しのスクランブルは random-state の 3x3）。
@@ -8,6 +8,7 @@
 'use strict';
 const PLL = require('../js/pll-data.js');
 const OLL = require('../js/oll-data.js');
+const COLL = require('../js/coll-data.js');
 const W = require('../js/wca-scramble.js');
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -75,12 +76,13 @@ function build(opts) {
   const random = rng(20261117);
   const caseRecords = caseLog(random, 'pll', PLL, 420, 45, now)
     .concat(caseLog(random, 'oll', OLL.slice(0, 40), 260, 30, now))
+    .concat(caseLog(random, 'coll', COLL, 180, 20, now))
     .sort((a, b) => b.at - a.at) // 新しい順
     .slice(0, 2000);
 
   // ケースごとの最近のタイム（新しい順、最大 10 件。解けなかった・ヒントを見たものは入れない）と、習得状況（最後の判定）
-  const times = { pll: {}, oll: {} };
-  const progress = { pll: {}, oll: {} };
+  const times = { pll: {}, oll: {}, coll: {} };
+  const progress = { pll: {}, oll: {}, coll: {} };
   caseRecords.forEach((e) => {
     if (!progress[e.set][e.name]) progress[e.set][e.name] = e.status;
     if (e.sec === null || e.hint) return;
