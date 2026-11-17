@@ -1,7 +1,11 @@
 // エディタ（index.html）に足す機能。js/main.js の Vue アプリに mixin として組み込む（window.EditorCases）。
 // MegaminxImageEditor の js/alg-input.js に当たる。仕様: reference/PLL_SPEC.md、reference/OLL_SPEC.md
 //
-// PLL・OLL・COLL の選択（pll-data.js / oll-data.js / coll-data.js）: それぞれの行で Group → Case で選ぶ（同時に選べるのはどれか1つ）。
+// PLL・OLL・COLL の選択（pll-data.js / oll-data.js / coll-data.js）。同時に選べるのはどれか1つ。
+//   PLL の行：Group → Case。Prev / Next はデータの並び（PLL 一覧のグループ順と同じ）
+//   OLL の行（COLL もここで選ぶ）：1つ目で種類（OLL / COLL H (OLL 21) … COLL Sune (OLL 27)）、2つ目でケース。
+//     OLL は番号（1〜57、番号順。OLL 一覧の番号順と同じ）、COLL はそのグループのケース（21-1 …）。
+//     Prev / Next は、OLL なら番号順、COLL なら COLL 全体をデータの順に送る（21-4 の次は 22-1。1つ目も切り替わる）
 //   選ぶと 3x3・Plan 表示に切り替え（保存しない）、種類に応じて手順の欄を差し替える
 //     alg（手順を回した状態）→ setup（そのケースになる手順） / case（この手順で揃う状態）→ alg（解く手順）
 //   OLL を選ぶと Color Preset を OLL にし、OLL 配色のまま PLL・COLL を選ぶと OLL を選ぶ前の配色に戻す（覚えていなければ Standard）
@@ -36,7 +40,7 @@
 
   window.EditorCases = {
     data: () => ({
-      caseSets: SET_KEYS.map((key) => ({ key: key, label: key.toUpperCase() })),
+      caseSets: [{ key: 'pll', label: 'PLL' }], // グループ → ケースで選ぶ行（OLL・COLL は別の行：ollKinds）
       // 選んでいるケース（group が空なら未選択）。ケースそのものは selectedCase で引く
       caseSel: { pll: { group: '', name: '' }, oll: { group: '', name: '' }, coll: { group: '', name: '' } },
       collMaskSet: false, // COLL を選んで Stage Mask を COLL にしたか（外すときに戻すため）
@@ -69,6 +73,34 @@
           if (c) return { key: key, c: c };
         }
         return null;
+      },
+      // ---- OLL の行（OLL と COLL） ----
+      // 1つ目の選択肢：OLL と、COLL のグループ（「COLL H (OLL 21)」）
+      ollKinds() {
+        const notes = NOTES.coll || {};
+        const groups = this.caseData.coll.map((c) => c.group).filter((g, i, all) => all.indexOf(g) === i);
+        return [{ value: 'oll', label: 'OLL' }].concat(
+          groups.map((g) => ({ value: 'coll:' + g, label: notes[g] ? `COLL ${g} (${notes[g]})` : `COLL ${g}` }))
+        );
+      },
+      // 今の種類：'oll' / 'coll:<グループ>' / ''（OLL・COLL のどちらも選んでいない）
+      ollKind() {
+        if (this.caseSel.coll.group) return 'coll:' + this.caseSel.coll.group;
+        return this.caseSel.oll.group ? 'oll' : '';
+      },
+      // OLL を番号順に並べたもの（OLL 一覧の番号順と同じ。データの並びはグループ順）
+      ollByNumber() {
+        return this.caseData.oll.slice().sort((a, b) => Number(a.name) - Number(b.name));
+      },
+      // 2つ目の選択肢：OLL なら 1〜57、COLL ならそのグループのケース
+      ollKindCases() {
+        const kind = this.ollKind;
+        if (kind === 'oll') return this.ollByNumber;
+        if (kind) return this.caseData.coll.filter((c) => c.group === kind.slice('coll:'.length));
+        return [];
+      },
+      ollKindCase() {
+        return this.ollKind === 'oll' ? this.caseSel.oll.name : this.caseSel.coll.name;
       },
       caseIsCustom() {
         return !!(this.selectedCase && this.selectedCase.c.custom);
@@ -198,14 +230,36 @@
         const c = this.caseData[key].find((x) => x.name === name);
         if (c) this.selectCase(key, c);
       },
-      // 前後のケースへ（その種類のデータの並び順。端では反対の端に回る。未選択なら Next は先頭、Prev は末尾）
-      stepCase(key, delta) {
-        const list = this.caseData[key];
-        if (!list.length) return;
+      // 前後のケースへ（list の並び。既定はその種類のデータの並び。端では反対の端に回る。未選択なら Next は先頭、Prev は末尾）
+      stepCase(key, delta, list) {
+        const order = list || this.caseData[key];
+        if (!order.length) return;
         const sel = this.caseSel[key];
-        const i = sel.group ? list.findIndex((c) => c.name === sel.name) : -1;
-        const next = i < 0 ? (delta > 0 ? 0 : list.length - 1) : (i + delta + list.length) % list.length;
-        this.selectCase(key, list[next]);
+        const i = sel.group ? order.findIndex((c) => c.name === sel.name) : -1;
+        const next = i < 0 ? (delta > 0 ? 0 : order.length - 1) : (i + delta + order.length) % order.length;
+        this.selectCase(key, order[next]);
+      },
+      // ---- OLL の行（OLL と COLL） ----
+      // 1つ目を変えた：OLL なら OLL 1、COLL のグループならその最初のケースを選ぶ。未選択に戻したら OLL・COLL の選択を外す
+      onOllKindChange(value) {
+        if (value === 'oll') {
+          this.selectCase('oll', this.ollByNumber[0]);
+        } else if (value.indexOf('coll:') === 0) {
+          this.onCaseGroupChange('coll', value.slice('coll:'.length));
+        } else {
+          this.caseSel.oll = { group: '', name: '' };
+          this.caseSel.coll = { group: '', name: '' };
+          this.applySetMask(null);
+          this.setMyAlgMessage('');
+        }
+      },
+      onOllCaseChange(name) {
+        this.onCaseChange(this.ollKind === 'oll' ? 'oll' : 'coll', name);
+      },
+      // Prev / Next：COLL を選んでいれば COLL 全体（データの順）、それ以外は OLL の番号順
+      stepOll(delta) {
+        if (this.caseSel.coll.group) this.stepCase('coll', delta);
+        else this.stepCase('oll', delta, this.ollByNumber);
       },
       clearCaseSelection() {
         SET_KEYS.forEach((key) => {

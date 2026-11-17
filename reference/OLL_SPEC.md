@@ -93,7 +93,10 @@ Cube Voyage「OLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
 - 番号とケースの対応をテストで確かめる（移植元には無い）
 
 ## 画面（PLL との違い。共通の内容は `reference/PLL_SPEC.md`「画面」）
-- エディタ：`OLL  [Group ▼] [Case ▼] [‹ Prev][Next ›]`。PLL の行の下。同時に選べるのは PLL・OLL のどちらか1つ
+- エディタ：`OLL  [種類 ▼] [Case ▼] [‹ Prev][Next ›]`。PLL の行の下。COLL もこの行で選ぶ（`reference/COLL_SPEC.md`）。同時に選べるのは PLL・OLL・COLL のどれか1つ
+  - 1つ目（種類）：`OLL` / `COLL H (OLL 21)` … `COLL Sune (OLL 27)`。`OLL` を選ぶと OLL 1 を選ぶ。`-- OLL --` に戻すと OLL・COLL の選択を外す
+  - 2つ目：OLL のときは番号 1〜57（番号順。OLL 一覧の番号順と同じ。データの並びはグループ順のまま）
+  - Prev / Next：OLL を選んでいれば番号順（57 の次は 1）。何も選んでいなければ Next は OLL 1、Prev は OLL 57
 - OLL を選ぶと Color Preset を OLL（U の色だけ残し、他は `#404040`）にする。もともと OLL 配色でなければ、その前の配色を覚えておく（PLL を選んだときに戻す）
 - ファイル名は `oll-<番号>.png`、URL は `?oll=<番号>`（優先順位は `?pll` → `?oll` → `?case` → `?alg`）
 - 一覧（`oll.html`）：並びは「番号順 / 覚える順」（`list-filter` の `ollOrder`。値は `'group'` / `'learn'`。既定は番号順）。番号順は 1〜57 を見出しなしで並べ、グループのボタン・「選択を解除」は出さない（`CaseSections.isNumbered`）。覚える順は A〜M の段階の見出しとボタン。配色は、保存した U の色だけを残した OLL 配色。ZIP は `visualcube-oll.zip`（中は `oll-<番号>.png`）

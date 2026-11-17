@@ -152,7 +152,7 @@
             <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled" />
             <label class="form-check-label" for="algorithmRadio3">{{ t('editor.typeState') }}</label>
           </div>
-          <!-- PLL / OLL のケースを選ぶ（Group → Case、Prev / Next）。選ぶと 3x3・Plan 表示になる -->
+          <!-- PLL のケースを選ぶ（Group → Case、Prev / Next）。選ぶと 3x3・Plan 表示になる -->
           <div class="row g-2 mb-2 align-items-center" v-for="set in caseSets" :key="set.key" v-show="!showFacelets">
             <div class="col-12 col-md-1">
               <label class="col-form-label" :for="set.key + 'Group'">{{ set.label }}</label>
@@ -172,6 +172,29 @@
               <div class="btn-group" role="group" :aria-label="t('editor.navAria', { set: set.label })">
                 <button class="btn btn-outline-secondary" type="button" :id="set.key + 'Prev'" @click="stepCase(set.key, -1)">{{ t('common.prev') }}</button>
                 <button class="btn btn-outline-secondary" type="button" :id="set.key + 'Next'" @click="stepCase(set.key, 1)">{{ t('common.next') }}</button>
+              </div>
+            </div>
+          </div>
+          <!-- OLL・COLL のケースを選ぶ：1つ目で種類（OLL / COLL のグループ）、2つ目でケース（OLL は番号順 1〜57）。js/editor-cases.js -->
+          <div class="row g-2 mb-2 align-items-center" v-show="!showFacelets">
+            <div class="col-12 col-md-1">
+              <label class="col-form-label" for="ollGroup">OLL</label>
+            </div>
+            <div class="col-12 col-md-5">
+              <select class="form-select" id="ollGroup" :aria-label="t('editor.groupAria', { set: 'OLL / COLL' })" @change="onOllKindChange($event.target.value)">
+                <option value="" :selected="!ollKind">-- OLL --</option>
+                <option v-for="k in ollKinds" :key="k.value" :value="k.value" :selected="k.value === ollKind">{{ k.label }}</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-3">
+              <select class="form-select" id="ollCase" :aria-label="t('editor.caseAria', { set: 'OLL / COLL' })" :disabled="!ollKind" @change="onOllCaseChange($event.target.value)">
+                <option v-for="c in ollKindCases" :key="c.name" :value="c.name" :selected="c.name === ollKindCase">{{ c.name }}</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-auto">
+              <div class="btn-group" role="group" :aria-label="t('editor.navAria', { set: 'OLL / COLL' })">
+                <button class="btn btn-outline-secondary" type="button" id="ollPrev" @click="stepOll(-1)">{{ t('common.prev') }}</button>
+                <button class="btn btn-outline-secondary" type="button" id="ollNext" @click="stepOll(1)">{{ t('common.next') }}</button>
               </div>
             </div>
           </div>
