@@ -3,9 +3,9 @@
 3x3x3 の PLL（全21ケース）の名前・解く手順・そのケースになる手順を持ち、エディタ・一覧・練習で使う。
 MegaminxImageEditor の `reference/PLL_SPEC.md` を 3x3 用に書き直したもの。コードと食い違うときはコードを正とする。
 
-- 実装済み（このファイルの「データ」〜「テスト」）：`pll/algs_info.json`、`tools/build-pll-data.js`（共通部分は `tools/build-case-data.js`）、
+- データと確認：`pll/algs_info.json`、`tools/build-pll-data.js`（共通部分は `tools/build-case-data.js`）、
   `js/pll-data.js`（生成物）、`js/pll-groups.js`、`js/case-check.js`、`js/custom-algs.js`、`test/pll-data.test.js`
-- 画面（エディタのケース選択、一覧 `pll.html`、一括ダウンロード）はフェーズ3で作る。「画面」の節は移植元から引き継ぐ予定の内容
+- 画面（エディタのケース選択、一覧 `pll.html`、一括ダウンロード）：`js/editor-cases.js`、`js/cases.js`、`js/cube-draw.js`（「画面」の節）。練習と記録は `reference/PRACTICE_SPEC.md`
 
 ## 元データ：`pll/algs_info.json`
 
@@ -151,15 +151,42 @@ PLL 表の図の向き（＝その手順を回し始める向き）とし、下�
 - 既定の手順と同じ回し方（空白・括弧・`R2'` と `R2` のような書き方の違いは同じとみなす）なら、自分の手順としては保存しない
 - 保存：localStorage の `visualcube-editor:custom-algs`（`{ pll: { "Jb": { alg, setup } }, oll: { ... } }`）。読み込むときに確認し、合わない値は無視して既定を使う
 
-## 画面（フェーズ3で実装。移植元から引き継ぐ内容）
+## 画面
 
-- エディタ（`index.html`、`js/editor-cases.js`）：Group と Case の2つのセレクトと Prev / Next で選ぶ。選ぶと 3x3・Plan 表示に切り替え（保存しない）、
-  種類に応じて入力欄に `alg`（Algorithm to solve case）または `setup`（Algorithm to apply）を入れる。どちらでも同じケースの画像になる。
-  ファイル名は `pll-<名前>.png`。URL は `?pll=<名前>`（`?pll=` → `?oll=` → `?case=` → `?alg=` の優先順）
-- 一覧（`pll.html`、`js/cases.js`）：21ケースの画像・名前・手順をグループごとに並べる。画像は solve case の状態
-  （`alg` の逆手順を回し、センターが動いたぶんを打ち消す）。覚えた度（未着手 / 練習中 / 覚えた）は `visualcube-editor:progress`、
-  絞り込みは `visualcube-editor:list-filter`。「グループ順 / 覚える順」の切り替えは無い
-- 一括ダウンロード：全21ケースの画像を `visualcube-pll.zip` にまとめる（`js/zip-store.js`、無圧縮）
+### エディタ（`index.html`、`js/editor-cases.js`＝`js/main.js` の Vue アプリの mixin）
+- `PLL  [Group ▼] [Case ▼] [‹ Prev][Next ›]` の行で選ぶ（OLL の行はその下。同時に選べるのは PLL・OLL のどちらか1つ）。
+  Prev / Next はデータの並び順で、端では反対の端に回る
+- 選ぶとパズルの種類を 3x3、表示を Plan（上面図）に切り替える（保存しない）。未選択から選んだときは種類を「Algorithm to solve case」にし、
+  種類に応じて手順の欄に `alg`（Algorithm to solve case）または `setup`（Algorithm to apply）を入れる。どちらでも同じケースの画像になる
+- ファイル名は `pll-<名前>.png`（Download ボタンで、表示中の画像を PNG で保存する）
+- URL は `?pll=<名前>`（`?pll=` → `?oll=` → `?case=` → `?alg=` の優先順）
+- パズルの種類を 3x3 以外に変えると選択を外す。Clear は手順と選択の両方を消す
+- **自分の手順**：ケースを選んでいる間は、手順の欄を書き換えても選択を外さず「編集中」と出す。「Algorithm to solve case」のときに Save（Enter でも）で保存する
+  （確かめる内容は上の「自分の手順」）。保存したケースは「custom」のバッジになり、「Reset to default」で既定に戻す。保存・既定に戻すのあとは「元に戻す」を出す
+- **手順の確認（3x3 のときだけ）**：`js/cube-state.js` で読めない記号・括弧の対応をその場で調べ、欄の下にエラーを出す（前の画像は残す）。
+  描画ライブラリ（srVisualizer）には、括弧と繰り返しを展開した手順（`CubeState.flatten`）を渡す。
+  「Algorithm to solve case」は、手順中の持ち替え・2層回し・中層回しで完成後の向きが変わっても揃ったとみなす（センターを元の位置に戻す持ち替えを足す）。
+  3x3 以外は今までどおり、入力をそのままライブラリに渡す
+- **Color Preset**（Standard / OLL (U color only) / Custom）：面の色を手で変える・x y z で持ち替えると Custom になり、その配色を覚える。
+  OLL を選ぶと OLL 配色にし、OLL 配色のまま PLL を選ぶと OLL を選ぶ前の配色に戻す（覚えていなければ Standard）
+- **Background**（Transparent / Opaque）：Opaque のとき Background Color で塗る。Background Color を選ぶと Opaque になる
+- 設定の保存（`visualcube-editor:settings`）：配色・Color Preset・画像サイズ・Cube Color・Background Color・Background。
+  手順・種類・選択・ファイル名・パズルの種類・表示・マスク・回転・矢印は保存しない
+
+### 一覧（`pll.html`、`js/cases.js`、`css/cases.css`）
+- 21ケースの画像・名前・手順をグループごとに並べる。画像は solve case の状態（`alg` の逆手順を回し、センターが動いたぶんを打ち消す）の上面図
+  （`js/cube-draw.js`。srVisualizer の Plan 表示なので、エディタと同じ見た目）
+- 配色はエディタで保存した設定：保存した配色（OLL 配色のときは OLL を選ぶ前の配色、それも無ければ Standard）。Cube Color も保存した設定
+- ケースを押すと、そのケースを選んだ状態でエディタ（`index.html?pll=…`）を開く。自分の手順があるケースはその手順と画像で出し、「custom」を付ける
+- 覚えた度（未習得 / 練習中 / 習得済み）：カード右上の丸を押すたびに切り替える（`visualcube-editor:progress`）。
+  上部に進み具合のバー・件数と絞り込み、グループの見出しに「習得済みの数 / 全体」
+- グループのボタン：押したグループだけを表示する（複数選べる。「選択を解除」で戻す）。絞り込みと合わせて `visualcube-editor:list-filter` に保存
+- 「練習する」：今の絞り込み・選んだグループのまま練習ページを開く（`reference/PRACTICE_SPEC.md`）
+- 「グループ順 / 覚える順」の切り替えは無い（覚える順のデータが無いので出ない）
+
+### 一括ダウンロード
+- 「Download ZIP」（スマホの幅では出さない）：全21ケースを一覧と同じ配色で PNG にし、`visualcube-pll.zip`（中は `pll-<名前>.png`）にまとめる（`js/zip-store.js`、無圧縮）
+- 画像サイズ・Cube Color・背景はエディタで保存した設定（サイズは 100〜1000 px に収める。保存が無ければ 200 px、透明）。SVG を Image → canvas で PNG にする
 
 ## テスト（`test/pll-data.test.js`、`node --test test/pll-data.test.js`）
 
