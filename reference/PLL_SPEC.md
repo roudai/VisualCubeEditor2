@@ -41,6 +41,7 @@ MegaminxImageEditor の `reference/PLL_SPEC.md` を 3x3 用に書き直したも
 ### 出典（roudai.net）
 
 - `a` は、そのページで各ケースの**最初に載っている手順**（両手）。記号はそのまま写し、書き方だけそろえる（`R2′` → `R2`、`U'2` → `U2`、`R'2` → `R2`、`U'w` → `Uw'`）。
+  ただし H の `M2` はすべて `M2'`、Gb の2手目は `R2'`、Gc の最後から2手目は `R2'` と書く（ユーザーの指定。状態は `M2`・`R2` と同じ）。
   ページの2本目以降の手順は `test/pll-data.test.js` の `SITE_ALGS` に置き、同じケースになることを確かめる
   （ページの Jb の片手 `R U'2 R' U' R U'2` は途中で切れていて揃わず、Na の片手・最少 `L U' R U'2 L' U L R' U' R U2 L U R'` も揃わないので入れていない）
 - **図の向き**：そのページの図は、最初の手順をそのまま `case` に渡して描いている（sr-visualizer の Plan 表示）。
@@ -94,7 +95,7 @@ s = [AUF] setup [AUF]
 |---|---|---|
 | Ua | UR>UF>UL | `R2 U R U R' U' R' U' R' U R'` |
 | Ub | UR>UL>UF | `R U' R U R U R U' R' U' R2` |
-| H | UB>UF UR>UL | `M2 U M2 U2 M2 U M2` |
+| H | UB>UF UR>UL | `M2' U M2' U2 M2' U M2'` |
 | Z | UB>UR UF>UL | `M' U M2 U M2 U M' U2 M2 U'` |
 | Aa | UBR>UFL>UFR | `x' R U' R D2 R' U R D2 R2 x` |
 | Ab | UBR>UFR>UFL | `x' R2 D2 R' U' R D2 R' U R' x` |
@@ -110,8 +111,8 @@ s = [AUF] setup [AUF]
 | Na | UBR>UFL UR>UL | `R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'` |
 | Nb | UBL>UFR UR>UL | `R' U R U' R' F' U' F R U R' F R' F' R U' R` |
 | Ga | UBL>UBR>UFL UB>UL>UF | `D' R U R' U' D R2 U' R U' R' U R' U R2 U` |
-| Gb | UBL>UFL>UBR UB>UF>UL | `U' R2 U' R U' R U R' U R2 D' U R U' R' D` |
-| Gc | UBL>UFL>UFR UB>UF>UL | `D R' U' R U D' R2 U R' U R U' R U' R2 U'` |
+| Gb | UBL>UFL>UBR UB>UF>UL | `U' R2' U' R U' R U R' U R2 D' U R U' R' D` |
+| Gc | UBL>UFL>UFR UB>UF>UL | `D R' U' R U D' R2 U R' U R U' R U' R2' U'` |
 | Gd | UBL>UFR>UFL UB>UL>UF | `U R2 U R' U R' U' R U' R2 D U' R' U R D'` |
 
 `s`（そのケースになる手順）は `data/pll/algs_info.json` を参照。どのケースの `s` にも括弧付きの AUF は付いていない。
