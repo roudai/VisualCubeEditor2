@@ -1,7 +1,8 @@
 // 記録のページ（stats.html）：練習の記録（store.js の practice.log）を、期間の集計・タイムの推移・ケースごとの表で見る。
 // 通し（practice.full.log）は、回数・ベスト・ベスト ao5/ao12（今の ao5/ao12）、タイムの推移、記録の一覧で見る。
 // PLL・OLL・COLL は「ケースごと」の表と「記録の一覧」を切り替えられる（記録の一覧は日時・ケース・タイム・判定）。
-// 記録の一覧（通し・PLL・OLL・COLL）は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて削除できる（どちらも元に戻せる）。
+// 記録の一覧（通し・PLL・OLL・COLL）は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて、
+// 「すべての記録を削除」でその種類の記録を期間に関係なくすべて削除できる（どれも元に戻せる）。
 // 仕様: reference/PRACTICE_SPEC.md「記録」
 //   - 種類（PLL / OLL / COLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
 //   - 集計（回数・平均・解けなかった・習得済みの数）、タイムの推移（横軸＝1回ごと、点＝タイム、線＝ao5・ao12）の SVG、
@@ -111,6 +112,7 @@
     if ((next.set && next.set !== view.set) || (next.tab && next.tab !== view.tab)) {
       selected.clear();
       confirmingDelete = false;
+      confirmingAll = false;
       deleteMessage = null;
     }
     // 種類・範囲・期間・表を変えたら 1 ページ目に戻す
@@ -594,6 +596,7 @@
   const selected = new Set(); // 選んだ記録の at（表示中の種類の中で）
   const openScrambles = new Set(); // スクランブルを開いている記録の at
   let confirmingDelete = false;
+  let confirmingAll = false; // 「すべての記録を削除」の確認中
   let deleteMessage = null; // { text, undo }
 
   function saveFullLog(log) {
@@ -609,6 +612,10 @@
     kind === 'full'
       ? { read: fullLog, write: saveFullLog, mine: () => true, id: (r) => String(r.at) }
       : { read: caseLog, write: saveCaseLog, mine: (r) => r.set === kind, id: (r) => r.set + '|' + r.at };
+
+  // 「すべての記録を削除」の文：通しは「通しの…」（「PLL の…」と空白の入れ方が違うので別の文）
+  const allKey = (key) => key + (view.set === 'full' ? 'Full' : '');
+  const setName = (kind) => kind.toUpperCase();
 
   // 表示中の種類の ats の記録を削除し、元に戻す関数を返す
   function deleteRecords(ats) {
@@ -632,6 +639,7 @@
 
   function afterDelete(n, undo) {
     confirmingDelete = false;
+    confirmingAll = false;
     deleteMessage = { key: 'stats.deletedN', params: { n: n }, undo: undo };
     render();
   }
@@ -647,6 +655,28 @@
       if (!visible.has(at)) selected.delete(at);
     });
     const n = selected.size;
+    // すべて削除：表示中の種類の記録すべて（期間・範囲に関係なく）
+    const store = logStore(view.set);
+    const everything = store.read().filter(store.mine);
+    if (confirmingAll && everything.length) {
+      const text = el('span', 'stats-delete-confirm');
+      I.set(text, allKey('stats.deleteAllConfirm'), { n: everything.length, set: setName(view.set) });
+      const yes = el('button', 'btn btn-danger btn-sm');
+      yes.type = 'button';
+      I.set(yes, 'stats.deleteAllYes');
+      yes.addEventListener('click', () => afterDelete(everything.length, deleteRecords(everything.map((r) => r.at))));
+      const no = el('button', 'btn btn-outline-secondary btn-sm');
+      no.type = 'button';
+      I.set(no, 'stats.cancel');
+      no.addEventListener('click', () => {
+        confirmingAll = false;
+        render();
+      });
+      bar.append(text, yes, no);
+      setTimeout(() => no.focus()); // 間違って消さないよう、最初のフォーカスはキャンセル
+      return;
+    }
+    confirmingAll = false;
     if (confirmingDelete && n) {
       const text = el('span', 'stats-delete-confirm');
       I.set(text, 'stats.deleteConfirm', { n: n });
@@ -689,6 +719,20 @@
       render();
     });
     bar.append(del);
+    // すべての記録を削除（目立たない小さなリンク。右端に置く）
+    if (everything.length) {
+      const all = el('button', 'btn btn-link btn-sm stats-delete-all');
+      all.type = 'button';
+      I.set(all, 'stats.deleteAll');
+      I.set(all, allKey('stats.deleteAllTitle'), { set: setName(view.set) }, 'title');
+      all.addEventListener('click', () => {
+        deleteMessage = null;
+        confirmingDelete = false;
+        confirmingAll = true;
+        render();
+      });
+      bar.append(all);
+    }
     if (deleteMessage) {
       const msg = el('span', 'stats-delete-message');
       I.set(msg, deleteMessage.key, deleteMessage.params);

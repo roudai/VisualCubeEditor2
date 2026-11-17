@@ -412,6 +412,17 @@
 .stats-delete-message {
   color: #6c757d;
 }
+.stats-delete-all {
+  order: 1; /* 削除のメッセージより後ろ（右端）に置く */
+  margin-left: auto;
+  padding: 0;
+  color: #b02a37;
+  font-size: .82rem;
+  text-decoration: none;
+}
+.stats-delete-all:hover {
+  text-decoration: underline;
+}
 .stats-undo {
   font-size: .82rem;
   text-decoration: none;
