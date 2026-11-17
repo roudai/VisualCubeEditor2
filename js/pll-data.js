@@ -6,7 +6,7 @@
 })(typeof self !== 'undefined' ? self : this, [
   {"name":"Ua","group":"Edges only","alg":"R2 U R U R' U' R' U' R' U R'","setup":"R U' R U R U R U' R' U' R2"},
   {"name":"Ub","group":"Edges only","alg":"R U' R U R U R U' R' U' R2","setup":"R2 U R U R' U' R' U' R' U R'"},
-  {"name":"H","group":"Edges only","alg":"M2 U M2 U2 M2 U M2","setup":"R2 U2 R' U2 R2 U2 R2 U2 R' U2 R2"},
+  {"name":"H","group":"Edges only","alg":"M2' U M2' U2 M2' U M2'","setup":"R2 U2 R' U2 R2 U2 R2 U2 R' U2 R2"},
   {"name":"Z","group":"Edges only","alg":"M' U M2 U M2 U M' U2 M2 U'","setup":"R U R2 U' R' U' R U R' U' R' U R' U R U2"},
   {"name":"Aa","group":"Corners only","alg":"x' R U' R D2 R' U R D2 R2 x","setup":"R2 F2 R' B' R F2 R' B R'"},
   {"name":"Ab","group":"Corners only","alg":"x' R2 D2 R' U' R D2 R' U R' x","setup":"R B' R F2 R' B R F2 R2"},
@@ -22,7 +22,7 @@
   {"name":"Na","group":"Diagonal swap","alg":"R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'","setup":"R U R' U2 R U R2 F' R U R U' R' F R U' R' U' R U' R'"},
   {"name":"Nb","group":"Diagonal swap","alg":"R' U R U' R' F' U' F R U R' F R' F' R U' R","setup":"R' U R' F R F' R U' R' F' U F R U R' U' R"},
   {"name":"Ga","group":"G","alg":"D' R U R' U' D R2 U' R U' R' U R' U R2 U","setup":"U' R2 U' R U' R U R' U R2 U D' R U' R' D"},
-  {"name":"Gb","group":"G","alg":"U' R2 U' R U' R U R' U R2 D' U R U' R' D","setup":"D' R U R' U' D R2 U' R U' R' U R' U R2 U"},
-  {"name":"Gc","group":"G","alg":"D R' U' R U D' R2 U R' U R U' R U' R2 U'","setup":"U R2 U R' U R' U' R U' R2 U' D R' U R D'"},
+  {"name":"Gb","group":"G","alg":"U' R2' U' R U' R U R' U R2 D' U R U' R' D","setup":"D' R U R' U' D R2 U' R U' R' U R' U R2 U"},
+  {"name":"Gc","group":"G","alg":"D R' U' R U D' R2 U R' U R U' R U' R2' U'","setup":"U R2 U R' U R' U' R U' R2 U' D R' U R D'"},
   {"name":"Gd","group":"G","alg":"U R2 U R' U R' U' R U' R2 D U' R' U R D'","setup":"D R' U' R U D' R2 U R' U R U' R U' R2 U'"},
 ]);

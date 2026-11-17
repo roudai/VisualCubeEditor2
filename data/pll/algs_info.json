@@ -18,7 +18,7 @@
     "group": "Edges only",
     "algset": "PLL",
     "s": "R2 U2 R' U2 R2 U2 R2 U2 R' U2 R2",
-    "a": "M2 U M2 U2 M2 U M2"
+    "a": "M2' U M2' U2 M2' U M2'"
   },
   "4": {
     "name": "Z",
@@ -130,14 +130,14 @@
     "group": "G",
     "algset": "PLL",
     "s": "D' R U R' U' D R2 U' R U' R' U R' U R2 U",
-    "a": "U' R2 U' R U' R U R' U R2 D' U R U' R' D"
+    "a": "U' R2' U' R U' R U R' U R2 D' U R U' R' D"
   },
   "20": {
     "name": "Gc",
     "group": "G",
     "algset": "PLL",
     "s": "U R2 U R' U R' U' R U' R2 U' D R' U R D'",
-    "a": "D R' U' R U D' R2 U R' U R U' R U' R2 U'"
+    "a": "D R' U' R U D' R2 U R' U R U' R U' R2' U'"
   },
   "21": {
     "name": "Gd",
