@@ -1,0 +1,359 @@
+/* 練習ページ（practice.html）。処理は js/practice.js */
+:root {
+  --practice-learned: #198754;
+  --practice-learning: #b07d00;
+}
+
+/* ---- 設定 ---- */
+.practice-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.25rem;
+  align-items: center;
+  padding: .65rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: .75rem;
+  background: #fbfbfc;
+}
+.practice-field {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.practice-field-label {
+  color: #6c757d;
+  font-size: .78rem;
+}
+.practice-segment {
+  display: inline-flex;
+  flex-wrap: wrap; /* 狭い画面では折り返す（横にはみ出さないように） */
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 50rem;
+  background-color: #eef0f3;
+}
+.practice-segment button {
+  border: 0;
+  border-radius: 50rem;
+  padding: .2rem .75rem;
+  background: transparent;
+  color: #495057;
+  font-size: .82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.practice-segment button.active {
+  background-color: #fff;
+  color: #212529;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+}
+.practice-segment button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.practice-segment .count {
+  margin-left: .3rem;
+  font-size: .72rem;
+  opacity: .55;
+  font-variant-numeric: tabular-nums;
+}
+.practice-seconds {
+  width: 3.75rem;
+}
+.practice-seconds.active {
+  border-color: #212529;
+  font-weight: 600;
+}
+
+/* グループの絞り込み */
+.practice-groups-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  max-width: 14rem;
+  padding: .2rem .7rem;
+  border: 1px solid #dee2e6;
+  border-radius: 50rem;
+  background: #fff;
+  color: #212529;
+  font-size: .82rem;
+}
+.practice-groups-toggle > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.practice-groups-toggle[aria-expanded="true"] {
+  border-color: #adb5bd;
+}
+.practice-groups-caret {
+  color: #6c757d;
+  font-size: .7rem;
+}
+.practice-groups {
+  flex-basis: 100%;
+  padding-top: .5rem;
+  border-top: 1px dashed #e3e6ea;
+}
+/* OLL の 14 個が PC の幅で1〜2行に収まるよう小さめにする（設定の枠の内側は一覧ページより狭いので、一覧ページの .group-nav-btn より少し小さい） */
+.practice-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .2rem .15rem;
+}
+.practice-group-chip {
+  min-width: 1.6rem;
+  padding: .15rem .28rem;
+  border: 1px solid #dee2e6;
+  border-radius: .45rem;
+  background: #fff;
+  color: #495057;
+  font-size: .75rem;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.practice-group-chip:hover {
+  border-color: #adb5bd;
+}
+.practice-group-chip.active {
+  border-color: #0d6efd;
+  background: #0d6efd;
+  color: #fff;
+}
+.practice-groups-clear {
+  padding: 0;
+  font-size: .75rem;
+  text-decoration: none;
+}
+
+/* ---- 出題とタイマー ---- */
+.practice-stage {
+  padding: 1.5rem 1rem 1.25rem;
+  border: 1px solid #e9ecef;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .05);
+  text-align: center;
+}
+.practice-label {
+  color: #adb5bd;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.practice-scramble {
+  min-height: 2.6em;
+  margin: .35rem auto 0;
+  max-width: 44rem;
+  font-family: var(--bs-font-monospace);
+  font-size: clamp(1.05rem, 2.6vw, 1.5rem);
+  line-height: 1.5;
+  word-spacing: .15em;
+}
+.practice-timer {
+  display: block;
+  width: 100%;
+  margin: .5rem 0 .25rem;
+  padding: .5rem 0;
+  border: 0;
+  background: none;
+  color: #212529;
+  font-size: clamp(3.5rem, 14vw, 6.5rem);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: color .1s ease;
+}
+.practice-timer.warn8 {
+  color: #b07d00;
+}
+.practice-timer.warn12 {
+  color: #d9480f;
+}
+.practice-timer.over {
+  color: #dc3545;
+}
+/* 通し：長押し中（赤）→ 準備完了（緑）。離すとスタート。インスペクションの色より優先 */
+.practice-timer.holding {
+  color: #dc3545;
+}
+.practice-timer.ready {
+  color: #198754;
+}
+.practice-timer:focus-visible {
+  outline: none;
+}
+.practice-hint {
+  color: #6c757d;
+  font-size: .78rem;
+}
+.practice-stage.running .practice-timer {
+  color: #0d6efd;
+}
+.practice-stage.running .practice-hint,
+.practice-stage.running .practice-scramble {
+  visibility: hidden;
+}
+.practice-hint-text {
+  min-height: 1.6em;
+  margin-top: .5rem;
+  font-size: .9rem;
+}
+.practice-hint-name {
+  margin-right: .5rem;
+  font-weight: 600;
+}
+.practice-hint-moves {
+  font-family: var(--bs-font-monospace);
+}
+.practice-stage.running .practice-hint-text {
+  visibility: hidden;
+}
+.practice-empty {
+  margin-top: 1rem;
+  color: #6c757d;
+}
+
+/* ---- 通し ---- */
+.practice-scramble.full {
+  max-width: 36rem; /* 20 手前後。広い画面でも 1〜2 行に収める */
+}
+/* 通しでは「解けなかった」「スキップ」「ヒント」は出さない（DNF は結果の OK / +2 / DNF で付ける） */
+.practice-full #hintButton,
+.practice-full #dnfButton,
+.practice-full #skipButton,
+.practice-full #practiceHintText {
+  display: none;
+}
+.practice-full-scramble {
+  white-space: pre-line;
+  color: #6c757d;
+  font-size: min(.75rem, 2.7vw);
+}
+.practice-full-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.practice-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .4rem;
+  padding: .3rem .75rem;
+  border: 1px solid #e9ecef;
+  border-radius: .6rem;
+  background: #fff;
+}
+.practice-stat-label {
+  color: #6c757d;
+  font-size: .72rem;
+}
+.practice-stat-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- 結果 ---- */
+.practice-result {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 1rem;
+  background: #fbfbfc;
+  animation: practice-in .2s ease-out;
+}
+.practice-result[hidden] {
+  display: none;
+}
+@keyframes practice-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .practice-result { animation: none; }
+}
+.practice-result .case-image {
+  flex: none;
+}
+.practice-result-body {
+  min-width: 0;
+}
+.practice-result-time {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.practice-verdict {
+  font-size: .9rem;
+}
+.practice-verdict.learned {
+  color: var(--practice-learned);
+}
+.practice-verdict.learning {
+  color: var(--practice-learning);
+}
+.practice-case-name {
+  font-weight: 600;
+}
+.practice-case-alg {
+  font-family: var(--bs-font-monospace);
+  font-size: .85rem;
+  word-break: break-word;
+}
+.practice-case-stats {
+  color: #6c757d;
+  font-size: .78rem;
+}
+.practice-undo {
+  padding: 0;
+  border: 0;
+  font-size: .85rem;
+  text-decoration: none;
+}
+
+/* ---- 直近の記録 ---- */
+.practice-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  padding: 0;
+  list-style: none;
+}
+.practice-history li {
+  padding: .15rem .6rem;
+  border-radius: 50rem;
+  background: #f1f3f5;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+.practice-history li.learned {
+  background: rgba(25, 135, 84, .1);
+  color: #146c43;
+}
+.practice-history li.learning {
+  background: rgba(240, 173, 0, .14);
+  color: #7a5a00;
+}
+
+@media (max-width: 575.98px) {
+  .practice-settings {
+    padding: .65rem .75rem;
+  }
+  .practice-segment button {
+    padding: .2rem .55rem;
+  }
+  .practice-result {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* ケースの画像（cube-draw.js が中に svg を入れる） */
+.practice-result .case-image svg {
+  display: block;
+}

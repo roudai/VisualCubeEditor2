@@ -1,0 +1,382 @@
+/* 記録のページ（stats.html）。処理は js/stats.js */
+
+/* 種類・範囲・期間の切り替え（練習ページと同じセグメント型） */
+.stats-segment {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 50rem;
+  background-color: #eef0f3;
+}
+.stats-segment button {
+  border: 0;
+  border-radius: 50rem;
+  padding: .2rem .75rem;
+  background: transparent;
+  color: #495057;
+  font-size: .82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.stats-segment button.active {
+  background-color: #fff;
+  color: #212529;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+}
+.stats-segment button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+
+/* 集計のカード */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .75rem;
+}
+@media (max-width: 767.98px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.stats-card {
+  padding: .85rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: .85rem;
+  background: #fff;
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .04);
+}
+.stats-card-label {
+  color: #6c757d;
+  font-size: .75rem;
+}
+.stats-card-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+.stats-card-sub {
+  color: #6c757d;
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* パネル（グラフ・表） */
+.stats-panel {
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 1rem;
+  background: #fff;
+}
+.stats-title {
+  margin: 0 0 .5rem;
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+/* 日ごとのグラフ */
+.stats-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.stats-grid {
+  stroke: #eef0f3;
+  stroke-width: 1;
+}
+.stats-axis {
+  fill: #adb5bd;
+  font-size: 10px;
+}
+.stats-axis-avg {
+  fill: #e0a000;
+}
+.stats-bar {
+  fill: #9ec5fe;
+}
+.stats-bar:hover {
+  fill: #6ea8fe;
+}
+.stats-line {
+  fill: none;
+  stroke: #f0ad00;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.stats-dot {
+  fill: #f0ad00;
+}
+.stats-legend {
+  display: flex;
+  gap: 1rem;
+  margin-top: .25rem;
+  color: #6c757d;
+  font-size: .75rem;
+}
+.stats-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.stats-legend-mark {
+  display: inline-block;
+}
+.stats-legend-mark.bar {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #9ec5fe;
+}
+.stats-legend-mark.line {
+  width: 14px;
+  height: 2px;
+  background: #f0ad00;
+}
+
+/* ケースごとの表 */
+.stats-table th {
+  color: #6c757d;
+  font-size: .75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.stats-table td {
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+.stats-sort {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.stats-sort:hover {
+  color: #212529;
+}
+.stats-sort-mark {
+  font-size: .65rem;
+}
+.stats-img {
+  width: 48px;
+}
+.stats-img .case-image svg {
+  display: block;
+}
+.stats-case {
+  font-weight: 600;
+  text-decoration: none;
+}
+.stats-status {
+  display: inline-block;
+  padding: .05rem .5rem;
+  border-radius: 50rem;
+  font-size: .72rem;
+  background: #f1f3f5;
+  color: #6c757d;
+}
+.stats-status.learning {
+  background: rgba(240, 173, 0, .16);
+  color: #7a5a00;
+}
+.stats-status.learned {
+  background: rgba(25, 135, 84, .12);
+  color: #146c43;
+}
+
+/* 通しの記録の一覧：スクランブルは押すと開く */
+.stats-scramble-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0d6efd;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.stats-scramble-toggle::before {
+  content: '▸ ';
+}
+.stats-scramble-toggle[aria-expanded="true"]::before {
+  content: '▾ ';
+}
+/* 開いたスクランブルは、その行のすぐ下に表の幅いっぱいで出す（列の幅を変えない） */
+.stats-scramble-wrap {
+  width: 0;
+  min-width: 100%;
+  overflow-x: auto; /* 表より長いときはこの中だけ横にスクロール */
+}
+.stats-scramble-row > td {
+  padding-top: 0;
+  background: #fafbfc;
+}
+.stats-scramble-text {
+  width: fit-content;
+  margin-top: .25rem;
+  font-family: var(--bs-font-monospace);
+  font-size: .72rem;
+  white-space: pre-line;
+  color: #495057;
+}
+
+/* 通しの記録の削除 */
+.stats-delete-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  min-height: 34px;
+  margin: .25rem 0 .5rem;
+  font-size: .82rem;
+}
+.stats-delete-confirm {
+  color: #b02a37;
+  font-weight: 500;
+}
+.stats-delete-message {
+  color: #6c757d;
+}
+.stats-undo {
+  font-size: .82rem;
+  text-decoration: none;
+}
+.stats-check {
+  width: 2rem;
+}
+.stats-check .form-check-input {
+  margin: 0;
+  cursor: pointer;
+}
+.stats-row-delete {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #adb5bd;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.stats-row-delete:hover,
+.stats-row-delete:focus-visible {
+  outline: none;
+  background: rgba(220, 53, 69, .1);
+  color: #dc3545;
+}
+
+/* 通しの記録の一覧：日時・タイム・平均・削除の列は中身の幅だけにする（残りの幅はスクランブルの列へ） */
+.stats-table .stats-shrink {
+  width: 1%;
+  padding-right: 2.25rem;
+  white-space: nowrap;
+}
+/* スマホでは横にはみ出さないよう少し詰める */
+@media (max-width: 575.98px) {
+  .stats-table .stats-shrink {
+    padding-right: 1rem;
+  }
+}
+.stats-table .stats-shrink:last-child {
+  padding-right: .25rem;
+}
+
+/* ---- 通しの記録の一覧：スマホでは横にスクロールしないよう、1件を2段にまとめる ----
+   1段目：チェック・タイム（大きく）・見る・×   2段目：日時・ao5・ao12（小さく）
+   見出しの行は隠し、「すべて選ぶ」は削除のバーに出す */
+.stats-select-all-mobile {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  .stats-select-all-mobile {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-right: .25rem;
+    color: #6c757d;
+  }
+  .stats-table.stats-full-table thead {
+    display: none;
+  }
+  .stats-table.stats-full-table,
+  .stats-table.stats-full-table tbody {
+    display: block;
+    width: 100%;
+  }
+  /* 1件を2段のグリッドにする
+     列：チェック | 日時 | ao5 | ao12（残りの幅） | 見る | ×
+     1段目：チェック・タイム（日時〜ao12 の列にまたがる）・見る・×
+     2段目：      ・日時・ao5・ao12 */
+  .stats-table.stats-full-table tbody tr:not(.stats-scramble-row) {
+    display: grid;
+    /* ao12 の列は残りの幅（足りなければ省略）にして、狭い画面でも横にはみ出さないようにする */
+    grid-template-columns: 1.6rem auto minmax(0, auto) minmax(0, 1fr) auto auto;
+    column-gap: .45rem;
+    align-items: center;
+    padding: .45rem .25rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .stats-table.stats-full-table tbody tr > td,
+  .stats-table.stats-full-table tbody tr > td.stats-shrink:last-child {
+    border: 0;
+    padding: 0;
+    width: auto;
+    background: transparent;
+    box-shadow: none; /* 選んだ行の色をセルごとではなく行全体に付ける */
+  }
+  .stats-table.stats-full-table .cell-check {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  .stats-table.stats-full-table .cell-time {
+    grid-column: 2 / 5;
+    grid-row: 1;
+    text-align: left !important;
+    font-size: 1.05rem;
+  }
+  .stats-table.stats-full-table .cell-toggle {
+    grid-column: 5;
+    grid-row: 1;
+  }
+  .stats-table.stats-full-table .cell-del {
+    grid-column: 6;
+    grid-row: 1 / 3;
+  }
+  .stats-table.stats-full-table .cell-date,
+  .stats-table.stats-full-table .cell-avg {
+    grid-row: 2;
+    font-size: .75rem;
+    color: #6c757d;
+    text-align: left !important;
+  }
+  .stats-table.stats-full-table .cell-date {
+    grid-column: 2;
+  }
+  .stats-table.stats-full-table .cell-avg[data-label="ao5"] {
+    grid-column: 3;
+  }
+  .stats-table.stats-full-table .cell-avg[data-label="ao12"] {
+    grid-column: 4;
+  }
+  .stats-table.stats-full-table .cell-avg {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stats-table.stats-full-table .cell-avg::before {
+    content: attr(data-label) ' ';
+    color: #adb5bd;
+  }
+  .stats-table.stats-full-table tbody tr.table-active {
+    background-color: rgba(13, 110, 253, .06);
+  }
+  .stats-table.stats-full-table .stats-scramble-row {
+    display: block;
+  }
+  .stats-table.stats-full-table .stats-scramble-row > td {
+    display: block;
+    padding: .25rem .25rem .5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+}

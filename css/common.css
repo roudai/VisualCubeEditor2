@@ -401,12 +401,7 @@
   white-space: normal;
 }
 
-/* 通しのスクランブル：1行ずつ、1行おきにうっすら色を付けて見やすくする（js/wca-scramble.js の render） */
+/* 通しのスクランブル（js/wca-scramble.js の render）。3x3 は 1 行（20 手前後）なので、幅が足りなければ手の区切りで折り返す */
 .scramble-line {
   padding: 0 .5rem;
-  border-radius: .3rem;
-  white-space: nowrap;
-}
-.scramble-line:nth-child(odd) {
-  background-color: #eef1f5;
 }
