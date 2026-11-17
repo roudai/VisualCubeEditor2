@@ -14,9 +14,9 @@ Bootstrap - 5.3.9
 
 | URL (file) | What it does |
 |---|---|
-| `/` (`index.html`) | Editor. Pick a PLL / OLL case (`/?pll=Aa`, `/?oll=27`) or type an algorithm (`/?alg=`, `/?case=`), save your own algorithm for a case, download the image |
-| `/pll` / `/oll` (`pll.html` / `oll.html`) | All 21 PLL / 57 OLL cases with images, learning status, filters and a ZIP download |
-| `/practice` (`practice.html`) | Timer practice for PLL / OLL cases (auto-marks cases as learned) and full solves (WCA-style random-state scrambles, inspection, +2 / DNF, ao5 / ao12) |
+| `/` (`index.html`) | Editor. Pick a PLL / OLL / COLL case (`/?pll=Aa`, `/?oll=27`, `/?coll=21-1`) or type an algorithm (`/?alg=`, `/?case=`), save your own algorithm for a case, download the image |
+| `/pll` / `/oll` / `/coll` (`pll.html` / `oll.html` / `coll.html`) | All 21 PLL / 57 OLL / 40 COLL cases with images, learning status, filters and a ZIP download (COLL is linked from the OLL list, not from the navigation bar) |
+| `/practice` (`practice.html`) | Timer practice for PLL / OLL / COLL cases (auto-marks cases as learned) and full solves (WCA-style random-state scrambles, inspection, +2 / DNF, ao5 / ao12) |
 | `/stats` (`stats.html`) | Practice records: totals, solve-time chart, per-case table, solve list (delete / undo) |
 | `/privacy` / `/terms` (`privacy.html` / `terms.html`) | Privacy policy and terms of use |
 
@@ -58,8 +58,9 @@ Generated data — edit the json, then regenerate (the tests fail if the generat
 ```sh
 node tools/build-pll-data.js     # data/pll/algs_info.json -> js/pll-data.js
 node tools/build-oll-data.js     # data/oll/algs_info.json -> js/oll-data.js
-node tools/gen-scrambles.js      # case scrambles -> data/pll/scrambles.json, data/oll/scrambles.json
-node tools/build-scrambles.js    # -> js/pll-scrambles.js, js/oll-scrambles.js
+node tools/build-coll-data.js    # data/coll/algs_info.json -> js/coll-data.js
+node tools/gen-scrambles.js      # case scrambles -> data/{pll,oll,coll}/scrambles.json
+node tools/build-scrambles.js    # -> js/{pll,oll,coll}-scrambles.js
 ```
 
-Specs (Japanese) are in `reference/`: `PLL_SPEC.md`, `OLL_SPEC.md`, `PRACTICE_SPEC.md`, `I18N_SPEC.md`, `CLOUD_SYNC_SPEC.md`.
+Specs (Japanese) are in `reference/`: `PLL_SPEC.md`, `OLL_SPEC.md`, `COLL_SPEC.md`, `PRACTICE_SPEC.md`, `I18N_SPEC.md`, `CLOUD_SYNC_SPEC.md`.
