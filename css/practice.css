@@ -177,6 +177,10 @@
 .practice-timer.over {
   color: #dc3545;
 }
+/* 止めた直後（2 秒）：まだスタートしないあいだは目立つ赤（「待って」の合図） */
+.practice-timer.cooldown {
+  color: #dc3545;
+}
 /* 通し：長押し中（赤）→ 準備完了（緑）。離すとスタート。インスペクションの色より優先 */
 .practice-timer.holding {
   color: #dc3545;

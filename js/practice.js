@@ -9,7 +9,7 @@
 //   - タイマー：スペースを押す（画面ではタイマーをタップする）とスタート。何かのキー（タップ）でストップ。
 //     計測中もスクランブルは出したまま。止めたあとはタイムを 0.00 に戻さず、タイマーの上に解いたケース（PLL Aa など）を出す。
 //     計測中の Esc は中止（記録しない）。計測中に「スキップ」「解けなかった」を押してもタイムは記録しない。
-//     押しっぱなしの繰り返しは無視する
+//     押しっぱなしの繰り返しは無視する。止めてから 2 秒はスタートしない（その間はタイマーの数字を赤にする。通しも同じ）
 //   - ヒント：ケースの名前と解く手順の最初の3手を出す（もう一度押すと消す）。ヒントを見た問題は目安以内でも練習中にし、タイムを最近の記録に入れない
 //   - 判定（progress.js の judge）：しきい値以内 → 習得済み、超えた・「解けなかった」→ 練習中。「スキップ」は記録しない。
 //     結果の「取り消す」で直前の判定とタイムを戻す
@@ -444,10 +444,24 @@
     clearShown();
   }
 
+  // 止めた直後に続けて押して、次の計測を始めてしまわないように、止めてから COOLDOWN_MS の間はスタートしない
+  // （その間はタイマーの数字を赤にする。ストップ・ボタンには関係しない）
+  const COOLDOWN_MS = 2000;
+  let cooldownUntil = 0;
+  let cooldownTimer = null;
+  const coolingDown = () => performance.now() < cooldownUntil;
+  function startCooldown() {
+    cooldownUntil = performance.now() + COOLDOWN_MS;
+    timerEl.classList.add('cooldown');
+    clearTimeout(cooldownTimer);
+    cooldownTimer = setTimeout(() => timerEl.classList.remove('cooldown'), COOLDOWN_MS);
+  }
+
   // スペース・タップ：止まっていればスタート、計測中ならストップ
   function press() {
     if (!current) return;
     if (state === 'running') stop();
+    else if (coolingDown()) return;
     else if (state === 'idle' && isFull() && fullPrefs().inspection) inspect();
     else start();
   }
@@ -474,6 +488,7 @@
       stop();
       return;
     }
+    if (state === 'idle' && coolingDown()) return;
     if (state === 'idle' && fullPrefs().inspection) {
       inspect();
       ignoreRelease = true;
@@ -539,6 +554,7 @@
 
   function stop() {
     ignoreClicksUntil = performance.now() + 400;
+    startCooldown();
     cancelAnimationFrame(frame);
     const sec = Math.round((performance.now() - startAt) / 10) / 100; // 0.01 秒単位
     timerEl.textContent = format(sec);
