@@ -1,0 +1,282 @@
+{
+  "1": {
+    "name": "21-1",
+    "group": "H",
+    "algset": "COLL",
+    "s": "F U R U' R' U R U' R' U R U' R' F' (U')",
+    "a": "(U) F R U R' U' R U R' U' R U R' U' F'"
+  },
+  "2": {
+    "name": "21-2",
+    "group": "H",
+    "algset": "COLL",
+    "s": "R U R' U R U' R' U R U2 R' (U')",
+    "a": "(U) R U2 R' U' R U R' U' R U' R'"
+  },
+  "3": {
+    "name": "21-3",
+    "group": "H",
+    "algset": "COLL",
+    "s": "L' U R U' L U' R' U' R U' R'",
+    "a": "R U R' U R U L' U R' U' L"
+  },
+  "4": {
+    "name": "21-4",
+    "group": "H",
+    "algset": "COLL",
+    "s": "F U R U' R' U R U2 R' U' R U R' F'",
+    "a": "F R U' R' U R U2 R' U' R U R' U' F'"
+  },
+  "5": {
+    "name": "22-1",
+    "group": "Pi",
+    "algset": "COLL",
+    "s": "R' U2 R2 U R2 U R2 U2 R'",
+    "a": "R U2 R2 U' R2 U' R2 U2 R"
+  },
+  "6": {
+    "name": "22-2",
+    "group": "Pi",
+    "algset": "COLL",
+    "s": "R' U2 R2 U R U R2 D' R U' R' U' D R'",
+    "a": "R U D' R U R' D R2 U' R' U' R2 U2 R"
+  },
+  "7": {
+    "name": "22-3",
+    "group": "Pi",
+    "algset": "COLL",
+    "s": "L' U' L U' L' U' R U' L U R'",
+    "a": "R U' Rw' F R' F Rw U Rw' F Rw"
+  },
+  "8": {
+    "name": "22-4",
+    "group": "Pi",
+    "algset": "COLL",
+    "s": "F R U' R' U R U2 R' U' R U R' U' F' (U')",
+    "a": "(U) F U R U' R' U R U2 R' U' R U R' F'"
+  },
+  "9": {
+    "name": "22-5",
+    "group": "Pi",
+    "algset": "COLL",
+    "s": "F U R U' R' U R U' R2 F' R U R U' R'",
+    "a": "R U R' U' R' F R2 U R' U' R U R' U' F'"
+  },
+  "10": {
+    "name": "22-6",
+    "group": "Pi",
+    "algset": "COLL",
+    "s": "R U R' U F2 R U2 R' U2 R' F2 R",
+    "a": "R' F2 R U2 R U2 R' F2 U' R U' R'"
+  },
+  "11": {
+    "name": "23-1",
+    "group": "U",
+    "algset": "COLL",
+    "s": "R' F R' F' R U R U' R' F R U' R' U R U R' F' R",
+    "a": "R' F R U' R' U' R U R' F' R U R' U' R' F R F' R"
+  },
+  "12": {
+    "name": "23-2",
+    "group": "U",
+    "algset": "COLL",
+    "s": "F R U R2 U' R' F' R U R2 U' R' (U')",
+    "a": "(U) R U R2 U' R' F R U R2 U' R' F'"
+  },
+  "13": {
+    "name": "23-3",
+    "group": "U",
+    "algset": "COLL",
+    "s": "R U2 R' U' R U' R2 U2 R U R' U R",
+    "a": "R' U' R U' R' U2 R2 U R' U R U2 R'"
+  },
+  "14": {
+    "name": "23-4",
+    "group": "U",
+    "algset": "COLL",
+    "s": "F U' R' U R U F' R' U2 R",
+    "a": "R' U2 R F U' R' U' R U F'"
+  },
+  "15": {
+    "name": "23-5",
+    "group": "U",
+    "algset": "COLL",
+    "s": "R' U2 R' D' R U2 R' D R2",
+    "a": "R2 D' R U2 R' D R U2 R"
+  },
+  "16": {
+    "name": "23-6",
+    "group": "U",
+    "algset": "COLL",
+    "s": "R B R' F R B2 R' F' R B R'",
+    "a": "x' R U' R' D R U2 R' D' R U' R' x"
+  },
+  "17": {
+    "name": "24-1",
+    "group": "T",
+    "algset": "COLL",
+    "s": "R' U' R U' R' U2 R2 U R' U R U2 R'",
+    "a": "R U2 R' U' R U' R'2 U2 R U R' U R"
+  },
+  "18": {
+    "name": "24-2",
+    "group": "T",
+    "algset": "COLL",
+    "s": "R' U R2 D L' B2 L D' R2 U' R",
+    "a": "R' U R2 D Rw' U2 Rw D' R2 U' R"
+  },
+  "19": {
+    "name": "24-3",
+    "group": "T",
+    "algset": "COLL",
+    "s": "R' U R' F R U R U' R' F' R U R' U2 R",
+    "a": "R' U2 R U' R' F R U R' U' R' F' R U' R"
+  },
+  "20": {
+    "name": "24-4",
+    "group": "T",
+    "algset": "COLL",
+    "s": "L' U R' U' R L U2 R' U' R",
+    "a": "R' U R U2 L' R' U R U' L"
+  },
+  "21": {
+    "name": "24-5",
+    "group": "T",
+    "algset": "COLL",
+    "s": "F R' F' L F R F' L' (U)",
+    "a": "(U') Rw U R' U' Rw' F R F'"
+  },
+  "22": {
+    "name": "24-6",
+    "group": "T",
+    "algset": "COLL",
+    "s": "F R B R' F' R B' R' (U2)",
+    "a": "(U2) x' R U R' D R U' R' D' x"
+  },
+  "23": {
+    "name": "25-1",
+    "group": "L",
+    "algset": "COLL",
+    "s": "L F R' F' L' F R F'",
+    "a": "F R' F' Rw U R U' Rw'"
+  },
+  "24": {
+    "name": "25-2",
+    "group": "L",
+    "algset": "COLL",
+    "s": "R' F' L F R F' L' F (U')",
+    "a": "(U) F' Rw U R' U' Rw' F R"
+  },
+  "25": {
+    "name": "25-3",
+    "group": "L",
+    "algset": "COLL",
+    "s": "R2 D' R U2 R' D R U2 R (U)",
+    "a": "(U') R' U2 R' D' R U2 R' D R2"
+  },
+  "26": {
+    "name": "25-4",
+    "group": "L",
+    "algset": "COLL",
+    "s": "R2 D R' U2 R D' R' U2 R'",
+    "a": "R U2 R D R' U2 R D' R2"
+  },
+  "27": {
+    "name": "25-5",
+    "group": "L",
+    "algset": "COLL",
+    "s": "L F2 R' D R' D' R2 F2 L'",
+    "a": "Rw U2 R'2 F R F' R U2 Rw'"
+  },
+  "28": {
+    "name": "25-6",
+    "group": "L",
+    "algset": "COLL",
+    "s": "R' U2 R U R' U' R U R' U' R U R' U R (U')",
+    "a": "(U) R' U' R U' R' U R U' R' U R U' R' U2 R"
+  },
+  "29": {
+    "name": "26-1",
+    "group": "Anti-Sune",
+    "algset": "COLL",
+    "s": "R' U2 R U R' U R",
+    "a": "R' U' R U' R' U2 R"
+  },
+  "30": {
+    "name": "26-2",
+    "group": "Anti-Sune",
+    "algset": "COLL",
+    "s": "R' D' R U' R' D R U2 R U R' U2 R U R'",
+    "a": "R U' R' U2 R U' R' U2 R' D' R U R' D R"
+  },
+  "31": {
+    "name": "26-3",
+    "group": "Anti-Sune",
+    "algset": "COLL",
+    "s": "L U' R' U L' U' R",
+    "a": "R' U L U' R U L'"
+  },
+  "32": {
+    "name": "26-4",
+    "group": "Anti-Sune",
+    "algset": "COLL",
+    "s": "R' U2 R U2 L U' R' U R L'",
+    "a": "L R' U' R U L' U2 R' U2 R"
+  },
+  "33": {
+    "name": "26-5",
+    "group": "Anti-Sune",
+    "algset": "COLL",
+    "s": "R2 F R U R U' R' F' R U' R' U R",
+    "a": "R' U' R U R' F R U R' U' R' F' R2"
+  },
+  "34": {
+    "name": "26-6",
+    "group": "Anti-Sune",
+    "algset": "COLL",
+    "s": "R2 D' R U' R' D R U' R U R' U R (U')",
+    "a": "(U) R' U' R U' R' U R' D' R U R' D R2"
+  },
+  "35": {
+    "name": "27-1",
+    "group": "Sune",
+    "algset": "COLL",
+    "s": "R U2 R' U' R U' R'",
+    "a": "R U R' U R U2' R'"
+  },
+  "36": {
+    "name": "27-2",
+    "group": "Sune",
+    "algset": "COLL",
+    "s": "F R U R' U' R' F2 R U2 R U2 R' F",
+    "a": "F' R U2' R' U2 R' F2 R U R U' R' F'"
+  },
+  "37": {
+    "name": "27-3",
+    "group": "Sune",
+    "algset": "COLL",
+    "s": "L' U R U' L U R'",
+    "a": "R U' L' U R' U' L"
+  },
+  "38": {
+    "name": "27-4",
+    "group": "Sune",
+    "algset": "COLL",
+    "s": "R U2 R' U2 L' U R U' R' L",
+    "a": "L' R U R' U' L U2 R U2' R'"
+  },
+  "39": {
+    "name": "27-5",
+    "group": "Sune",
+    "algset": "COLL",
+    "s": "R L' U' L U R' U2 L' U2 L",
+    "a": "L' U2 L U2' R U' L' U L R'"
+  },
+  "40": {
+    "name": "27-6",
+    "group": "Sune",
+    "algset": "COLL",
+    "s": "R2 D R' U R D' R' U R' U' R U' R' (U)",
+    "a": "(U') R U R' U R U' R D R' U' R D' R2'"
+  }
+}
