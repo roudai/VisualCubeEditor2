@@ -147,3 +147,15 @@ test('ルートにページと同じ名前のフォルダを置かない（GitHu
     .filter((name) => fs.existsSync(path.join(ROOT, name)));
   assert.deepEqual(clash, []);
 });
+
+test('OLL の覚える順の段階（A〜M）には、どれも名前の訳（stage.oll.<記号>）が英語・日本語ともある', () => {
+  const CS = require('../js/case-sections.js');
+  const OLL = require('../js/oll-data.js');
+  const { en, ja } = dictKeys();
+  const labels = CS.list(OLL, true).map((s) => s.label);
+  assert.equal(labels.length, 13);
+  labels.forEach((l) => {
+    assert.ok(en.has('stage.oll.' + l), 'en: stage.oll.' + l);
+    assert.ok(ja.has('stage.oll.' + l), 'ja: stage.oll.' + l);
+  });
+});

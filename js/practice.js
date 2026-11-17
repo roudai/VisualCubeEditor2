@@ -281,7 +281,8 @@
       const b = el('button', 'practice-group-chip' + (chosen.has(s.key) ? ' active' : ''));
       b.type = 'button';
       b.textContent = s.label;
-      const note = stage ? I.t('practice.stageTitle', { n: s.stage }) : (NOTES[set] || {})[s.key];
+      // 段階の説明：OLL は段階の名前（i18n の stage.oll.<記号>）、PLL は「覚える順の n 段階目」
+      const note = stage ? (CS.isNumbered(DATA[set]) ? I.t(`stage.${set}.${s.label}`) : I.t('practice.stageTitle', { n: s.stage })) : (NOTES[set] || {})[s.key];
       const n = s.cases.length;
       b.title = note ? `${s.label} (${note}) · ${n}` : `${s.label} · ${n}`;
       b.setAttribute('aria-pressed', String(chosen.has(s.key)));

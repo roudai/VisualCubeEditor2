@@ -399,7 +399,20 @@
   const CARDS = {};
 
   // 見出し（グループ：「Edges only (EPLL)」、段階：「2. …」）
-  const sectionTitle = (s) => (s.stage ? `${s.stage}. ${s.label}` : groupLabel(s.key));
+  // OLL（番号のデータ）の段階は記号 A〜M が順番を表すので、番号は付けずに名前を添える（「A. OCLL」。名前は i18n の stage.oll.<記号>）
+  const sectionTitle = (s) => {
+    if (!s.stage) return groupLabel(s.key);
+    return NUMBERED ? `${s.label}. ${I.t(`stage.${SET}.${s.label}`)}` : `${s.stage}. ${s.label}`;
+  };
+  // 言語を切り替えたら、見出しとボタンの説明を作り直す（段階の名前は訳がある）
+  function relabelSections() {
+    sections.forEach((s) => {
+      const title = document.querySelector(`#group-${CSS.escape(s.key)} .section-title`);
+      if (title) title.textContent = sectionTitle(s);
+      const b = document.querySelector(`#groupNav [data-group="${CSS.escape(s.key)}"]`);
+      if (b) b.title = sectionTitle(s);
+    });
+  }
 
   // 今の並びで、ジャンプのボタンと見出しごとのカードを作り直す
   function buildSections() {
@@ -432,7 +445,8 @@
       const section = el('section', 'mb-4');
       section.id = 'group-' + s.key;
       section.dataset.group = s.key;
-      const heading = el('h2', 'h5 border-bottom pb-1 d-flex justify-content-between align-items-baseline', sectionTitle(s));
+      const heading = el('h2', 'h5 border-bottom pb-1 d-flex justify-content-between align-items-baseline');
+      heading.append(el('span', 'section-title', sectionTitle(s)));
       heading.append(el('span', 'group-count'));
       heading.hidden = flat;
       section.append(heading);
@@ -506,6 +520,7 @@
   // 言語を切り替えたら、その場で作る文（件数・バッジの説明など）を作り直す
   I.onChange(() => {
     document.querySelectorAll('.status-badge').forEach((b) => b.dispatchEvent(new CustomEvent('relabel')));
+    relabelSections();
     updateSummary();
     applyFilter();
   });
