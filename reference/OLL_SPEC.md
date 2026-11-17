@@ -40,7 +40,7 @@ OLL 57ケースのデータと、その生成・確認について書く。仕�
 - グループの説明は `js/oll-groups.js`（`window.CASE_GROUP_NOTES.oll`、node では `module.exports`）。見出しや選択肢に `Dot (No edges oriented)` のように括弧付きで添える。PLL は `js/pll-groups.js` で、どちらを先に読み込んでもよい
 
 ### 手順の決め方
-- `a` は roudai.net の OLL 手順（https://roudai.net/oll/oll/）で、各番号の**最初に載っている手順**（1ケースに1本）。記号はそのまま写し、書き方だけそろえる（`U'2` → `U2`、`U2′` → `U2`）。
+- `a` は roudai.net の OLL 手順（https://roudai.net/oll/oll/）で、各番号の**最初に載っている手順**（1ケースに1本）。記号もページの書き方のまま写す（`R'2`・`U'2`・`Rw'2`・`M'2`・41 の `U2′` など。`js/cube-state.js` が読める）。
   手順の最初の持ち替え（12 の `y'`、30・55 の `y` など）もそのまま書く。2本目の手順は `test/oll-data.test.js` の `SITE_ALGS` に置き、同じ番号のケースになることを確かめる
 - **図の向き**は、そのページの図（最初の手順をそのまま `case` に渡して描いたもの）と同じにする。作るときに sr-visualizer の `case: a` と `algorithm: s`（OLL マスク、Plan 表示）の描画を全 57 ケースで比べ、一致を確かめた
 - `s` は `a` の逆手順を、センターを動かさない面回しに直したもの（ワイド `r` は `L` ＋持ち替え、`M` は `R L'` ＋持ち替えとみなし、持ち替えのぶんだけ後ろの面を読み替える。同じ軸で続く回転はまとめる）。

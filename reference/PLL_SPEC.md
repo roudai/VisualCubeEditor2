@@ -40,7 +40,7 @@ MegaminxImageEditor の `reference/PLL_SPEC.md` を 3x3 用に書き直したも
 
 ### 出典（roudai.net）
 
-- `a` は、そのページで各ケースの**最初に載っている手順**（両手）。記号はそのまま写し、書き方だけそろえる（`R2′` → `R2`、`U'2` → `U2`、`R'2` → `R2`、`U'w` → `Uw'`）。
+- `a` は、そのページで各ケースの**最初に載っている手順**（両手）。記号もページの書き方のまま写す（`M'2`・`U'2` など。`js/cube-state.js` が `X'2`・`X2'`・`′` を読める）。
   ただし H の `M2` はすべて `M2'`、Gb の2手目は `R2'`、Gc の最後から2手目は `R2'` と書く（ユーザーの指定。状態は `M2`・`R2` と同じ）。
   ページの2本目以降の手順は `test/pll-data.test.js` の `SITE_ALGS` に置き、同じケースになることを確かめる
   （ページの Jb の片手 `R U'2 R' U' R U'2` は途中で切れていて揃わず、Na の片手・最少 `L U' R U'2 L' U L R' U' R U2 L U R'` も揃わないので入れていない）
@@ -96,7 +96,7 @@ s = [AUF] setup [AUF]
 | Ua | UR>UF>UL | `R2 U R U R' U' R' U' R' U R'` |
 | Ub | UR>UL>UF | `R U' R U R U R U' R' U' R2` |
 | H | UB>UF UR>UL | `M2' U M2' U2 M2' U M2'` |
-| Z | UB>UR UF>UL | `M' U M2 U M2 U M' U2 M2 U'` |
+| Z | UB>UR UF>UL | `M' U M'2 U M'2 U M' U2 M'2 U'` |
 | Aa | UBR>UFL>UFR | `x' R U' R D2 R' U R D2 R2 x` |
 | Ab | UBR>UFR>UFL | `x' R2 D2 R' U' R D2 R' U R' x` |
 | E | UBL>UFL UBR>UFR | `x' R U' R' D R U R' D' R U R' D R U' R' D' x` |
@@ -104,8 +104,8 @@ s = [AUF] setup [AUF]
 | F | UBR>UFR UB>UF | `R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R` |
 | Ja | UBL>UBR UB>UL | `R' U L' U2 R U' R' U2 L R U'` |
 | Jb | UBR>UFR UR>UF | `R U R' F' R U R' U' R' F R2 U' R' U'` |
-| Ra | UBL>UBR UR>UF | `R' U2 R U2 R' F R U R' U' R' F' R2 U'` |
-| Rb | UBR>UFR UB>UL | `R U' R' U' R U R D R' U' R D' R' U2 R' U'` |
+| Ra | UBL>UBR UR>UF | `R' U2 R U'2 R' F R U R' U' R' F' R2 U'` |
+| Rb | UBR>UFR UB>UL | `R U' R' U' R U R D R' U' R D' R' U'2 R' U'` |
 | Y | UBL>UFR UB>UL | `F R U' R' U' R U R' F' R U R' U' R' F R F'` |
 | V | UBL>UFR UB>UR | `R' U R U' R' Fw' U' R U2 R' U' R U' R' Fw R` |
 | Na | UBR>UFL UR>UL | `R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'` |
