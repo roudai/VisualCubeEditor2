@@ -6,6 +6,7 @@
 //   - 覚える順（<set>/learn_order.json）のデータがあるときだけ、グループを選ぶ欄で「グループ順 / 覚える順」を切り替えられる
 //     （今の 3x3 のデータには無いので出ない。並びは 'list-filter' の <set>Order、選んだ段階は prefs.groups['<set>-stage']）
 //   - タイマー：スペースを押す（画面ではタイマーをタップする）とスタート。何かのキー（タップ）でストップ。
+//     計測中もスクランブルは出したまま。止めたあとはタイムを 0.00 に戻さず、タイマーの上に解いたケース（PLL Aa など）を出す。
 //     計測中の Esc は中止（記録しない）。計測中に「スキップ」「解けなかった」を押してもタイムは記録しない。
 //     押しっぱなしの繰り返しは無視する
 //   - ヒント：ケースの名前と解く手順の最初の3手を出す（もう一度押すと消す）。ヒントを見た問題は目安以内でも練習中にし、タイムを最近の記録に入れない
@@ -312,6 +313,8 @@
     if (change.set) $('practiceResult').hidden = true; // 種類を変えたら前の結果は消す
     renderSettings();
     if (renew !== false) next();
+    // 目安だけを変えたとき（問題は出し直さない）も、出したままのタイムとケースの名前は消す（計測中は触らない）
+    else if (state === 'idle' && shownRecAt !== null) resetTimer();
     renderHistory();
   }
 
@@ -323,7 +326,7 @@
   // ?case=Aa で開いたときは、最初の1問だけそのケースを出す（記録のページから「このケースを練習」）
   let forcedName = params.get('case');
 
-  // keepTime: 通しで解き終わったとき。タイムを 0.00 に戻さず、次のインスペクション・計測が始まるまで出したままにする
+  // keepTime: 解き終わったとき（PLL / OLL / 通し）。タイムを 0.00 に戻さず、次のインスペクション・計測が始まるまで出したままにする
   function next(keepTime) {
     if (keepTime) {
       cancelAnimationFrame(frame);
@@ -401,8 +404,15 @@
   let penalty = ''; // インスペクションの超過によるペナルティ（'' / '+2' / 'DNF'）
   let startAt = 0;
   let frame = null;
-  let shownRecAt = null; // 通し：タイマーに出したままにしている記録（ペナルティを変えたら表示も直す）
+  // タイマーに出したままにしている記録（通しはペナルティを変えたら表示も直す。消したり取り消したりしたら 0.00 に戻す）
+  let shownRecAt = null;
   const timerEl = $('timer');
+
+  // 出したままのタイムをやめる（PLL / OLL のケースの名前も消す）
+  function clearShown() {
+    shownRecAt = null;
+    $('solvedCase').textContent = '';
+  }
   const format = (sec) => P.formatTime(sec); // 60 秒以上は分表記（1:05.23）
 
   function setState(next) {
@@ -417,7 +427,7 @@
     clearHold();
     setState('idle');
     timerEl.textContent = format(0);
-    shownRecAt = null;
+    clearShown();
   }
 
   // スペース・タップ：止まっていればスタート、計測中ならストップ
@@ -479,7 +489,7 @@
   // インスペクション：15 秒のカウントダウン（WCA：8 秒・12 秒で知らせる。15 秒を超えて 17 秒までに始めたら +2、超えたら DNF）
   function inspect() {
     setState('inspecting');
-    shownRecAt = null;
+    clearShown();
     inspectAt = performance.now();
     const tick = () => {
       const t = (performance.now() - inspectAt) / 1000;
@@ -501,7 +511,7 @@
       penalty = '';
     }
     setState('running');
-    shownRecAt = null;
+    clearShown();
     startAt = performance.now();
     const tick = () => {
       timerEl.textContent = format((performance.now() - startAt) / 1000);
@@ -547,6 +557,7 @@
     sessionHistory.unshift(entry);
     sessionHistory.length = Math.min(sessionHistory.length, HISTORY);
     showResult(entry, () => {
+      if (state === 'idle' && shownRecAt === logEntry.at) resetTimer();
       P.setStatus(set, c.name, beforeStatus);
       const allTimes = Object.assign({}, S.get('practice') && S.get('practice').times);
       allTimes[set] = Object.assign({}, allTimes[set]);
@@ -562,7 +573,11 @@
     });
     renderHistory();
     renderSettings(); // 対象の件数を更新
-    next();
+    next(true);
+    // 解き終わったタイム（「解けなかった」なら DNF）と解いたケースを、次の計測が始まるまでタイマーに出しておく
+    timerEl.textContent = sec === null ? 'DNF' : format(sec);
+    $('solvedCase').textContent = `${set.toUpperCase()} ${c.name}`;
+    shownRecAt = logEntry.at;
   }
 
   function showResult(entry, undo) {

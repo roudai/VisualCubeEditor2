@@ -194,9 +194,33 @@
 .practice-stage.running .practice-timer {
   color: #0d6efd;
 }
-.practice-stage.running .practice-hint,
-.practice-stage.running .practice-scramble {
+/* 計測中もスクランブルは出したまま（説明だけ隠す） */
+.practice-stage.running .practice-hint {
   visibility: hidden;
+}
+/* PLL / OLL：解き終わったケースの名前（タイマーのすぐ上）。空のときも1行分の高さを取っておき、
+   出し入れでタイマーの位置が動かないようにする。その分タイマーの上の余白を詰める */
+.practice-solved {
+  height: 1.5rem;
+  margin-top: .35rem;
+  overflow: hidden;
+  color: #6c757d;
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.practice-solved + .practice-timer {
+  margin-top: 0;
+  padding-top: .15rem;
+}
+.practice-full .practice-solved {
+  display: none;
+}
+.practice-full .practice-solved + .practice-timer {
+  margin-top: .5rem;
+  padding-top: .5rem;
 }
 .practice-hint-text {
   min-height: 1.6em;
