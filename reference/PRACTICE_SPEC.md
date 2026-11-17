@@ -46,7 +46,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 
 ## ほかのページ
 - 全ページのナビバーに「練習 / Practice」
-- PLL・OLL 一覧の上部に **練習する** ボタン：今の絞り込み・選んだグループのまま `/practice?set=…&filter=…&groups=…` を開く
+- PLL・OLL 一覧の上部に **練習する** ボタン：今の絞り込み・選んだグループのまま `/practice?set=…&filter=…&groups=…` を開く。練習ページは URL の種類・絞り込みを保存してから使う（保存済みの前回の値で上書きされないように）
   - `groups` は一覧で選んだグループ。空ならすべて。練習ページはその選択で保存し直す（一覧で何も選んでいなければ、練習ページの選択も外れる）
 
 ## 記録（`stats.html`・`js/stats.js`・`css/stats.css`）
