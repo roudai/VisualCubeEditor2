@@ -1,4 +1,10 @@
+// 描き直しの管理：最後に描いたパラメータ（同じなら描き直さない）と、描画の通し番号（古い描画の結果を捨てる）
+let lastDrawn = null
+let drawToken = 0
+
 const app = Vue.createApp({
+  // PLL・OLL の選択、自分の手順、Color Preset、Background、Download、設定の保存、URL パラメータ（js/editor-cases.js）
+  mixins: [window.EditorCases],
   data: () => ({
     parameter: {},
     imageHeight: 128,
@@ -134,13 +140,19 @@ const app = Vue.createApp({
       return this.lang ? window.I18N.t(key, params) : key
     },
     drawCube: function () {
+      const element = document.getElementById('visualcube')
+      if (!element) return // まだ画面に無い（created の中から呼ばれたとき）。mounted で描く
       this.imageHeight = this.imageSize
-      if (this.algorithm) {
+      // 描画に渡す手順。3x3 では括弧と繰り返しを展開したもの（js/editor-cases.js の algForDraw）。
+      // 読めない手順（null）のときは、欄の下にエラーを出したまま前の画像を残す
+      const algorithm = this.algorithm && this.algtype !== 'state' ? this.algForDraw() : ''
+      if (algorithm === null) return
+      if (algorithm) {
         if (this.algtype === 'alg') {
-          this.parameter.algorithm = this.algorithm.trim()
+          this.parameter.algorithm = algorithm
           delete this.parameter.case
         } else if (this.algtype === 'case') {
-          this.parameter.case = this.algorithm.trim()
+          this.parameter.case = algorithm
           delete this.parameter.algorithm
         }
       } else {
@@ -290,17 +302,31 @@ const app = Vue.createApp({
           [this.axisEnum(this.rotateAxis3), this.rotateAngle3],
         ]
       }
-      this.backgroundColor === '#ffffff' ? delete this.parameter.backgroundColor : (this.parameter.backgroundColor = this.backgroundColor)
+      // 背景：Transparent（既定）なら塗らない、Opaque なら Background Color で塗る
+      this.background === 'n' ? (this.parameter.backgroundColor = this.backgroundColor) : delete this.parameter.backgroundColor
       this.cubeColor === '#000000' ? delete this.parameter.cubeColor : (this.parameter.cubeColor = this.cubeColor)
       this.maskColor === '#404040' ? delete this.parameter.maskColor : (this.parameter.maskColor = this.maskColor)
       this.cubeOpacity === 100 ? delete this.parameter.cubeOpacity : (this.parameter.cubeOpacity = this.cubeOpacity)
       this.stickerOpacity === 100 ? delete this.parameter.stickerOpacity : (this.parameter.stickerOpacity = this.stickerOpacity)
       this.dist === 5 ? delete this.parameter.dist : (this.parameter.dist = this.dist)
 
-      const element = document.getElementById('visualcube')
+      // 同じ内容なら描き直さない。新しい画像は別の場所で作り、できあがってから差し替える
+      // （続けて呼ばれても、古い画像が残ったり、画像が2枚並んだりしないように。最後に呼んだものだけを出す）
+      const key = JSON.stringify(this.parameter)
+      if (key === lastDrawn) return
+      lastDrawn = key
+      const token = ++drawToken
       const SRVisualizer = window['sr-visualizer']
-      element.removeChild(element.lastElementChild)
-      SRVisualizer.cubePNG(element, this.parameter)
+      const holder = document.createElement('div')
+      SRVisualizer.cubePNG(holder, this.parameter)
+      // cubePNG は setTimeout の中で img を足し、そのあと画像を読み込む
+      setTimeout(() => {
+        const img = holder.querySelector('img')
+        if (!img) return
+        img.addEventListener('load', () => {
+          if (token === drawToken) element.replaceChildren(img)
+        })
+      })
     },
     resetSize() {
       this.imageSize = 128
@@ -941,9 +967,8 @@ const app = Vue.createApp({
     }, 100),
   },
   mounted() {
-    let SRVisualizer = window['sr-visualizer']
-    let element = document.getElementById('visualcube')
-    SRVisualizer.cubePNG(element)
+    // 保存してある設定・URL パラメータ（js/editor-cases.js の created で反映済み）で描く
+    this.drawCube()
   },
   updated() {
     this.drawFlag = true

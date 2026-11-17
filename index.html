@@ -31,6 +31,27 @@
       [v-cloak] {
         display: none;
       }
+      /* 選んでいるケースの行（js/editor-cases.js）。高さはいつも確保し、ケースを選んでいないときは中身を隠す */
+      .case-alg-bar {
+        min-height: 31px;
+      }
+      .case-alg-bar.is-empty > * {
+        visibility: hidden;
+      }
+      .flex-none {
+        flex: none;
+      }
+      .my-alg-message {
+        min-height: 1.5em;
+        line-height: 1.5;
+      }
+      .my-alg-undo {
+        border: 0;
+        font-size: inherit;
+        line-height: inherit;
+        vertical-align: baseline;
+        text-decoration: none;
+      }
     </style>
     <title>VisualCube Editor 2.0</title>
   </head>
@@ -73,6 +94,15 @@
         </p>
         <div class="collapse" id="collapseExample">
           <div class="card card-body">{{ parameter }}</div>
+        </div>
+
+        <!-- Download / File Name -->
+        <div class="mb-2">
+          <label class="form-label" for="fileName">{{ t('editor.fileName') }}</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="fileName" v-model="fileName" autocomplete="off" spellcheck="false" />
+            <button class="btn btn-outline-secondary" type="button" id="downloadImage" @click="downloadImage">{{ t('editor.download') }}</button>
+          </div>
         </div>
 
         <!-- Puzzle Type -->
@@ -122,6 +152,29 @@
             <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled" />
             <label class="form-check-label" for="algorithmRadio3">{{ t('editor.typeState') }}</label>
           </div>
+          <!-- PLL / OLL のケースを選ぶ（Group → Case、Prev / Next）。選ぶと 3x3・Plan 表示になる -->
+          <div class="row g-2 mb-2 align-items-center" v-for="set in caseSets" :key="set.key" v-show="!showFacelets">
+            <div class="col-12 col-md-1">
+              <label class="col-form-label" :for="set.key + 'Group'">{{ set.label }}</label>
+            </div>
+            <div class="col-12 col-md-5">
+              <select class="form-select" :id="set.key + 'Group'" :aria-label="t('editor.groupAria', { set: set.label })" @change="onCaseGroupChange(set.key, $event.target.value)">
+                <option value="" :selected="!caseSel[set.key].group">-- {{ set.label }} --</option>
+                <option v-for="g in caseGroups(set.key)" :key="g.value" :value="g.value" :selected="g.value === caseSel[set.key].group">{{ g.label }}</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-3">
+              <select class="form-select" :id="set.key + 'Case'" :aria-label="t('editor.caseAria', { set: set.label })" :disabled="!caseSel[set.key].group" @change="onCaseChange(set.key, $event.target.value)">
+                <option v-for="c in casesInGroup(set.key)" :key="c.name" :value="c.name" :selected="c.name === caseSel[set.key].name">{{ c.name }}</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-auto">
+              <div class="btn-group" role="group" :aria-label="t('editor.navAria', { set: set.label })">
+                <button class="btn btn-outline-secondary" type="button" :id="set.key + 'Prev'" @click="stepCase(set.key, -1)">{{ t('common.prev') }}</button>
+                <button class="btn btn-outline-secondary" type="button" :id="set.key + 'Next'" @click="stepCase(set.key, 1)">{{ t('common.next') }}</button>
+              </div>
+            </div>
+          </div>
           <div class="input-group form-inline mb-2" v-show="!showFacelets">
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('U')">U</button>
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('R')">R</button>
@@ -155,9 +208,26 @@
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('y')">y</button>
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('z')">z</button>
           </div>
-          <div class="input-group form-inline mb-2" v-show="!showFacelets">
-            <input type="text" class="form-control" id="algorithm" v-model="algorithm" />
-            <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithm">{{ t('editor.clear') }}</button>
+          <div class="input-group has-validation form-inline mb-1" v-show="!showFacelets">
+            <input type="text" class="form-control" :class="{ 'is-invalid': algError }" id="algorithm" v-model="algorithm" autocomplete="off" autocapitalize="off" spellcheck="false" @keydown.enter="saveMyAlg" />
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithmAndCase">{{ t('editor.clear') }}</button>
+            <div class="invalid-feedback" id="algError">{{ algError }}</div>
+          </div>
+          <!-- 選んでいるケースの手順の状態と、自分の手順の保存（ケースを選んでいるときだけ中身を出す） -->
+          <div class="case-alg-bar d-flex align-items-center justify-content-between gap-2" id="caseAlgBar" :class="{ 'is-empty': !selectedCase }" v-show="!showFacelets">
+            <div class="d-flex align-items-center gap-2 small text-truncate">
+              <span class="fw-semibold" id="caseAlgName">{{ selectedCase ? selectedCase.c.name : '' }}</span>
+              <span class="badge rounded-pill fw-normal" id="caseAlgBadge" :class="caseIsCustom ? 'text-bg-success' : 'text-bg-secondary'">{{ t(caseIsCustom ? 'myAlg.custom' : 'myAlg.default') }}</span>
+              <span class="text-warning-emphasis" id="caseAlgEdited" v-show="caseEdited">{{ t('myAlg.edited') }}</span>
+            </div>
+            <div class="d-flex gap-1 flex-none">
+              <button class="btn btn-sm btn-outline-primary" type="button" id="myAlgSave" :disabled="!caseEdited" :title="algtype === 'case' ? null : t('myAlg.caseOnly')" @click="saveMyAlg">{{ t('myAlg.save') }}</button>
+              <button class="btn btn-sm btn-outline-secondary" type="button" id="myAlgReset" :disabled="!caseIsCustom" @click="resetMyAlg">{{ t('myAlg.resetToDefault') }}</button>
+            </div>
+          </div>
+          <div class="my-alg-message small d-flex align-items-center gap-2 mb-2" id="myAlgMessage" :class="myAlgMessage.kind === 'error' ? 'text-danger' : 'text-success'" aria-live="polite" v-show="!showFacelets">
+            <span class="text-truncate" :title="myAlgMessage.text">{{ myAlgMessage.text }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0 flex-none my-alg-undo" v-if="myAlgMessage.undo" @click="myAlgMessage.undo()">{{ t('myAlg.undo') }}</button>
           </div>
 
           <div v-show="showFacelets">
@@ -499,36 +569,48 @@
           <div>
             <label class="form-label" for="viewportRot ations">{{ t('editor.colorSchemes') }}</label>
           </div>
+          <div class="row g-2 mb-2 align-items-center">
+            <div class="col-12 col-md-auto">
+              <label class="col-form-label" for="colorPreset">{{ t('editor.colorPreset') }}</label>
+            </div>
+            <div class="col-12 col-md-4">
+              <select class="form-select" id="colorPreset" v-model="colorPreset" @change="onPresetChange">
+                <option value="standard">{{ t('editor.presetStandard') }}</option>
+                <option value="oll">{{ t('editor.presetOll') }}</option>
+                <option value="custom">{{ t('editor.presetCustom') }}</option>
+              </select>
+            </div>
+          </div>
           <div class="input-group form-inline">
-            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateX">x</button>
-            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateY">y</button>
-            <button type="submit" class="btn btn-outline-secondary btn-sm me-2 mb-1" @click="rotateZ">z</button>
-            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="resetColor">{{ t('common.reset') }}</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateScheme('x')">x</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateScheme('y')">y</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm me-2 mb-1" @click="rotateScheme('z')">z</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="resetScheme">{{ t('common.reset') }}</button>
           </div>
           <div class="row">
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceU">U</label>
-              <input type="color" class="form-control" id="faceU" v-model="faceU" />
+              <input type="color" class="form-control" id="faceU" v-model="faceU" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceR">R</label>
-              <input type="color" class="form-control" id="faceR" v-model="faceR" />
+              <input type="color" class="form-control" id="faceR" v-model="faceR" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceF">F</label>
-              <input type="color" class="form-control" id="faceF" v-model="faceF" />
+              <input type="color" class="form-control" id="faceF" v-model="faceF" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceD">D</label>
-              <input type="color" class="form-control" id="faceD" v-model="faceD" />
+              <input type="color" class="form-control" id="faceD" v-model="faceD" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceL">L</label>
-              <input type="color" class="form-control" id="faceL" v-model="faceL" />
+              <input type="color" class="form-control" id="faceL" v-model="faceL" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceB">B</label>
-              <input type="color" class="form-control" id="faceB" v-model="faceB" />
+              <input type="color" class="form-control" id="faceB" v-model="faceB" @input="onFaceColorInput" />
             </div>
           </div>
         </div>
@@ -602,9 +684,14 @@
             <div class="col-xs-12 col-md-4">
               <label class="form-label" for="backgroundColor">{{ t('editor.bgColor') }}</label>
               <div class="input-group form-inline mb-2">
-                <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor" />
+                <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor" @input="onBackgroundColorInput" />
                 <button class="btn btn-outline-secondary btn-sm" type="button" id="resetBackground" @click="resetBackground">{{ t('common.reset') }}</button>
               </div>
+              <label class="form-label" for="background">{{ t('editor.background') }}</label>
+              <select class="form-select mb-2" id="background" v-model="background">
+                <option value="y">{{ t('editor.transparent') }}</option>
+                <option value="n">{{ t('editor.opaque') }}</option>
+              </select>
             </div>
             <div class="col-xs-12 col-md-4">
               <label class="form-label" for="cubeColor">{{ t('editor.cubeColor') }}</label>
@@ -673,6 +760,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script src="library/srVisualizer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@3.5.45/dist/vue.global.prod.js"></script>
+    <script src="js/cube-state.js"></script>
+    <script src="js/pll-data.js"></script>
+    <script src="js/oll-data.js"></script>
+    <script src="js/pll-groups.js"></script>
+    <script src="js/oll-groups.js"></script>
+    <script src="js/case-check.js"></script>
+    <script src="js/custom-algs.js"></script>
+    <script src="js/editor-cases.js"></script>
     <script src="js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.min.js" integrity="sha384-89aa4glufciPv46aKltztWQEmk+Tu9W2RhzXr6VcnUUEub7F8+06RcL2RYLCOHUq" crossorigin="anonymous"></script>
     <script src="js/firebase-config.js"></script>
