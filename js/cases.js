@@ -23,7 +23,7 @@
   const I = window.I18N; // 日本語・英語の切り替え（i18n.js）
 
   const SET = document.body.dataset.set;
-  const BASE = { pll: window.PLL_DATA, oll: window.OLL_DATA, coll: window.COLL_DATA }[SET] || [];
+  const BASE = { pll: window.PLL_DATA, oll: window.OLL_DATA, coll: window.COLL_DATA, zbll: window.ZBLL_DATA }[SET] || [];
   // 自分の手順（エディタの My algorithm で保存したもの）を重ねる。手順・画像・一括ダウンロードはこちらを使う
   const DATA = window.CustomAlgs ? window.CustomAlgs.merged(SET, BASE) : BASE;
   const NOTES = (window.CASE_GROUP_NOTES || {})[SET] || {};
@@ -80,7 +80,8 @@
     col.dataset.name = c.name;
     const card = el('div', 'card h-100 case-card');
     const link = el('a', 'case-link d-block h-100');
-    link.href = `/?${SET}=${encodeURIComponent(c.name)}`;
+    // ZBLL はエディタにケースを選ぶ行が無いので、手順をそのまま「この手順で揃う状態」で開く
+    link.href = SET === 'zbll' ? `/?case=${encodeURIComponent(c.alg)}` : `/?${SET}=${encodeURIComponent(c.name)}`;
     I.set(link, 'list.openTitle', { name: c.name }, 'title');
 
     const image = el('div', 'case-image mx-auto mt-2');
@@ -131,6 +132,7 @@
   const CS = window.CaseSections;
   const HAS_STAGES = CS.hasStages(DATA);
   const NUMBERED = CS.isNumbered(DATA); // OLL：覚える順でないときは 1〜57 を見出しなしで並べる
+  const ORDER = CS.orderKeys(SET, DATA); // 並びの切り替えの文言と段階の見出しの形（ZBLL は「小グループ順 / OCLL ごと」）
   let byStage = false;
   let sections = []; // 今の並びの区切り（CaseSections.list）
 
@@ -166,14 +168,14 @@
       sw.setAttribute('role', 'group');
       I.set(sw, 'list.orderAria', null, 'aria-label');
       [
-        { value: false, label: NUMBERED ? 'list.orderNumber' : 'list.orderGroup', title: NUMBERED ? 'list.orderNumberTitle' : 'list.orderGroupTitle' },
-        { value: true, label: 'list.orderLearn', title: 'list.orderLearnTitle' },
+        { value: false, label: ORDER.group.key, title: ORDER.group.title },
+        { value: true, label: ORDER.learn.key, title: ORDER.learn.title, params: ORDER.learn.titleParams },
       ].forEach((o) => {
         const b = el('button', 'scope-option');
         b.type = 'button';
         b.dataset.order = String(o.value);
         I.set(b, o.label);
-        I.set(b, o.title, { set: SET.toUpperCase() }, 'title');
+        I.set(b, o.title, o.params, 'title');
         b.addEventListener('click', () => {
           if (byStage === o.value) return;
           byStage = o.value;
@@ -405,7 +407,8 @@
   const sectionTitle = (s) => {
     if (!s.stage) return groupLabel(s.key);
     const name = I.t(`stage.${SET}.${s.label}`);
-    return NUMBERED ? `${s.label}. ${name}` : `${s.stage}. ${name}`;
+    if (ORDER.heading === 'name') return name; // ZBLL：「T-ZBLL」
+    return ORDER.heading === 'label' ? `${s.label}. ${name}` : `${s.stage}. ${name}`;
   };
   // 言語を切り替えたら、見出しとボタンの説明を作り直す（段階の名前は訳がある）
   function relabelSections() {

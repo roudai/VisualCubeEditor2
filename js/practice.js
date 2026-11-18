@@ -42,8 +42,9 @@
     pll: CA ? CA.merged('pll', window.PLL_DATA || []) : window.PLL_DATA || [],
     oll: CA ? CA.merged('oll', window.OLL_DATA || []) : window.OLL_DATA || [],
     coll: CA ? CA.merged('coll', window.COLL_DATA || []) : window.COLL_DATA || [],
+    zbll: window.ZBLL_DATA || [], // ZBLL はエディタで自分の手順を保存しないので、そのまま
   };
-  const SCRAMBLES = { pll: window.PLL_SCRAMBLES || {}, oll: window.OLL_SCRAMBLES || {}, coll: window.COLL_SCRAMBLES || {} };
+  const SCRAMBLES = { pll: window.PLL_SCRAMBLES || {}, oll: window.OLL_SCRAMBLES || {}, coll: window.COLL_SCRAMBLES || {}, zbll: window.ZBLL_SCRAMBLES || {} };
   const FILTERS = ['new', 'learning', 'learned', 'all'];
   const THRESHOLDS = [2, 3, 5, 8];
   const MAX_TIMES = 10;
@@ -53,7 +54,7 @@
   const saved = S.get('practice');
   const prefs = Object.assign({ set: 'pll', filter: 'new', times: {} }, saved && typeof saved === 'object' ? saved : {});
   const params = new URLSearchParams(location.search);
-  const SETS = ['pll', 'oll', 'coll', 'full'];
+  const SETS = ['pll', 'oll', 'coll', 'zbll', 'full'];
   if (SETS.includes(params.get('set'))) prefs.set = params.get('set');
   if (FILTERS.includes(params.get('filter'))) prefs.filter = params.get('filter');
   if (!SETS.includes(prefs.set)) prefs.set = 'pll';
@@ -161,6 +162,7 @@
           { value: 'pll', text: 'PLL' },
           { value: 'oll', text: 'OLL' },
           { value: 'coll', text: 'COLL' },
+          { value: 'zbll', text: 'ZBLL' },
           { value: 'full', key: 'practice.full' },
         ],
         prefs.set,
@@ -285,10 +287,8 @@
     if (CS.hasStages(DATA[set])) {
       const order = segment(
         [
-          CS.isNumbered(DATA[set])
-            ? { value: false, key: 'list.orderNumber', title: 'list.orderNumberTitle' }
-            : { value: false, key: 'list.orderGroup', title: 'list.orderGroupTitle' },
-          { value: true, key: 'list.orderLearn', title: 'list.orderLearnTitle', titleParams: { set: set.toUpperCase() } },
+          Object.assign({ value: false }, CS.orderKeys(set, DATA[set]).group),
+          Object.assign({ value: true }, CS.orderKeys(set, DATA[set]).learn),
         ],
         stage,
         (v) => setOrder(set, v)
@@ -305,7 +305,8 @@
       if (stage) {
         // 段階：一覧の見出しと同じ文（OLL「A. 十字完成」、PLL「1. U-perm（エッジ3つ）」。名前は i18n の stage.<set>.<記号>）
         const name = I.t(`stage.${set}.${s.label}`);
-        b.title = `${CS.isNumbered(DATA[set]) ? s.label : s.stage}. ${name} · ${n}`;
+        const heading = CS.orderKeys(set, DATA[set]).heading;
+        b.title = heading === 'name' ? `${name} · ${n}` : `${heading === 'label' ? s.label : s.stage}. ${name} · ${n}`;
       } else {
         const note = (NOTES[set] || {})[s.key];
         b.title = note ? `${s.label} (${note}) · ${n}` : `${s.label} · ${n}`;

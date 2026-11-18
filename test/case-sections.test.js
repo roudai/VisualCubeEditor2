@@ -90,3 +90,18 @@ test('list：番号のデータは、覚える順でなければ区切り1つに
   assert.deepEqual(CS.list(staged, true).map((s) => [s.key, s.label]), [['s1', 'A'], ['s2', 'B']]);
   assert.deepEqual(CS.list(staged, false).map((s) => s.key), ['all']);
 });
+
+test('orderKeys：並びの文言と段階の見出しの形（PLL・COLL はグループ順 / 覚える順、OLL は番号順、ZBLL は小グループ順 / OCLL ごと）', () => {
+  assert.deepEqual(CS.orderKeys('pll', GROUPED), {
+    group: { key: 'list.orderGroup', title: 'list.orderGroupTitle' },
+    learn: { key: 'list.orderLearn', title: 'list.orderLearnTitle', titleParams: { set: 'PLL' } },
+    heading: 'number',
+  });
+  assert.equal(CS.orderKeys('oll', NUMBERED).group.key, 'list.orderNumber');
+  assert.equal(CS.orderKeys('oll', NUMBERED).heading, 'label');
+  assert.deepEqual(CS.orderKeys('zbll', [{ name: 'T-2GLL1', group: 'T / 2GLL' }]), {
+    group: { key: 'list.orderSubset', title: 'list.orderSubsetTitle' },
+    learn: { key: 'list.orderOcll', title: 'list.orderOcllTitle' },
+    heading: 'name',
+  });
+});

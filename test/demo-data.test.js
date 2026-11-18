@@ -6,6 +6,7 @@ const http = require('node:http');
 const PLL = require('../js/pll-data.js');
 const OLL = require('../js/oll-data.js');
 const COLL = require('../js/coll-data.js');
+const ZBLL = require('../js/zbll-data.js');
 const W = require('../js/wca-scramble.js');
 const Demo = require('../tools/demo-data.js');
 
@@ -13,10 +14,11 @@ const NOW = Date.UTC(2026, 10, 17, 12);
 const data = Demo.build({ now: NOW });
 
 test('demo-data：PLL・OLL・COLL の記録は今あるケースだけで、新しい順・過去 60 日以内・保存の上限以内', () => {
-  const names = { pll: new Set(PLL.map((c) => c.name)), oll: new Set(OLL.map((c) => c.name)), coll: new Set(COLL.map((c) => c.name)) };
+  const names = { pll: new Set(PLL.map((c) => c.name)), oll: new Set(OLL.map((c) => c.name)), coll: new Set(COLL.map((c) => c.name)), zbll: new Set(ZBLL.map((c) => c.name)) };
   assert.ok(data.practice.log.some((e) => e.set === 'coll'), 'COLL の記録がある');
+  assert.ok(data.practice.log.some((e) => e.set === 'zbll'), 'ZBLL の記録がある');
   // 習得の目安は種類ごと（判定もその目安で付いている）
-  assert.deepEqual(Object.keys(data.practice.thresholds).sort(), ['coll', 'oll', 'pll']);
+  assert.deepEqual(Object.keys(data.practice.thresholds).sort(), ['coll', 'oll', 'pll', 'zbll']);
   data.practice.log.forEach((e) => {
     if (e.sec !== null && !e.hint) assert.equal(e.status, e.sec <= data.practice.thresholds[e.set] ? 'learned' : 'learning');
   });

@@ -16,6 +16,11 @@
  *                                       それ以外（Megaminx の名前）：+/− を除いた名前の文字と番号の範囲
  *                                       例：[F2+, F3+, F2-, F3-, F4+, …] → "F2–5"、[E1, E2, E3] → "E1–3"、[D+, D-] → "D"、[K2+, K2-] → "K2"
  *   CaseSections.keyOf(c, byStage, numbered) そのケースが入る区切りの key（numbered は isNumbered(data)）
+ *   CaseSections.orderKeys(set, data)  並びの切り替えの文言（i18n のキー）と段階の見出しの形
+ *     { group: { key, title }, learn: { key, title, titleParams }, heading: 'number' | 'label' | 'name' }
+ *     PLL・COLL：グループ順 / 覚える順（覚える順の説明には {set}）。見出しは「1. U-perm」（number）
+ *     OLL（番号のデータ）：番号順 / 覚える順。見出しは「A. 十字完成」（label）
+ *     ZBLL：小グループ順 / OCLL ごと。見出しは「T-ZBLL」（name。段階は覚える順ではなく OCLL なので番号を付けない）
  *
  * 並びの選び方は store.js の 'list-filter' の pllOrder（'learn' なら覚える順。一覧と練習で共通）。
  * ブラウザでは window.CaseSections、node では module.exports として公開する。
@@ -81,5 +86,21 @@
     return sections;
   }
 
-  return { hasStages: hasStages, isNumbered: isNumbered, list: list, stageLabel: stageLabel, keyOf: keyOf };
+  function orderKeys(set, data) {
+    if (set === 'zbll') {
+      return {
+        group: { key: 'list.orderSubset', title: 'list.orderSubsetTitle' },
+        learn: { key: 'list.orderOcll', title: 'list.orderOcllTitle' },
+        heading: 'name',
+      };
+    }
+    const numbered = isNumbered(data);
+    return {
+      group: numbered ? { key: 'list.orderNumber', title: 'list.orderNumberTitle' } : { key: 'list.orderGroup', title: 'list.orderGroupTitle' },
+      learn: { key: 'list.orderLearn', title: 'list.orderLearnTitle', titleParams: { set: String(set).toUpperCase() } },
+      heading: numbered ? 'label' : 'number',
+    };
+  }
+
+  return { hasStages: hasStages, isNumbered: isNumbered, list: list, stageLabel: stageLabel, keyOf: keyOf, orderKeys: orderKeys };
 });

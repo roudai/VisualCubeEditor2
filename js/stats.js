@@ -27,8 +27,9 @@
     pll: CA ? CA.merged('pll', window.PLL_DATA || []) : window.PLL_DATA || [],
     oll: CA ? CA.merged('oll', window.OLL_DATA || []) : window.OLL_DATA || [],
     coll: CA ? CA.merged('coll', window.COLL_DATA || []) : window.COLL_DATA || [],
+    zbll: window.ZBLL_DATA || [],
   };
-  const SETS = ['pll', 'oll', 'coll', 'full'];
+  const SETS = ['pll', 'oll', 'coll', 'zbll', 'full'];
   const PERIODS = { 7: 7, 30: 30, all: null };
   const DAY = 24 * 60 * 60 * 1000;
 
@@ -89,6 +90,7 @@
           { value: 'pll', text: 'PLL' },
           { value: 'oll', text: 'OLL' },
           { value: 'coll', text: 'COLL' },
+          { value: 'zbll', text: 'ZBLL' },
           { value: 'full', key: 'practice.full' },
         ],
         view.set,
@@ -405,7 +407,7 @@
 
   function sortRows(list) {
     // 覚える順は覚える順のデータがあるときだけ（無ければ苦手順）。'group' は PLL ならグループ順、OLL なら番号順
-    const k = view.sort === 'learn' && !hasStages() ? 'weak' : view.sort;
+    const k = view.sort === 'learn' && (!hasStages() || view.set === 'zbll') ? 'weak' : view.sort;
     const dir = view.desc ? -1 : 1;
     const byNumber = numbered();
     const val = (r) =>
@@ -429,12 +431,11 @@
     if (!show) return;
     const items = [
       { value: 'weak', key: 'stats.sortWeak', title: 'stats.sortWeakTitle' },
-      numbered()
-        ? { value: 'group', key: 'list.orderNumber', title: 'list.orderNumberTitle' }
-        : { value: 'group', key: 'list.orderGroup', title: 'list.orderGroupTitle' },
+      Object.assign({ value: 'group' }, window.CaseSections.orderKeys(view.set, DATA[view.set]).group),
     ];
-    if (hasStages()) items.push({ value: 'learn', key: 'list.orderLearn', title: 'list.orderLearnTitle', titleParams: { set: view.set.toUpperCase() } });
-    const current = view.sort === 'learn' && !hasStages() ? 'weak' : view.sort;
+    // 覚える順（ZBLL は OCLL ごと。小グループ順と同じ並びになるので出さない）
+    if (hasStages() && view.set !== 'zbll') items.push(Object.assign({ value: 'learn' }, window.CaseSections.orderKeys(view.set, DATA[view.set]).learn));
+    const current = view.sort === 'learn' && (!hasStages() || view.set === 'zbll') ? 'weak' : view.sort;
     const seg = segment(items, current, (v) => change({ sort: v, desc: v === 'weak' }));
     I.set(seg, 'list.orderAria', null, 'aria-label');
     box.replaceChildren(seg);

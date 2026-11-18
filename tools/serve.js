@@ -4,7 +4,7 @@
 // /pll → pll.html、/ → index.html。ファイルがあればそのまま返す。リポジトリの外は返さない。
 //
 // テストデータで動かす：node tools/serve.js --demo [port]（既定 8001）→ http://localhost:8001/stats
-//   - 練習の記録（PLL・OLL・COLL・通し）・最近のタイム・習得状況にテストデータ（tools/demo-data.js）を入れた状態で開く
+//   - 練習の記録（PLL・OLL・COLL・ZBLL・通し）・最近のタイム・習得状況にテストデータ（tools/demo-data.js）を入れた状態で開く
 //     （ページを開いたときにまだ入れていなければ入れる。/__demo/reset で入れ直す）
 //   - ログインは使えなくする（js/firebase-config.js の代わりに FIREBASE_CONFIG = null を返す）。テストデータがアカウントに送られないように
 //   - ポートを普段（8000）と分けるので、ブラウザの保存（localStorage）も普段のものとは別になる
