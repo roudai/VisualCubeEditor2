@@ -850,8 +850,25 @@
     if (state !== 'running' || e.target === timerEl) return;
     // 計測中に「スキップ」「解けなかった」を押したときは、タイムを記録せずに止める
     // （そのあとのクリックで、スキップ＝記録せず次へ、解けなかった＝練習中、になる）
-    if (e.target.closest('#skipButton, #dnfButton')) {
+    if (e.target.closest('#skipButton')) {
       resetTimer();
+      return;
+    }
+    // 「解けなかった」：押した瞬間は計測を止めるだけで、表示はそのまま（すぐ後のクリックで DNF にする。
+    // ここで 0.00 に戻すと、DNF が出るまでの間 0.00 がちらつく）。クリックにならずに離したときは 0.00 に戻す
+    if (e.target.closest('#dnfButton')) {
+      cancelAnimationFrame(frame);
+      setState('idle');
+      const frozen = timerEl.textContent;
+      document.addEventListener(
+        'pointerup',
+        () =>
+          setTimeout(() => {
+            // DNF が出ていなければ（記録して出したままのタイムが無い＝ボタンの外で離した）0.00 に戻す
+            if (state === 'idle' && timerEl.textContent === frozen && shownRecAt === null) resetTimer();
+          }),
+        { once: true }
+      );
       return;
     }
     stop();
