@@ -243,6 +243,12 @@
   padding: .15rem .35rem;
   font-size: .78rem;
 }
+/* 2段のグループのボタン（ZBLL：上の段が OCLL、下の段が選んだ OCLL の小グループ） */
+.group-nav-children {
+  margin: .1rem 0 .2rem;
+  padding-left: .6rem;
+  border-left: 2px solid #dee2e6;
+}
 /* 全部覚えたグループのジャンプボタン */
 .group-nav-complete {
   border-color: var(--status-learned-soft);

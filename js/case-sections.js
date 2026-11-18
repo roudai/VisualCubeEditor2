@@ -16,6 +16,16 @@
  *                                       それ以外（Megaminx の名前）：+/− を除いた名前の文字と番号の範囲
  *                                       例：[F2+, F3+, F2-, F3-, F4+, …] → "F2–5"、[E1, E2, E3] → "E1–3"、[D+, D-] → "D"、[K2+, K2-] → "K2"
  *   CaseSections.keyOf(c, byStage, numbered) そのケースが入る区切りの key（numbered は isNumbered(data)）
+ *   2段のグループ選択（ZBLL の小グループ「T / 2GLL」のように、区切りの key が「親 / 子」の形のとき。一覧と練習で共通）
+ *     選んだもの（chosen）は今までどおり区切りの key の集まり。親（OCLL）は1つだけ選べる
+ *     ・親だけを選んだ状態＝その親の子をすべて選んだ状態。子を選ぶと、その親の中でさらに絞る（いくつでも）
+ *   CaseSections.isTwoLevel(sections)   区切りの key がどれも「親 / 子」か
+ *   CaseSections.twoLevel(sections, chosen) 表示用の { parents: [{ key, groups, active }], active, refine, children: [{ key, label, active }] }
+ *                                       active＝選んでいる親（無ければ null）。refine＝親の中で子を絞っているか。children は選んでいる親の子だけ
+ *   CaseSections.pickParent(sections, chosen, parent) 親を押したあとの chosen（同じ親ならすべて外す、別の親ならその子をすべて）
+ *   CaseSections.pickChild(sections, chosen, key)     子を押したあとの chosen（親だけの状態からならその子だけ、絞っていれば切り替え。
+ *                                                     1つも残らなければ親だけの状態に戻す）
+ *   CaseSections.normalizeTwoLevel(sections, chosen)   前の保存などで親をまたいでいたら、最初の親の分だけにする
  *   CaseSections.orderKeys(set, data)  並びの切り替えの文言（i18n のキー）と段階の見出しの形
  *     { group: { key, title }, learn: { key, title, titleParams }, heading: 'number' | 'label' | 'name' }
  *     PLL・COLL：グループ順 / 覚える順（覚える順の説明には {set}）。見出しは「1. U-perm」（number）
@@ -102,5 +112,77 @@
     };
   }
 
-  return { hasStages: hasStages, isNumbered: isNumbered, list: list, stageLabel: stageLabel, keyOf: keyOf, orderKeys: orderKeys };
+  // ---- 2段のグループ選択（親 / 子）----
+  const SEP = ' / ';
+  const parentOfKey = (key) => {
+    const i = String(key).indexOf(SEP);
+    return i < 0 ? null : String(key).slice(0, i);
+  };
+  const childOfKey = (key) => String(key).slice(String(parentOfKey(key)).length + SEP.length);
+  const isTwoLevel = (sections) => sections.length > 1 && sections.every((s) => parentOfKey(s.key) !== null);
+
+  function twoLevel(sections, chosen) {
+    const parents = [];
+    const byParent = {};
+    sections.forEach((s) => {
+      const p = parentOfKey(s.key);
+      if (!byParent[p]) {
+        byParent[p] = [];
+        parents.push(p);
+      }
+      byParent[p].push(s.key);
+    });
+    const picked = [...chosen].filter((k) => byParent[parentOfKey(k)]);
+    const active = picked.length ? parentOfKey(picked[0]) : null;
+    const all = active ? byParent[active] : [];
+    const mine = picked.filter((k) => parentOfKey(k) === active);
+    const refine = !!active && !all.every((k) => mine.includes(k));
+    return {
+      parents: parents.map((p) => ({ key: p, groups: byParent[p], active: p === active })),
+      active: active,
+      refine: refine,
+      children: all.map((k) => ({ key: k, label: childOfKey(k), active: refine && mine.includes(k) })),
+    };
+  }
+
+  function pickParent(sections, chosen, parent) {
+    const t = twoLevel(sections, chosen);
+    if (t.active === parent) return new Set();
+    const p = t.parents.find((x) => x.key === parent);
+    return new Set(p ? p.groups : []);
+  }
+
+  function pickChild(sections, chosen, key) {
+    const t = twoLevel(sections, chosen);
+    const parent = parentOfKey(key);
+    const p = t.parents.find((x) => x.key === parent);
+    if (!p) return new Set(chosen);
+    let next;
+    if (t.active !== parent || !t.refine) next = new Set([key]);
+    else {
+      next = new Set([...chosen].filter((k) => parentOfKey(k) === parent));
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+    }
+    return next.size ? next : new Set(p.groups);
+  }
+
+  function normalizeTwoLevel(sections, chosen) {
+    const t = twoLevel(sections, chosen);
+    return new Set([...chosen].filter((k) => t.active && parentOfKey(k) === t.active));
+  }
+
+  return {
+    hasStages: hasStages,
+    isNumbered: isNumbered,
+    list: list,
+    stageLabel: stageLabel,
+    keyOf: keyOf,
+    orderKeys: orderKeys,
+    isTwoLevel: isTwoLevel,
+    twoLevel: twoLevel,
+    pickParent: pickParent,
+    pickChild: pickChild,
+    normalizeTwoLevel: normalizeTwoLevel,
+  };
 });

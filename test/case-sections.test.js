@@ -105,3 +105,53 @@ test('orderKeys：並びの文言と段階の見出しの形（PLL・COLL はグ
     heading: 'name',
   });
 });
+
+// 2段のグループ選択（ZBLL：OCLL → 小グループ）
+const TWO = [
+  { key: 'T / 2GLL' },
+  { key: 'T / Diag' },
+  { key: 'T / SO' },
+  { key: 'U / 2GLL' },
+  { key: 'U / Diag' },
+];
+
+test('isTwoLevel：区切りの key がどれも「親 / 子」のときだけ', () => {
+  assert.equal(CS.isTwoLevel(TWO), true);
+  assert.equal(CS.isTwoLevel([{ key: 'Edges only' }, { key: 'G' }]), false);
+  assert.equal(CS.isTwoLevel([{ key: 'all' }]), false);
+});
+
+test('twoLevel・pickParent・pickChild：親は1つ、親だけ＝その子すべて、子で絞る（いくつでも）、残らなければ親だけに戻る', () => {
+  const keys = (set) => [...set].sort();
+  let chosen = new Set();
+  let t = CS.twoLevel(TWO, chosen);
+  assert.deepEqual(t.parents.map((p) => [p.key, p.groups.length, p.active]), [['T', 3, false], ['U', 2, false]]);
+  assert.equal(t.active, null);
+  assert.deepEqual(t.children, []);
+  // 親 T を選ぶ：T の子すべて（絞ってはいない）
+  chosen = CS.pickParent(TWO, chosen, 'T');
+  assert.deepEqual(keys(chosen), ['T / 2GLL', 'T / Diag', 'T / SO']);
+  t = CS.twoLevel(TWO, chosen);
+  assert.equal(t.active, 'T');
+  assert.equal(t.refine, false);
+  assert.deepEqual(t.children.map((c) => [c.label, c.active]), [['2GLL', false], ['Diag', false], ['SO', false]]);
+  // 子 Diag で絞る → Diag だけ。SO を足す → 2つ
+  chosen = CS.pickChild(TWO, chosen, 'T / Diag');
+  assert.deepEqual(keys(chosen), ['T / Diag']);
+  chosen = CS.pickChild(TWO, chosen, 'T / SO');
+  assert.deepEqual(keys(chosen), ['T / Diag', 'T / SO']);
+  t = CS.twoLevel(TWO, chosen);
+  assert.equal(t.refine, true);
+  assert.deepEqual(t.children.map((c) => c.active), [false, true, true]);
+  // 子を全部外すと、親だけの状態に戻る
+  chosen = CS.pickChild(TWO, chosen, 'T / Diag');
+  chosen = CS.pickChild(TWO, chosen, 'T / SO');
+  assert.deepEqual(keys(chosen), ['T / 2GLL', 'T / Diag', 'T / SO']);
+  // 別の親 U を押すと切り替わる。同じ親をもう一度押すと外れる
+  chosen = CS.pickParent(TWO, chosen, 'U');
+  assert.deepEqual(keys(chosen), ['U / 2GLL', 'U / Diag']);
+  assert.deepEqual(keys(CS.pickParent(TWO, chosen, 'U')), []);
+  // 親をまたいだ選択（前の保存）は、最初の親の分だけにする
+  assert.deepEqual(keys(CS.normalizeTwoLevel(TWO, new Set(['T / Diag', 'U / 2GLL']))), ['T / Diag']);
+  assert.deepEqual(keys(CS.normalizeTwoLevel(TWO, new Set())), []);
+});

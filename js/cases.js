@@ -135,6 +135,7 @@
   const ORDER = CS.orderKeys(SET, DATA); // 並びの切り替えの文言と段階の見出しの形（ZBLL は「小グループ順 / OCLL ごと」）
   let byStage = false;
   let sections = []; // 今の並びの区切り（CaseSections.list）
+  let twoLevel = false; // グループのボタンを2段（親 → 子。ZBLL の OCLL → 小グループ）にするか（CaseSections.isTwoLevel）
 
   // ---- 表示するグループ（覚える順なら段階）の選択 ----
   let chosen = new Set(); // 区切りの key。空ならすべて
@@ -143,6 +144,7 @@
     const list = readJSON(FILTER_KEY)[chosenKey()];
     const keys = new Set(sections.map((s) => s.key));
     chosen = new Set(Array.isArray(list) ? list.filter((k) => keys.has(k)) : []);
+    if (twoLevel) chosen = CS.normalizeTwoLevel(sections, chosen); // 親は1つだけ
   };
   function setChosen(next) {
     chosen = next;
@@ -342,7 +344,8 @@
       const label = document.querySelector(`#group-${CSS.escape(s.key)} .group-count`);
       label.textContent = `${learned}/${list.length}`;
       label.classList.toggle('complete', learned === list.length);
-      document.querySelector(`#groupNav [data-group="${CSS.escape(s.key)}"]`).classList.toggle('group-nav-complete', learned === list.length);
+      const nb = document.querySelector(`#groupNav [data-group="${CSS.escape(s.key)}"]`);
+      if (nb) nb.classList.toggle('group-nav-complete', learned === list.length);
     });
   }
 
@@ -354,6 +357,7 @@
       b.setAttribute('aria-pressed', String(on));
     });
     document.querySelectorAll('#groupNav [data-group]').forEach((b) => {
+      if (twoLevel) return; // 2段のときは renderTwoLevelNav が付ける
       const on = chosen.has(b.dataset.group);
       b.classList.toggle('active', on);
       b.setAttribute('aria-pressed', String(on));
@@ -382,6 +386,7 @@
       b.classList.toggle('btn-outline-secondary', !on);
       b.setAttribute('aria-pressed', String(on));
     });
+    const visibleOf = {}; // 区切りごとの表示しているカードの数（2段のボタンの出し入れに使う）
     document.querySelectorAll('#caseList section').forEach((section) => {
       let visible = 0;
       section.querySelectorAll('.col[data-name]').forEach((col) => {
@@ -390,10 +395,13 @@
         if (show) visible++;
       });
       const g = section.dataset.group;
+      visibleOf[g] = visible;
       section.hidden = visible === 0 || (chosen.size > 0 && !chosen.has(g));
       // ボタンは選んでいれば（外せるように）カードが無くても出す
-      document.querySelector(`#groupNav [data-group="${CSS.escape(g)}"]`).hidden = visible === 0 && !chosen.has(g);
+      const nb = document.querySelector(`#groupNav [data-group="${CSS.escape(g)}"]`);
+      if (nb && !twoLevel) nb.hidden = visible === 0 && !chosen.has(g);
     });
+    if (twoLevel) renderTwoLevelNav(visibleOf);
     $('emptyMessage').hidden = !!document.querySelector('#caseList section:not([hidden])');
   }
 
@@ -420,9 +428,53 @@
     });
   }
 
+  // 2段のグループのボタン（ZBLL の小グループ順）：上の段は親（OCLL。1つだけ選ぶ）、下の段は選んだ親の子（小グループ。いくつでも）。
+  // 親だけを選ぶとその親の子すべて、子を押すとその中で絞る（CaseSections.twoLevel・pickParent・pickChild）。
+  // 選んでいない・表示しているカードが無いボタンは隠す。全部覚えたら group-nav-complete
+  function renderTwoLevelNav(visibleOf) {
+    const t = CS.twoLevel(sections, chosen);
+    const byKey = {};
+    sections.forEach((s) => (byKey[s.key] = s));
+    const allLearned = (keys) => keys.every((k) => byKey[k].cases.every((c) => statusOf(c) === 'learned'));
+    const button = (label, on, onClick) => {
+      const b = el('button', 'btn btn-outline-secondary btn-sm group-nav-btn', label);
+      b.type = 'button';
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', String(on));
+      b.addEventListener('click', onClick);
+      return b;
+    };
+    const parents = el('div', 'group-nav-parents');
+    t.parents.forEach((p) => {
+      const b = button(p.key, p.active, () => setChosen(CS.pickParent(sections, chosen, p.key)));
+      b.dataset.parent = p.key;
+      const n = p.groups.reduce((sum, k) => sum + byKey[k].cases.length, 0);
+      const titleKey = `stage.${SET}.${p.key}`;
+      const name = I.t(titleKey);
+      b.title = `${name === titleKey ? p.key : name} · ${n}`;
+      b.classList.toggle('group-nav-complete', allLearned(p.groups));
+      b.hidden = !p.active && p.groups.every((k) => !visibleOf[k]);
+      parents.append(b);
+    });
+    const nav = $('groupNav');
+    nav.replaceChildren(parents);
+    if (!t.active) return;
+    const children = el('div', 'group-nav-children');
+    t.children.forEach((c) => {
+      const b = button(c.label, c.active, () => setChosen(CS.pickChild(sections, chosen, c.key)));
+      b.dataset.group = c.key;
+      b.title = `${sectionTitle(byKey[c.key])} · ${byKey[c.key].cases.length}`;
+      b.classList.toggle('group-nav-complete', allLearned([c.key]));
+      b.hidden = !c.active && !visibleOf[c.key];
+      children.append(b);
+    });
+    nav.append(children);
+  }
+
   // 今の並びで、ジャンプのボタンと見出しごとのカードを作り直す
   function buildSections() {
     sections = CS.list(DATA, byStage);
+    twoLevel = CS.isTwoLevel(sections);
     // 番号順（区切りが 'all' の1つだけ）のときは、見出し・グループのボタン・「選択を解除」を出さない
     const flat = sections.length === 1 && sections[0].key === 'all';
     const nav = $('groupNav');
@@ -430,7 +482,8 @@
     nav.hidden = flat;
     const foot = $('groupClear') && $('groupClear').parentElement;
     if (foot) foot.hidden = flat;
-    sections.forEach((s) => {
+    // 2段のときのボタンは applyFilter → renderTwoLevelNav で作る
+    (twoLevel ? [] : sections).forEach((s) => {
       const b = el('button', 'btn btn-outline-secondary btn-sm group-nav-btn', s.label);
       b.type = 'button';
       b.dataset.group = s.key;

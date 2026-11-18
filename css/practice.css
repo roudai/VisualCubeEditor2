@@ -121,6 +121,12 @@
   background: #0d6efd;
   color: #fff;
 }
+/* 2段（ZBLL）：下の段は選んだ OCLL の小グループ */
+.practice-group-children {
+  margin-top: .3rem;
+  padding-left: .5rem;
+  border-left: 2px solid #dee2e6;
+}
 .practice-groups-clear {
   padding: 0;
   font-size: .75rem;

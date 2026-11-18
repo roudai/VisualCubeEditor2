@@ -96,7 +96,14 @@
     if (CS.isNumbered(DATA[set]) && !byStage(set)) return null; // OLL の番号順：グループで選ばない
     const list = prefs.groups && Array.isArray(prefs.groups[groupsKey(set)]) ? prefs.groups[groupsKey(set)] : [];
     if (!list.length) return null;
-    return new Set(byStage(set) ? list.map((n) => 's' + n) : list);
+    if (byStage(set)) return new Set(list.map((n) => 's' + n));
+    // 2段（ZBLL の OCLL → 小グループ）：親をまたいでいたら（前の保存など）最初の親の分だけ
+    const sections = CS.list(DATA[set], false);
+    if (CS.isTwoLevel(sections)) {
+      const one = CS.normalizeTwoLevel(sections, new Set(list));
+      return one.size ? one : null;
+    }
+    return new Set(list);
   };
   const inSelection = (set) => {
     const chosen = chosenGroups(set);
@@ -259,8 +266,15 @@
     button.type = 'button';
     button.setAttribute('aria-expanded', String(groupsOpen));
     const label = el('span');
+    const sections = CS.list(DATA[prefs.set], byStage(prefs.set));
+    const two = chosen && !byStage(prefs.set) && CS.isTwoLevel(sections) ? CS.twoLevel(sections, chosen) : null;
     if (!chosen) I.set(label, byStage(prefs.set) ? 'practice.stagesAll' : 'practice.groupsAll');
-    else {
+    else if (two) {
+      // 2段：親だけなら「U-ZBLL」、子で絞っていれば「U: 2GLL, Diag」
+      const picked = two.children.filter((c) => c.active).map((c) => c.label);
+      const name = I.t(`stage.${prefs.set}.${two.active}`);
+      label.textContent = two.refine ? `${two.active}: ${picked.join(', ')}` : name.startsWith('stage.') ? two.active : name;
+    } else {
       const labels = {};
       CS.list(DATA[prefs.set], byStage(prefs.set)).forEach((s) => {
         labels[s.key] = s.label;
@@ -295,6 +309,11 @@
       );
       order.classList.add('mb-2');
       box.append(order);
+    }
+    // 2段（ZBLL の小グループ順）：上の段で OCLL を1つ選び、下の段でその中の小グループを選ぶ（一覧ページと同じ決まり）
+    if (!stage && CS.isTwoLevel(sections)) {
+      box.append(twoLevelPicker(set, sections, chosen));
+      return box;
     }
     const chips = el('div', 'practice-group-chips');
     sections.forEach((s) => {
@@ -332,6 +351,51 @@
     // OLL の番号順（区切りが 'all' の1つだけ）は、選ぶグループが無いので並びの切り替えだけを出す
     if (!(sections.length === 1 && sections[0].key === 'all')) box.append(chips, foot);
     return box;
+  }
+
+  // 2段のグループを選ぶ欄（CaseSections.twoLevel・pickParent・pickChild）
+  function twoLevelPicker(set, sections, chosen) {
+    const t = CS.twoLevel(sections, chosen);
+    const byKey = {};
+    sections.forEach((s) => (byKey[s.key] = s));
+    const save = (next) => setGroups(set, sections.map((s) => s.key).filter((k) => next.has(k)));
+    const chip = (label, on, title, onClick) => {
+      const b = el('button', 'practice-group-chip' + (on ? ' active' : ''));
+      b.type = 'button';
+      b.textContent = label;
+      b.title = title;
+      b.setAttribute('aria-pressed', String(on));
+      b.addEventListener('click', onClick);
+      return b;
+    };
+    const wrap = el('div');
+    const parents = el('div', 'practice-group-chips');
+    t.parents.forEach((p) => {
+      const n = p.groups.reduce((sum, k) => sum + byKey[k].cases.length, 0);
+      const name = I.t(`stage.${set}.${p.key}`);
+      const b = chip(p.key, p.active, `${name.startsWith('stage.') ? p.key : name} · ${n}`, () => save(CS.pickParent(sections, chosen, p.key)));
+      b.dataset.parent = p.key;
+      parents.append(b);
+    });
+    wrap.append(parents);
+    if (t.active) {
+      const children = el('div', 'practice-group-chips practice-group-children');
+      t.children.forEach((c) => {
+        const b = chip(c.label, c.active, `${c.key} · ${byKey[c.key].cases.length}`, () => save(CS.pickChild(sections, chosen, c.key)));
+        b.dataset.group = c.key;
+        children.append(b);
+      });
+      wrap.append(children);
+    }
+    const clear = el('button', 'btn btn-link btn-sm practice-groups-clear');
+    clear.type = 'button';
+    I.set(clear, 'practice.groupsClear');
+    clear.disabled = !chosen.size;
+    clear.addEventListener('click', () => setGroups(set, []));
+    const foot = el('div', 'd-flex align-items-center gap-2 mt-1');
+    foot.append(clear);
+    wrap.append(foot);
+    return wrap;
   }
 
   function setGroups(set, list) {
