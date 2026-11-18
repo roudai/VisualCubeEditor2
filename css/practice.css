@@ -244,8 +244,22 @@
 .practice-hint-moves {
   font-family: var(--bs-font-monospace);
 }
-.practice-stage.running .practice-hint-text {
-  visibility: hidden;
+/* ボタンは状態で出し分ける。行の高さはいつも取っておき、入れ替わってもタイマーなどが動かないようにする
+   スタート前（止めたあとも）：スキップ・ヒント / 計測中：解けなかった・ヒント・中止 / インスペクション中（通し）：中止 */
+.practice-buttons {
+  min-height: calc(1.5em + .5rem + 2px); /* btn-sm の高さ */
+}
+#dnfButton,
+#cancelButton,
+.practice-stage.running #skipButton,
+.practice-stage.inspecting #skipButton,
+.practice-stage.inspecting #hintButton {
+  display: none;
+}
+body:not(.practice-full) .practice-stage.running #dnfButton,
+.practice-stage.running #cancelButton,
+.practice-stage.inspecting #cancelButton {
+  display: inline-block;
 }
 .practice-empty {
   margin-top: 1rem;
@@ -256,7 +270,7 @@
 .practice-scramble.full {
   max-width: 36rem; /* 20 手前後。広い画面でも 1〜2 行に収める */
 }
-/* 通しでは「解けなかった」「スキップ」「ヒント」は出さない（DNF は結果の OK / +2 / DNF で付ける） */
+/* 通しでは「解けなかった」「スキップ」「ヒント」は出さない（DNF は結果の OK / +2 / DNF で付ける）。「中止」は出す */
 .practice-full #hintButton,
 .practice-full #dnfButton,
 .practice-full #skipButton,

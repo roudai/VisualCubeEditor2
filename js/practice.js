@@ -926,31 +926,44 @@
       resetTimer();
       return;
     }
-    // 「解けなかった」：押した瞬間は計測を止めるだけで、表示はそのまま（すぐ後のクリックで DNF にする。
-    // ここで 0.00 に戻すと、DNF が出るまでの間 0.00 がちらつく）。クリックにならずに離したときは 0.00 に戻す
+    // 「ヒント」は計測中も見られる（止めずに出す。見たら目安以内でも練習中）
+    if (e.target.closest('#hintButton')) return;
+    // 「中止」：Esc と同じく記録せず、同じスクランブルのまま 0.00 に戻す
+    if (e.target.closest('#cancelButton')) {
+      resetTimer();
+      return;
+    }
+    // 「解けなかった」：押した瞬間に DNF にする。ボタンは計測中だけ出すので、止めるとすぐ隠れて、
+    // 離したときのクリックは届かない（クリックを待つと DNF にならない）。直後のクリックは無視する
     if (e.target.closest('#dnfButton')) {
-      cancelAnimationFrame(frame);
-      setState('idle');
-      const frozen = timerEl.textContent;
-      document.addEventListener(
-        'pointerup',
-        () =>
-          setTimeout(() => {
-            // DNF が出ていなければ（記録して出したままのタイムが無い＝ボタンの外で離した）0.00 に戻す
-            if (state === 'idle' && timerEl.textContent === frozen && shownRecAt === null) resetTimer();
-          }),
-        { once: true }
-      );
+      ignoreClicksUntil = performance.now() + 400;
+      giveUp();
       return;
     }
     stop();
   });
 
-  $('dnfButton').addEventListener('click', () => {
-    if (!current || performance.now() < ignoreClicksUntil) return;
+  // マウス・タップで押したボタンからはフォーカスを外す。残したままだと、そのあと Esc などのキーを押したときに
+  // ブラウザがキーボードの操作とみなしてフォーカスの見た目（Bootstrap では塗りつぶし）を出すため。
+  // キーボードで押したとき（e.detail が 0）はフォーカスを残す
+  ['practiceStage', 'practiceResult'].forEach((id) =>
+    $(id).addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (b && e.detail > 0) b.blur();
+    })
+  );
+
+  // 解けなかった：記録して DNF を出す（0.00 に戻してすぐ DNF を書くので、間に 0.00 は見えない）
+  function giveUp() {
+    if (!current) return;
     resetTimer();
     if (isFull()) recordFull(0, 'DNF');
     else record(null);
+  }
+  // キーボード（Tab と Enter）で押したとき。マウス・タップは上の pointerdown で処理する
+  $('dnfButton').addEventListener('click', () => {
+    if (performance.now() < ignoreClicksUntil) return;
+    giveUp();
   });
   // ヒント：ケースの名前と、解く手順の最初の3手（前の AUF は出題の向きで変わるので出さない）
   function firstMoves(alg, n) {
@@ -962,7 +975,7 @@
       .join(' ');
   }
   $('hintButton').addEventListener('click', () => {
-    if (!current || state === 'running' || performance.now() < ignoreClicksUntil) return;
+    if (!current || state === 'inspecting' || performance.now() < ignoreClicksUntil) return;
     const box = $('practiceHintText');
     // もう一度押すと消す（一度見たので、この問題は練習中の扱いのまま）
     if (box.childElementCount) {
@@ -979,6 +992,10 @@
     I.set($('hintButton'), shown ? 'practice.hintHide' : 'practice.hintButton');
     $('hintButton').setAttribute('aria-pressed', String(shown));
   }
+  // 「中止」：計測中は押した瞬間（上の pointerdown）に止める。インスペクション中はここで止める
+  $('cancelButton').addEventListener('click', () => {
+    if (state !== 'idle') resetTimer();
+  });
   $('skipButton').addEventListener('click', () => {
     if (performance.now() < ignoreClicksUntil) return;
     next();
