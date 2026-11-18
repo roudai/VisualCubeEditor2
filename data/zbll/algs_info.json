@@ -4309,9 +4309,9 @@
     "name": "Antisune-JN4",
     "group": "Jean-Niklas",
     "algset": "Antisune-ZBLL",
-    "s": "(U) F R' U F U2 F' U' R F U' F' U' F' (U2)",
+    "s": "(U) F R' U F U2 F' U' R F U' F' U' F'",
     "a": [
-      "(U) R U2 R' F' R U R' U' R' F R U' R U R' U R U R'",
+      "(U') R U2 R' F' R U R' U' R' F R U' R U R' U R U R'",
       "(U') R U' R2 D' R U R' D R2 U' R' U R U2 R' U2 R U' R'",
       "(U') R U2 R' U' R U' R' l' U R' D2 R U' R' D2 R2",
       "(U) R U R U' R2 D U2 R' U' R U D' R"

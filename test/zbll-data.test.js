@@ -97,3 +97,15 @@ test('472 ケースの状態が、前後の AUF の違いを除いてすべて�
   };
   assert.equal(new Set(ZBLL.map((c) => key(c.setup))).size, 472);
 });
+
+test('一覧の向き：同じ OCLL のケースは、上面の向き（U の色の位置）がすべて同じ', () => {
+  const MASK = M.ollMask(M.DEFAULT_SCHEME);
+  const pattern = (setup) => {
+    const c = M.toImageColors(M.applyAlg(setup), MASK);
+    return c.ucolor.map((x) => (x === MASK.U ? 'x' : '.')).join('') + '|' + c.scolor.map((x) => (x === MASK.U ? 'x' : '.')).join('');
+  };
+  OCLL.forEach(([o]) => {
+    const patterns = new Set(ZBLL.filter((c) => ocllOf(c) === o).map((c) => pattern(c.setup)));
+    assert.equal(patterns.size, 1, `${o}: ${[...patterns].join(' / ')}`);
+  });
+});
