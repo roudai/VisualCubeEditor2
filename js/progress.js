@@ -25,6 +25,11 @@
  *   recentPerCase(log, { set, from, n, dnfAs })
  *                                   ケースごとの直近 n 回（既定 10）の { attempts, avg（解けた回の平均。無ければ null）, dnf, score }
  *                                     score は苦手の度合い：解けなかった回を dnfAs 秒として数えた平均（記録のページの「苦手順」）
+ *   weakScores(log, { set, from, n, dnfAs, prior })
+ *                                   ケースごとの苦手の度合い { scores: { name: 寄せた score }, overall }。回数の少ないケースが
+ *                                     たまたまの1回で目立たないよう、全体の平均（overall）で prior 回（既定 2）解いたものとして足す
+ *   pickWeighted(list, weightOf, random)
+ *                                   list から weightOf(item) に比例した確率で1つ選ぶ（重みがすべて 0 以下なら一様。random 既定 Math.random）
  *   通しの練習（WCA と同じ扱い）。rec = { at, sec, penalty: '' | '+2' | 'DNF' }
  *   effectiveTime(rec)              ペナルティを含めたタイム（+2 なら sec + 2、DNF なら null）
  *   average(recs, n)                直近 n 回（recs は新しい順）の WCA 式の平均：最速と最遅を除いた平均。
@@ -225,6 +230,38 @@
     return out;
   }
 
+  function weakScores(log, opts) {
+    const o = opts || {};
+    const prior = o.prior == null ? 2 : o.prior;
+    const recent = recentPerCase(log, o);
+    const all = Object.values(recent);
+    const total = all.reduce((sum, x) => sum + x.attempts, 0);
+    const overall = total ? all.reduce((sum, x) => sum + x.score * x.attempts, 0) / total : 0;
+    const scores = {};
+    Object.keys(recent).forEach((name) => {
+      const x = recent[name];
+      scores[name] = (x.score * x.attempts + overall * prior) / (x.attempts + prior);
+    });
+    return { scores: scores, overall: overall };
+  }
+
+  function pickWeighted(list, weightOf, random) {
+    const rand = random || Math.random;
+    if (!list.length) return undefined;
+    const weights = list.map((x) => {
+      const w = Number(weightOf(x));
+      return w > 0 && isFinite(w) ? w : 0;
+    });
+    const sum = weights.reduce((a, b) => a + b, 0);
+    if (!(sum > 0)) return list[Math.floor(rand() * list.length)];
+    let r = rand() * sum;
+    for (let i = 0; i < list.length; i++) {
+      r -= weights[i];
+      if (r < 0) return list[i];
+    }
+    return list[list.length - 1];
+  }
+
   // ---- タイムの表示 ----
   function formatTime(sec, digits) {
     const d = digits == null ? 2 : digits;
@@ -291,6 +328,8 @@
   return {
     STATUSES: STATUSES,
     thresholdOf: thresholdOf,
+    weakScores: weakScores,
+    pickWeighted: pickWeighted,
     wrapAuf: wrapAuf,
     formatTime: formatTime,
     effectiveTime: effectiveTime,

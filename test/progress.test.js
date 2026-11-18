@@ -212,3 +212,42 @@ test('caseColors：COLL は側面のエッジのステッカー（側面上段�
   coll.scolor.forEach((x, i) => assert.equal(x, i % 3 === 1 ? M.OLL_GRAY : plain.scolor[i], String(i)));
   assert.deepEqual(P.caseColors(c, M.DEFAULT_SCHEME, 'pll'), plain);
 });
+
+test('weakScores：回数の少ないケースを全体の平均に寄せる。解けなかった回は dnfAs として数える', () => {
+  const log = [
+    { at: 1, set: 'pll', name: 'A', sec: 4 },
+    { at: 2, set: 'pll', name: 'A', sec: 4 },
+    { at: 3, set: 'pll', name: 'A', sec: 4 },
+    { at: 4, set: 'pll', name: 'A', sec: 4 },
+    { at: 5, set: 'pll', name: 'B', sec: null },
+    { at: 6, set: 'oll', name: 'X', sec: 30 },
+  ];
+  const w = P.weakScores(log, { set: 'pll', dnfAs: 16 });
+  assert.equal(w.overall, (4 * 4 + 16) / 5);
+  assert.equal(w.scores.A, (4 * 4 + w.overall * 2) / 6);
+  assert.equal(w.scores.B, (16 + w.overall * 2) / 3);
+  assert.ok(!('X' in w.scores));
+  assert.deepEqual(P.weakScores([], {}), { scores: {}, overall: 0 });
+  // prior: 0 なら寄せない
+  assert.equal(P.weakScores(log, { set: 'pll', dnfAs: 16, prior: 0 }).scores.B, 16);
+});
+
+test('pickWeighted：重みに比例して選ぶ。重みがすべて 0 なら一様', () => {
+  const seq = (values) => {
+    let i = 0;
+    return () => values[i++ % values.length];
+  };
+  const list = ['a', 'b', 'c'];
+  const weight = (x) => ({ a: 1, b: 0, c: 3 })[x];
+  // 合計 4：[0,1) → a、[1,4) → c（b は重み 0 なので選ばれない）
+  assert.equal(P.pickWeighted(list, weight, seq([0.2])), 'a');
+  assert.equal(P.pickWeighted(list, weight, seq([0.3])), 'c');
+  assert.equal(P.pickWeighted(list, weight, seq([0.99])), 'c');
+  assert.equal(P.pickWeighted(list, () => 0, seq([0.5])), 'b');
+  assert.equal(P.pickWeighted([], weight), undefined);
+  let r = 0;
+  const counts = { a: 0, b: 0, c: 0 };
+  for (let i = 0; i < 4000; i++) counts[P.pickWeighted(list, weight, () => ((r = (r + 0.6180339887) % 1)))]++;
+  assert.equal(counts.b, 0);
+  assert.ok(Math.abs(counts.c / counts.a - 3) < 0.1);
+});

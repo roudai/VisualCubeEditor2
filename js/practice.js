@@ -1,7 +1,7 @@
 // 練習ページ（practice.html）：スクランブルを出し、手元のパズルで解くタイムを測って習得状況を自動で変える。
 // 仕様: reference/PRACTICE_SPEC.md
-//   - 出題：選んだ種類（PLL / OLL / COLL）・グループ（選んでいなければすべて）・対象（習得状況）に当てはまるケースからランダム
-//     （直前と同じケースは避ける）、そのケースのスクランブル（js/<pll|oll>-scrambles.js。各 20 本。ランダムな AUF 込みで
+//   - 出題：選んだ種類（PLL / OLL / COLL）・グループ（選んでいなければすべて）・対象（習得状況）に当てはまるケースから選ぶ
+//     （直前と同じケースは避ける。設定の出題が「苦手を多めに」なら苦手なケースほど出やすく、「ランダム」なら同じ確率）、そのケースのスクランブル（js/<pll|oll>-scrambles.js。各 20 本。ランダムな AUF 込みで
 //     作ってあるので、そのまま出す）からランダムに選ぶ。ケースの名前と画像は解き終わるまで出さない
 //   - グループを選ぶ欄で「グループ順 / 覚える順」（OLL は「番号順 / 覚える順」）を切り替えられる（覚える順は data/<set>/learn_order.json。
 //     Cube Voyage の順。並びは 'list-filter' の <set>Order、選んだ段階は prefs.groups['<set>-stage']）。
@@ -232,6 +232,20 @@
       custom
     );
     box.append(field('practice.threshold', thresholdBox));
+    // 出題：苦手を多めに（既定）/ ランダム（PLL・OLL・COLL 共通）。変えても今の問題はそのまま
+    box.append(
+      field(
+        'practice.pick',
+        segment(
+          [
+            { value: true, key: 'practice.pickWeak' },
+            { value: false, key: 'practice.pickRandom' },
+          ],
+          weighted(),
+          (v) => changeSettings({ weighted: v }, false)
+        )
+      )
+    );
     if (groupsOpen) box.append(groupPicker());
   }
 
@@ -340,6 +354,23 @@
   // ?case=Aa で開いたときは、最初の1問だけそのケースを出す（記録のページから「このケースを練習」）
   let forcedName = params.get('case');
 
+  // 出題の重み：出題が「苦手を多めに」（既定）なら、どの対象でも苦手なケースほど出やすくする（順番ではなく確率に差をつける。
+  // 未習得は記録がほとんど無いので、ほぼ同じ確率になる）。
+  // 苦手の度合いは記録のページの苦手順と同じ（直近 10 回の平均。解けなかった回は目安の 2 倍。回数の少ないケースは全体の平均に寄せる）。
+  // 重み＝（度合い ÷ 目安）を 0.5〜3 に収めて 2 乗（0.25〜9）。まだ解いていないケースは全体の平均の重み。記録が無ければすべて同じ
+  const weighted = () => prefs.weighted !== false; // 出題が「苦手を多めに」か（保存していなければそう。false ならランダム）
+  function weightFor(set) {
+    if (!weighted()) return () => 1;
+    const limit = threshold(set);
+    const weak = P.weakScores((S.get('practice') || {}).log, { set: set, n: 10, dnfAs: limit * 2 });
+    if (!(weak.overall > 0)) return () => 1;
+    return (c) => {
+      const score = c.name in weak.scores ? weak.scores[c.name] : weak.overall;
+      const ratio = Math.min(3, Math.max(0.5, score / limit));
+      return ratio * ratio;
+    };
+  }
+
   // keepTime: 解き終わったとき（PLL / OLL / 通し）。タイムを 0.00 に戻さず、次のインスペクション・計測が始まるまで出したままにする
   function next(keepTime) {
     if (keepTime) {
@@ -373,7 +404,7 @@
       return;
     }
     const candidates = list.length > 1 ? list.filter((c) => c.name !== lastName) : list;
-    const c = candidates[Math.floor(Math.random() * candidates.length)];
+    const c = forced ? forced : P.pickWeighted(candidates, weightFor(prefs.set));
     // スクランブルはランダムな AUF 込みで作ってある（tools/gen-scrambles.js）ので、そのまま出す
     const scrambles = SCRAMBLES[prefs.set][c.name] || [];
     const scramble = scrambles[Math.floor(Math.random() * scrambles.length)] || '';
