@@ -16,7 +16,10 @@ const data = Demo.build({ now: NOW });
 test('demo-data：PLL・OLL・COLL の記録は今あるケースだけで、新しい順・過去 60 日以内・保存の上限以内', () => {
   const names = { pll: new Set(PLL.map((c) => c.name)), oll: new Set(OLL.map((c) => c.name)), coll: new Set(COLL.map((c) => c.name)), zbll: new Set(ZBLL.map((c) => c.name)) };
   assert.ok(data.practice.log.some((e) => e.set === 'coll'), 'COLL の記録がある');
-  assert.ok(data.practice.log.some((e) => e.set === 'zbll'), 'ZBLL の記録がある');
+  ['coll', 'zbll'].forEach((set) => {
+    assert.ok(data.practice.log.filter((e) => e.set === set).length >= 150, `${set} の記録が 150 件以上ある`);
+    assert.ok(Object.keys(data.progress[set]).length >= 30, `${set} の習得状況が 30 ケース以上ある`);
+  });
   // 習得の目安は種類ごと（判定もその目安で付いている）
   assert.deepEqual(Object.keys(data.practice.thresholds).sort(), ['coll', 'oll', 'pll', 'zbll']);
   data.practice.log.forEach((e) => {
@@ -69,6 +72,7 @@ test('serve.js --demo：ページにテストデータのスクリプトを入�
     const seed = await get(demo, '/__demo/seed.js');
     assert.ok(seed.body.includes(JSON.stringify(PREFIX)));
     assert.ok(seed.body.includes(JSON.stringify(data)), 'テストデータがそのまま入る');
+    assert.ok(seed.body.includes(`VERSION = "v${Demo.VERSION}"`), '入れた版が違えば入れ直す');
     assert.match((await get(demo, '/__demo/reset')).body, /location\.replace\('\/stats'\)/);
     assert.doesNotMatch((await get(plain, '/stats')).body, /__demo/);
     assert.doesNotMatch((await get(plain, '/js/firebase-config.js')).body, /FIREBASE_CONFIG = null/);

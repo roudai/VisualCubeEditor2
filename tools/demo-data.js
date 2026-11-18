@@ -5,6 +5,7 @@
 // 覚える順・範囲（algset）が無いのでデータの順に使い、通しのスクランブルは random-state の 3x3）。
 //
 //   build({ now })  → { practice, progress }（store.js の 'practice'・'progress' にそのまま入れる形）
+//   VERSION         テストデータの中身（種類・量）を変えたら上げる。serve.js --demo は、ブラウザに入れた版と違えば入れ直す
 'use strict';
 const PLL = require('../js/pll-data.js');
 const OLL = require('../js/oll-data.js');
@@ -15,6 +16,7 @@ const W = require('../js/wca-scramble.js');
 const DAY = 24 * 60 * 60 * 1000;
 // 習得の目安（秒）。種類ごと（移植元の PLL 8・OLL 5 を、このテストデータの速さ 1.2〜6.5 秒に合わせて読み替えた）
 const THRESHOLDS = { pll: 3, oll: 2, coll: 3, zbll: 3 };
+const VERSION = 2; // 2：COLL・ZBLL の記録を入れた
 
 // 種を固定した乱数（mulberry32）
 function rng(seed) {
@@ -78,8 +80,8 @@ function build(opts) {
   const random = rng(20261117);
   const caseRecords = caseLog(random, 'pll', PLL, 420, 45, now)
     .concat(caseLog(random, 'oll', OLL.slice(0, 40), 260, 30, now))
-    .concat(caseLog(random, 'coll', COLL, 180, 20, now))
-    .concat(caseLog(random, 'zbll', ZBLL.slice(0, 80), 160, 15, now))
+    .concat(caseLog(random, 'coll', COLL, 320, 30, now))
+    .concat(caseLog(random, 'zbll', ZBLL.slice(0, 144), 360, 25, now)) // ZBLL は T・U の 144 ケース
     .sort((a, b) => b.at - a.at) // 新しい順
     .slice(0, 2000);
 
@@ -105,4 +107,4 @@ function build(opts) {
   return { practice: practice, progress: progress };
 }
 
-module.exports = { build: build, THRESHOLDS: THRESHOLDS };
+module.exports = { build: build, THRESHOLDS: THRESHOLDS, VERSION: VERSION };

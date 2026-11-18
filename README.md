@@ -90,6 +90,7 @@ node tools/serve.js --demo    # http://localhost:8001/stats  (sample records, si
 
 `--demo` uses its own port so that its browser storage stays separate from yours. It fills in practice records,
 recent times and progress (`tools/demo-data.js`) and shows a badge with a reset link (`/__demo/reset`).
+When `VERSION` in `tools/demo-data.js` changes, a browser with older sample data is filled in again.
 
 Tests (Node.js built-in test runner; checked with Node.js 24):
 

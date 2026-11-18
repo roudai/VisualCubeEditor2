@@ -5,7 +5,7 @@
 //
 // テストデータで動かす：node tools/serve.js --demo [port]（既定 8001）→ http://localhost:8001/stats
 //   - 練習の記録（PLL・OLL・COLL・ZBLL・通し）・最近のタイム・習得状況にテストデータ（tools/demo-data.js）を入れた状態で開く
-//     （ページを開いたときにまだ入れていなければ入れる。/__demo/reset で入れ直す）
+//     （ページを開いたときにまだ入れていなければ入れる。入れた版（demo-data.js の VERSION）が古ければ入れ直す。/__demo/reset でも入れ直す）
 //   - ログインは使えなくする（js/firebase-config.js の代わりに FIREBASE_CONFIG = null を返す）。テストデータがアカウントに送られないように
 //   - ポートを普段（8000）と分けるので、ブラウザの保存（localStorage）も普段のものとは別になる
 //   - 画面の右下に「テストデータ」の印とリセットのリンクを出す。本番（GitHub Pages）には関係しない
@@ -17,7 +17,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const PREFIX = 'visualcube-editor:'; // js/store.js の Store.PREFIX
-const DEMO_MARK = PREFIX + 'demo-seeded'; // テストデータを入れたか（store.js の名前ではないので保存の対象にならない）
+const DEMO_MARK = PREFIX + 'demo-seeded'; // 入れたテストデータの版（store.js の名前ではないので保存の対象にならない）
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -48,16 +48,17 @@ function resolveFile(urlPath) {
 // ---- テストデータ（--demo） ----
 let demoCache = null; // 作るのに数秒かかる（通しのスクランブル）ので、起動して最初に使うときに1回だけ作る
 
-// 各ページの <head> の最初に入れるスクリプト：まだ入れていなければテストデータを入れ、右下に印を出す
+// 各ページの <head> の最初に入れるスクリプト：まだ入れていない（または入れた版が古い）ならテストデータを入れ、右下に印を出す
 function demoScript(data) {
   if (!data && !demoCache) demoCache = require('./demo-data.js').build({ now: Date.now() });
+  const version = 'v' + require('./demo-data.js').VERSION;
   return `(function () {
-  var P = ${JSON.stringify(PREFIX)}, MARK = ${JSON.stringify(DEMO_MARK)};
+  var P = ${JSON.stringify(PREFIX)}, MARK = ${JSON.stringify(DEMO_MARK)}, VERSION = ${JSON.stringify(version)};
   try {
-    if (!localStorage.getItem(MARK)) {
+    if (localStorage.getItem(MARK) !== VERSION) {
       var data = ${JSON.stringify(data || demoCache)};
       Object.keys(data).forEach(function (k) { localStorage.setItem(P + k, JSON.stringify(data[k])); });
-      localStorage.setItem(MARK, String(Date.now()));
+      localStorage.setItem(MARK, VERSION);
     }
   } catch (e) {}
   document.addEventListener('DOMContentLoaded', function () {
