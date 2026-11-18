@@ -81,7 +81,8 @@
     const card = el('div', 'card h-100 case-card');
     const link = el('a', 'case-link d-block h-100');
     // ZBLL はエディタにケースを選ぶ行が無いので、手順をそのまま「この手順で揃う状態」で開く
-    link.href = SET === 'zbll' ? `/?case=${encodeURIComponent(c.alg)}` : `/?${SET}=${encodeURIComponent(c.name)}`;
+    // ZBLL はエディタに選ぶ行が無いので、名前（表示と保存のファイル名）と手順を渡す
+    link.href = SET === 'zbll' ? `/?zbll=${encodeURIComponent(c.name)}&case=${encodeURIComponent(c.alg)}` : `/?${SET}=${encodeURIComponent(c.name)}`;
     I.set(link, 'list.openTitle', { name: c.name }, 'title');
 
     const image = el('div', 'case-image mx-auto mt-2');

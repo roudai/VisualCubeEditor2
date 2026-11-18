@@ -174,6 +174,15 @@
       else if (params.has('case')) {
         this.algorithm = params.get('case');
         this.algtype = 'case';
+        // ZBLL 一覧から（?zbll=名前&case=手順）：ほかの一覧から開いたときと同じく 3x3・Plan・PLL と同じ配色（OLL の配色・COLL のマスクは外す）
+        if (params.has('zbll')) {
+          const name = String(params.get('zbll')).replace(/[^\w\-+=/ ]/g, '').replace(/[/ ]/g, '_');
+          this.cubeSize = 3;
+          this.cubeView = 'plan';
+          this.applySetScheme('zbll');
+          this.applySetMask(null);
+          if (name) this.fileName = `zbll-${name}.png`;
+        }
       } else if (params.has('alg')) {
         this.algorithm = params.get('alg');
         this.algtype = 'alg';

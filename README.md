@@ -25,7 +25,7 @@ URL: https://visualcube.roudai.net/
 
 ### Case lists (`/pll`, `/oll`, `/coll`, `/zbll`)
 - All 21 PLL, 57 OLL, 40 COLL and 472 ZBLL cases with images and algorithms. Click a case to open it in the editor
-  (ZBLL has no row in the editor; its algorithm is opened with `/?case=`)
+  (ZBLL has no row in the editor; its name and algorithm are opened with `/?zbll=<name>&case=<alg>` in plan view)
 - Mark each case as **To learn / Learning / Learned**, see your progress, and filter by status
 - Order by group or by **learning order** (13 stages each for PLL and OLL). OLL can also be shown in number order (1–57)
 - Show only the groups or stages you pick, practice exactly those cases, and reset all progress (with undo)
