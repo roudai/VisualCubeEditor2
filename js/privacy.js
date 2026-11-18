@@ -47,7 +47,7 @@
     if (!confirming) {
       I.set(status, 'privacy.signedInAs', { name: sync.name });
       actions.append(
-        button('privacy.deleteButton', 'btn-outline-danger', () => {
+        button('privacy.deleteButton', 'btn-outline-secondary', () => {
           confirming = true;
           setMessage('');
           renderDelete();

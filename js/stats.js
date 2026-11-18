@@ -714,7 +714,7 @@
     I.set(allText, 'stats.selectAllShort');
     allLabel.append(allBox, allText);
     if (view.set === 'full') bar.append(allLabel);
-    const del = el('button', 'btn btn-outline-danger btn-sm');
+    const del = el('button', 'btn btn-outline-secondary btn-sm');
     del.type = 'button';
     I.set(del, 'stats.deleteSelected', { n: n });
     del.disabled = !n;

@@ -197,7 +197,7 @@
 }
 .reset-progress:hover,
 .reset-progress:focus-visible {
-  color: #dc3545;
+  color: #212529;
 }
 .reset-progress:disabled {
   visibility: hidden;

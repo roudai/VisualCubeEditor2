@@ -416,11 +416,13 @@
   order: 1; /* 削除のメッセージより後ろ（右端）に置く */
   margin-left: auto;
   padding: 0;
-  color: #b02a37;
+  color: #6c757d; /* 普段は赤くしない（赤は確認のあとの「すべて削除する」だけ） */
   font-size: .82rem;
   text-decoration: none;
 }
-.stats-delete-all:hover {
+.stats-delete-all:hover,
+.stats-delete-all:focus-visible {
+  color: #212529;
   text-decoration: underline;
 }
 .stats-undo {
@@ -448,8 +450,8 @@
 .stats-row-delete:hover,
 .stats-row-delete:focus-visible {
   outline: none;
-  background: rgba(220, 53, 69, .1);
-  color: #dc3545;
+  background: rgba(0, 0, 0, .06);
+  color: #212529;
 }
 
 /* 通しの記録の一覧：日時・タイム・平均・削除の列は中身の幅だけにする（残りの幅はスクランブルの列へ） */
