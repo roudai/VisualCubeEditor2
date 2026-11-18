@@ -354,10 +354,10 @@
   // ?case=Aa で開いたときは、最初の1問だけそのケースを出す（記録のページから「このケースを練習」）
   let forcedName = params.get('case');
 
-  // 出題の重み：出題が「苦手を多めに」（既定）なら、どの対象でも苦手なケースほど出やすくする（順番ではなく確率に差をつける。
-  // 未習得は記録がほとんど無いので、ほぼ同じ確率になる）。
+  // 出題の重み：出題が「苦手を多めに」（既定）なら、どの対象でも苦手なケースほど出やすくする（順番ではなく確率に差をつける）。
   // 苦手の度合いは記録のページの苦手順と同じ（直近 10 回の平均。解けなかった回は目安の 2 倍。回数の少ないケースは全体の平均に寄せる）。
-  // 重み＝（度合い ÷ 目安）を 0.5〜3 に収めて 2 乗（0.25〜9）。まだ解いていないケースは全体の平均の重み。記録が無ければすべて同じ
+  // 重み＝（度合い ÷ 目安）を 0.5〜3 に収めて 2 乗（0.25〜9）。まだ解いていないケースは解けなかったのと同じ扱い
+  // （度合い＝目安の 2 倍 → 重み 4）にして、苦手なケースと同じくらい出るようにする。記録が無ければすべて同じ
   const weighted = () => prefs.weighted !== false; // 出題が「苦手を多めに」か（保存していなければそう。false ならランダム）
   function weightFor(set) {
     if (!weighted()) return () => 1;
@@ -365,7 +365,7 @@
     const weak = P.weakScores((S.get('practice') || {}).log, { set: set, n: 10, dnfAs: limit * 2 });
     if (!(weak.overall > 0)) return () => 1;
     return (c) => {
-      const score = c.name in weak.scores ? weak.scores[c.name] : weak.overall;
+      const score = c.name in weak.scores ? weak.scores[c.name] : limit * 2; // まだ解いていない：解けなかったのと同じ
       const ratio = Math.min(3, Math.max(0.5, score / limit));
       return ratio * ratio;
     };
