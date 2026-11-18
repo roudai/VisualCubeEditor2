@@ -77,10 +77,10 @@
         <div id="timerHint" class="practice-hint" data-i18n="practice.hint">Space to start, any key to stop (tap on phones)</div>
         <!-- ボタンは状態で出し分ける（css/practice.css）：スタート前＝スキップ・ヒント、計測中＝解けなかった・ヒント・中止、インスペクション中＝中止 -->
         <div class="practice-buttons d-flex justify-content-center gap-2 mt-2">
-          <button id="dnfButton" type="button" class="btn btn-sm btn-outline-secondary" data-i18n="practice.dnf">Couldn't solve</button>
-          <button id="skipButton" type="button" class="btn btn-sm btn-outline-secondary" data-i18n="practice.skip">Skip</button>
-          <button id="hintButton" type="button" class="btn btn-sm btn-outline-secondary" data-i18n="practice.hintButton">Hint</button>
-          <button id="cancelButton" type="button" class="btn btn-sm btn-outline-secondary" data-i18n="practice.cancel">Cancel</button>
+          <button id="dnfButton" type="button" class="btn btn-sm btn-outline-secondary" data-key="D" aria-keyshortcuts="D" data-i18n="practice.dnf">Couldn't solve</button>
+          <button id="skipButton" type="button" class="btn btn-sm btn-outline-secondary" data-key="S" aria-keyshortcuts="S" data-i18n="practice.skip">Skip</button>
+          <button id="hintButton" type="button" class="btn btn-sm btn-outline-secondary" data-key="H" aria-keyshortcuts="H" data-i18n="practice.hintButton">Hint</button>
+          <button id="cancelButton" type="button" class="btn btn-sm btn-outline-secondary" data-key="Esc" aria-keyshortcuts="Escape" data-i18n="practice.cancel">Cancel</button>
         </div>
         <div id="practiceHintText" class="practice-hint-text" aria-live="polite"></div>
         <div id="practiceEmpty" class="practice-empty" data-i18n="practice.empty" hidden>No cases match. Change the target.</div>

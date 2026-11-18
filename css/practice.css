@@ -249,6 +249,14 @@
 .practice-buttons {
   min-height: calc(1.5em + .5rem + 2px); /* btn-sm の高さ */
 }
+/* キーボードのショートカットをボタンに添える（例「スキップ (S)」）。マウスが使える画面だけ（スマホでは出さない） */
+@media (hover: hover) and (pointer: fine) {
+  .practice-buttons button[data-key]::after {
+    content: " (" attr(data-key) ")";
+    opacity: .6;
+    font-size: .85em;
+  }
+}
 #dnfButton,
 #cancelButton,
 .practice-stage.running #skipButton,

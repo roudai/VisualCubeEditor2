@@ -873,6 +873,20 @@
   // ---- 操作 ----
   const typing = (e) => /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '');
 
+  // ボタンのショートカット：S＝スキップ、H＝ヒント、D＝解けなかった（中止は Esc）。そのボタンが出ているときだけ
+  // ボタンを押したのと同じにする（出し分けは css/practice.css）。計測中の H・D は止める操作にしない。
+  // 日本語入力がオンでも効くよう、文字（e.key）ではなくキーの位置（e.code）で見る
+  const SHORTCUTS = { KeyS: 'skipButton', KeyH: 'hintButton', KeyD: 'dnfButton' };
+  function shortcut(e) {
+    const id = SHORTCUTS[e.code];
+    if (!id) return false;
+    const b = $(id);
+    if (b.disabled || getComputedStyle(b).display === 'none') return false;
+    e.preventDefault();
+    b.click();
+    return true;
+  }
+
   document.addEventListener('keydown', (e) => {
     if (typing(e) || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.repeat) {
@@ -880,6 +894,7 @@
       if (e.code === 'Space' || state === 'running') e.preventDefault();
       return;
     }
+    if (shortcut(e)) return;
     if (state === 'running') {
       e.preventDefault();
       if (e.key === 'Escape') resetTimer();
