@@ -1,9 +1,11 @@
-// data/<pll|oll>/algs_info.json から js/<pll|oll>-data.js を生成する共通部分。
-// tools/build-pll-data.js・tools/build-oll-data.js から使う（それぞれ createBuilder('pll') / createBuilder('oll') を呼ぶだけ）。
-// 仕様: reference/PLL_SPEC.md・reference/OLL_SPEC.md
+// data/<set>/algs_info.json から js/<set>-data.js を生成する共通部分（set は pll・oll・coll・zbll）。
+// tools/build-<set>-data.js から使う（それぞれ createBuilder('<set>') を呼ぶだけ）。
+// 仕様: reference/PLL_SPEC.md・OLL_SPEC.md・COLL_SPEC.md・ZBLL_SPEC.md
 //
 //   元データ data/<set>/algs_info.json = { "番号": { name, group, algset, s, a } }
 //     a: [前AUF] 手順              解く手順。例: "(U') R U R' ..."。最後の AUF は付けない。
+//                                  手順の配列でもよい（ZBLL）。1本目が主な手順（alg）で s と完全に合うこと。
+//                                  2本目以降は別解（alts）で、同じケースを前後の AUF を除いて揃えること
 //                                  最後の持ち替えは、x … x' のように向きを元に戻すものだけ書いてよい
 //     s: [AUF] setup [AUF]         そのケースになる手順。センターを動かさないこと
 //                                  （a の前AUFを変えたら s の前後の AUF で合わせる）
@@ -18,8 +20,10 @@
 //
 //   覚える順番 data/<set>/learn_order.json（段階ごとのケース名の配列）があれば、各ケースに stage（段階）と
 //   order（覚える順の通し番号）を付ける。全ケースがちょうど1回ずつ無ければエラー。無ければ付けない
+//   ZBLL は learn_order.json を使わず、OCLL（algset の T-ZBLL など）を段階にする（stage は OCLL が出てくる順、order はデータの順）。
+//   group は「T / 2GLL」のように OCLL と小グループを合わせたものにする
 //
-//   出力 js/<set>-data.js = [{ name, group, (stage, order,) alg, setup }, …]（ブラウザでは window.PLL_DATA / OLL_DATA / COLL_DATA）
+//   出力 js/<set>-data.js = [{ name, group, (stage, order,) alg, (alts,) setup }, …]（ブラウザでは window.<SET>_DATA）
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -41,6 +45,13 @@ const MESSAGES = {
     'setup-f2l': 's で最後の層以外が崩れています',
     'not-solved': 'a で s のケースの上面が揃いません',
     mismatch: 'Algorithm to solve case（a）と Algorithm to apply（s）の上面の向きが一致しません',
+  },
+  // ZBLL は PLL と同じ確認（状態をまるごと比べる）
+  zbll: {
+    'trailing-y': 'a の最後に持ち替え（x y z）が付いています（向きを元に戻すもの以外は付けない）',
+    'trailing-auf': 'a の最後に AUF が付いています（最後の AUF は付けない）',
+    'not-solved': 'a で s のケースが揃いません（最後の AUF を除いても揃わない）',
+    mismatch: 'Algorithm to solve case（a の1本目）と Algorithm to apply（s）の画像が一致しません',
   },
   coll: {
     'trailing-y': 'a の最後に持ち替え（x y z）が付いています（向きを元に戻すもの以外は付けない）',
@@ -94,6 +105,19 @@ function createBuilder(set, options) {
     return at;
   }
 
+  // ZBLL の OCLL（algset "T-ZBLL" → "T"）と、OCLL を段階にした { name: { stage, order } }
+  const ocllOf = (c) => String(c.algset || '').replace(/-ZBLL$/, '');
+  function ocllStages(list) {
+    const stages = [];
+    const at = {};
+    list.forEach((c, i) => {
+      const o = ocllOf(c);
+      if (!stages.includes(o)) stages.push(o);
+      at[c.name] = { stage: stages.indexOf(o) + 1, order: i + 1 };
+    });
+    return at;
+  }
+
   function cases() {
     const src = JSON.parse(fs.readFileSync(SRC, 'utf8'));
     const errors = [];
@@ -103,32 +127,53 @@ function createBuilder(set, options) {
       if (typeof name !== 'string' || !name) errors.push(`${Object.keys(src)[i]}: name がありません`);
       else if (names.indexOf(name) !== i) errors.push(`${name}: 名前が重複しています`);
     });
-    const learn = learnOrder(names, errors);
+    const learn = set === 'zbll' ? ocllStages(list) : learnOrder(names, errors);
     const out = list.map((c) => {
       if (typeof c.group !== 'string' || !c.group) errors.push(`${c.name}: group がありません`);
-      if (typeof c.a !== 'string' || typeof c.s !== 'string') {
-        errors.push(`${c.name}: a と s は手順1本の文字列にしてください`);
+      // a は手順1本、または手順の配列（1本目が主な手順、2本目以降は別解）
+      const many = Array.isArray(c.a);
+      const algs = many ? c.a : [c.a];
+      if (!algs.length || algs.some((x) => typeof x !== 'string') || typeof c.s !== 'string') {
+        errors.push(`${c.name}: a は手順の文字列（または手順の配列）、s は手順1本の文字列にしてください`);
         return null;
       }
-      const alg = C.convert(c.a);
+      const main = algs[0];
+      const alg = C.convert(main);
       const setup = C.convert(c.s);
       let problem;
       try {
-        problem = check(c.a, c.s);
+        problem = check(main, c.s);
       } catch (e) {
         errors.push(`${c.name}: ${e.message}`);
         return null;
       }
       if (problem) {
-        const fix = suggest(c.a, c.s);
+        const fix = suggest(main, c.s);
         errors.push(
           `${c.name}: ${problem}` +
-            (fix ? (fix.a !== c.a ? `\n    候補 a: ${fix.a}` : '') + `\n    候補 s: ${fix.s}` : '\n    （AUF を付け直しても合いません。手順を確認してください）')
+            (fix ? (fix.a !== main ? `\n    候補 a: ${fix.a}` : '') + `\n    候補 s: ${fix.s}` : '\n    （AUF を付け直しても合いません。手順を確認してください）')
         );
         return null;
       }
+      // 別解：同じケースを、前後の AUF を除いて揃えること
+      const alts = algs.slice(1).map((x) => C.convert(x));
+      alts.forEach((x, i) => {
+        let ok = false;
+        try {
+          ok = !!C.fitSetup(set, x, c.s);
+        } catch (e) {
+          ok = false;
+        }
+        if (!ok) errors.push(`${c.name}: a の ${i + 2} 本目（別解）でこのケースが揃いません: ${x}`);
+      });
+      const group = set === 'zbll' ? `${ocllOf(c)} / ${c.group}` : c.group;
       const at = learn ? learn[c.name] || {} : null;
-      return at ? { name: c.name, group: c.group, stage: at.stage, order: at.order, alg: alg, setup: setup } : { name: c.name, group: c.group, alg: alg, setup: setup };
+      const item = { name: c.name, group: group };
+      if (at) Object.assign(item, { stage: at.stage, order: at.order });
+      item.alg = alg;
+      if (many) item.alts = alts;
+      item.setup = setup;
+      return item;
     });
     if (errors.length) throw new Error(`${srcName} に問題があります:\n  ` + errors.join('\n  '));
     return out;

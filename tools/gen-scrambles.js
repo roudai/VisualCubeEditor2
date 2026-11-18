@@ -149,13 +149,13 @@ function main(argv) {
   for (const arg of argv) {
     const m = /^--(seed|count)=(\d+)$/.exec(arg);
     if (m) options[m[1]] = parseInt(m[2], 10);
-    else if (B.SETS.includes(arg)) sets.push(arg);
+    else if (B.GEN_SETS.includes(arg)) sets.push(arg);
     else {
       console.error('使い方: node tools/gen-scrambles.js [pll] [oll] [coll] [--seed=数] [--count=本数]');
       process.exit(1);
     }
   }
-  for (const set of sets.length ? sets : B.SETS) {
+  for (const set of sets.length ? sets : B.GEN_SETS) {
     const t0 = Date.now();
     const data = generate(set, B.loadCases(set), options);
     const out = B.paths(set).src;

@@ -18,7 +18,7 @@
  *                             向きを元に戻すための持ち替え（手順全体でセンターが元の位置に戻る）は外さない
  *   findCase(set, a, data)  a で揃うケース（data の要素）を探す（無ければ null）
  *
- * a・s は読み替え済み（convert 後）の手順。set は 'pll' / 'oll' / 'coll'。
+ * a・s は読み替え済み（convert 後）の手順。set は 'pll' / 'oll' / 'coll' / 'zbll'（ZBLL は PLL と同じ確認）。
  * 手順中の持ち替え・2層回し・中層回しで完成後の向きが変わっても揃ったとみなす（cancelRotation）。
  * s（そのケースになる手順）はセンターを動かさないこと（動かすと mismatch になる）。
  * ブラウザでは window.CaseCheck、node では module.exports として公開する。cube-state.js が必要。
@@ -50,6 +50,7 @@
     oll: /(\s*\(U[0-9']*\)|\s+U[0-9']*)+\s*$/,
   };
   TRAILING_AUF.coll = TRAILING_AUF.pll; // COLL は最後の U でコーナーの位置が変わるので、PLL と同じく括弧付きのものだけを見る
+  TRAILING_AUF.zbll = TRAILING_AUF.pll; // ZBLL は PLL と同じ確認（状態をまるごと比べる。check・fitSetup・caseKey も PLL の経路）
 
   // ---- OLL 用：最後の層（U層）と上面の向き ----
   const SOLVED = M.solved();

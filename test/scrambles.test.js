@@ -1,6 +1,7 @@
 // 実行: node --test
 // ケース用スクランブル：tools/gen-scrambles.js（生成）、tools/build-scrambles.js（確認と js/<set>-scrambles.js の生成）、
-// data/<pll|oll|coll>/scrambles.json と js/<pll|oll|coll>-scrambles.js の全件の確認。
+// data/<pll|oll|coll|zbll>/scrambles.json と js/<set>-scrambles.js の全件の確認。
+// ZBLL のスクランブルは用意されたもの（作り直さない）なので、本数（1〜20）と手数（12 手未満もある）の決まりだけ違う
 // 前半は代表的なケースを直書きして、生成 → 確認の流れを確かめる（データが無くても動く）。
 // 後半は置かれている scrambles.json の全件を確かめる（まだ無ければ skip。置かれたら自動で有効になる）
 const test = require('node:test');
@@ -46,6 +47,7 @@ function isCollCase(c, scramble) {
   const key = withoutEdges(state);
   return M.AUFS.some((pre) => M.AUFS.some((post) => withoutEdges(M.applyAlg(join(pre, c.setup, post))) === key));
 }
+// ZBLL は PLL と同じく、状態が「AUF・setup・AUF」のどれかと同じ
 const isCase = (set, c, scramble) => (set === 'oll' ? isOllCase(c, scramble) : set === 'coll' ? isCollCase(c, scramble) : isPllCase(c, scramble));
 
 // 生成物（js/<set>-scrambles.js の中身）をブラウザと同じように読む
@@ -196,22 +198,24 @@ test('oll（直書きのケース）：最後の層の置換（PLL の部分）�
 });
 
 // ---- 置かれているデータの全件の確認 ----
-for (const set of ['pll', 'oll', 'coll']) {
+for (const set of ['pll', 'oll', 'coll', 'zbll']) {
+  const given = set === 'zbll'; // 用意されたスクランブル（本数 1〜20、手数の下限なし）
   const p = B.paths(set);
   const missing = [p.data, p.src].filter((f) => !fs.existsSync(f)).map((f) => f.replace(/^.*[\\/](?=[^\\/]+[\\/][^\\/]+$)/, ''));
   const skip = missing.length ? missing.join('・') + ' がまだ無い（node tools/gen-scrambles.js で作る）' : false;
 
-  test(`data/${set}/scrambles.json：全ケースに ${COUNT} 本ずつあり、どれもそのケースになり、重複が無い`, { skip: skip }, () => {
+  test(`data/${set}/scrambles.json：全ケースに ${given ? '1〜' + COUNT : COUNT} 本ずつあり、どれもそのケースになり、重複が無い`, { skip: skip }, () => {
     const cases = B.loadCases(set);
     const raw = JSON.parse(fs.readFileSync(p.src, 'utf8'));
     assert.deepEqual(Object.keys(raw).sort(), cases.map((c) => c.name).sort());
     cases.forEach((c) => {
       const list = raw[c.name];
-      assert.equal(list.length, COUNT, c.name);
+      if (given) assert.ok(list.length >= 1 && list.length <= COUNT, c.name);
+      else assert.equal(list.length, COUNT, c.name);
       assert.equal(new Set(list).size, COUNT, c.name + ': 重複');
       list.forEach((s) => {
         assert.match(s, FORMAT);
-        assert.ok(s.split(' ').length >= G.MIN_MOVES && s.split(' ').length <= 24, c.name + ': ' + s);
+        assert.ok(s.split(' ').length >= (given ? 1 : G.MIN_MOVES) && s.split(' ').length <= 24, c.name + ': ' + s);
         assert.ok(isCase(set, c, s), c.name + ': ' + s);
         assert.equal(B.verifyScramble(set, c, s, cases), null, c.name + ': ' + s);
       });

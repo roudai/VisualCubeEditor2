@@ -88,7 +88,7 @@ test('読めない手順・足りない項目・名前の重複はエラーに�
     assert.throws(() => b.build(), /T: Invalid move/);
   });
   withSource('pll', { 1: { name: 'T', group: 'G', s: [T], a: T } }, (b) => {
-    assert.throws(() => b.build(), /a と s は手順1本の文字列にしてください/);
+    assert.throws(() => b.build(), /s は手順1本の文字列にしてください/);
   });
   withSource('pll', { 1: { name: 'T', s: T, a: T } }, (b) => {
     assert.throws(() => b.build(), /T: group がありません/);
@@ -125,4 +125,37 @@ test('覚える順番（learn_order.json）があれば stage・order を付け�
   withSource('pll', PLL_SRC, (b) => assert.throws(() => b.build(), /learn_order\.json: T がありません/), [['Jb']]);
   withSource('pll', PLL_SRC, (b) => assert.throws(() => b.build(), /learn_order\.json: Jb が2回あります/), [['Jb', 'T'], ['Jb']]);
   withSource('pll', PLL_SRC, (b) => assert.throws(() => b.build(), /learn_order\.json: X は algs_info\.json にありません/), [['Jb', 'T', 'X']]);
+});
+
+test('手順の配列：1本目を alg、2本目以降を alts にし、別解は同じケースを前後の AUF を除いて揃えること', () => {
+  withSource('pll', { 1: { name: 'T', group: 'G', s: T, a: [T, `(U2) ${T}`] } }, (b) => {
+    assert.deepEqual(b.cases(), [{ name: 'T', group: 'G', alg: T, alts: [`(U2) ${T}`], setup: T }]);
+  });
+  // 別解が別のケース（Jb）を揃える手順ならエラー
+  withSource('pll', { 1: { name: 'T', group: 'G', s: T, a: [T, JB] } }, (b) => {
+    assert.throws(() => b.build(), /T: a の 2 本目（別解）でこのケースが揃いません/);
+  });
+  // 1本目は今までどおり s と完全に合うこと
+  withSource('pll', { 1: { name: 'T', group: 'G', s: T, a: [`(U) ${T}`] } }, (b) => {
+    assert.throws(() => b.build(), /T: a で s のケースが揃いません/);
+  });
+});
+
+test('ZBLL：group は「OCLL / 小グループ」、段階は OCLL（出てくる順）、order はデータの順', () => {
+  const src = {
+    1: { name: 'T-A1', group: 'A', algset: 'T-ZBLL', s: T, a: [T] },
+    2: { name: 'U-B1', group: 'B', algset: 'U-ZBLL', s: JB_SETUP, a: [JB] },
+    3: { name: 'T-C1', group: 'C', algset: 'T-ZBLL', s: T, a: [T] },
+  };
+  withSource('zbll', src, (b) => {
+    assert.deepEqual(
+      b.cases().map((c) => [c.name, c.group, c.stage, c.order]),
+      [
+        ['T-A1', 'T / A', 1, 1],
+        ['U-B1', 'U / B', 2, 2],
+        ['T-C1', 'T / C', 1, 3],
+      ]
+    );
+    assert.match(b.build(), /root\.ZBLL_DATA = data;/);
+  });
 });

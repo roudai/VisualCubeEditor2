@@ -34,6 +34,9 @@ test('stageLabel：+/− を除いた名前の文字と番号の範囲', () => {
   // OLL（番号の名前）：段階の番号を A〜M に
   assert.equal(CS.stageLabel(['21', '22'], 1), 'A');
   assert.equal(CS.stageLabel(['29', '30', '41', '42'], 13), 'M');
+  // ZBLL（OCLL-名前）：その OCLL
+  assert.equal(CS.stageLabel(['T-2GLL1', 'T-Diag3', 'T-SO1'], 1), 'T');
+  assert.equal(CS.stageLabel(['Sune-SS1', 'Sune-2GLL2'], 6), 'Sune');
 });
 
 test('hasStages：全ケースに stage・order があるデータだけ覚える順番がある', () => {

@@ -1,10 +1,12 @@
-// data/<pll|oll|coll>/scrambles.json から練習用のスクランブルのファイル（js/<pll|oll|coll>-scrambles.js）を作る。
-// 実行: node tools/build-scrambles.js [pll] [oll] [coll]（引数なしで全部）
-//   - scrambles.json は { ケース名: [スクランブル, ...] }（ケース名は js/<set>-data.js の name。tools/gen-scrambles.js が作る）
+// data/<pll|oll|coll|zbll>/scrambles.json から練習用のスクランブルのファイル（js/<set>-scrambles.js）を作る。
+// 実行: node tools/build-scrambles.js [pll] [oll] [coll] [zbll]（引数なしで全部）
+//   - scrambles.json は { ケース名: [スクランブル, ...] }（ケース名は js/<set>-data.js の name。PLL・OLL・COLL は tools/gen-scrambles.js が作る。
+//     ZBLL は用意されたものを使う（作り直さない。本数はケースごとに 1〜20 本）
 //   - 各スクランブルを確かめ、だめなものがあればエラーで止める（verifyScramble）
 //       形式: 素の面回し（U D L R F B と 2・'）だけを空白 1 つで区切ったもの
 //       PLL: 揃った状態に適用すると、そのケース（前後の AUF の違いを含む）になる
 //       OLL: 最後の層以外は揃ったままで、上面の向きがそのケース（AUF の違いを含む）になる
+//       ZBLL: PLL と同じ（揃った状態に適用すると、そのケース〔前後の AUF の違いを含む〕になる）
 //       COLL: 最後の層以外は揃ったままで、上面の向きとコーナーの位置がそのケース（AUF の違いを含む。エッジの位置は問わない）になる
 //       どちらも、そのケースの手順で揃う（js/case-check.js の fitSetup。移植元と同じ確認）ことと、
 //       スクランブルの逆手順から引いたケース（findCase）の名前が同じであることを見る
@@ -17,7 +19,9 @@ const C = require('../js/case-check.js');
 const Solver = require('../js/cube-solver.js');
 
 const ROOT = path.join(__dirname, '..');
-const SETS = ['pll', 'oll', 'coll'];
+const SETS = ['pll', 'oll', 'coll', 'zbll'];
+// tools/gen-scrambles.js で作る種類（ZBLL は用意されたスクランブルを使うので作らない）
+const GEN_SETS = ['pll', 'oll', 'coll'];
 const SCRAMBLE_RE = /^[URFDLB][2']?( [URFDLB][2']?)*$/;
 
 /** set（'pll' / 'oll' / 'coll'）のファイルの場所。root は置き場所（既定はリポジトリのルート） */
@@ -112,6 +116,6 @@ function main(argv) {
   }
 }
 
-module.exports = { SETS, paths, loadCases, verifyScramble, buildFile, build };
+module.exports = { SETS, GEN_SETS, paths, loadCases, verifyScramble, buildFile, build };
 
 if (require.main === module) main(process.argv.slice(2));

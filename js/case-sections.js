@@ -12,6 +12,7 @@
  *   CaseSections.stageLabel(names, stage) 段階の短い名前
  *                                       番号の名前（OLL）：段階の番号を A〜M の文字にする（Cube Voyage「OLLを覚える順番」のカテゴリの記号）
  *                                       3x3 の PLL の名前（Ua・Ub、Ga〜Gd）：最後の小文字を除いた種類（"U"、"G"）。T・Y なども種類の名前
+ *                                       ZBLL の名前（T-2GLL1 など、すべて同じ「X-」で始まる）：その X（"T"、"Sune"）
  *                                       それ以外（Megaminx の名前）：+/− を除いた名前の文字と番号の範囲
  *                                       例：[F2+, F3+, F2-, F3-, F4+, …] → "F2–5"、[E1, E2, E3] → "E1–3"、[D+, D-] → "D"、[K2+, K2-] → "K2"
  *   CaseSections.keyOf(c, byStage, numbered) そのケースが入る区切りの key（numbered は isNumbered(data)）
@@ -34,6 +35,11 @@
 
   function stageLabel(names, stage) {
     if (names.length && names.every((n) => /^\d+$/.test(String(n)))) return stage > 0 && stage <= 26 ? String.fromCharCode(64 + stage) : '';
+    // ZBLL：名前がすべて「OCLL-…」の形（T-2GLL1 など）なら、その OCLL（T）
+    if (names.length && names.every((n) => /^[A-Za-z]+-/.test(String(n)))) {
+      const heads = names.map((n) => String(n).split('-')[0]).filter((h, i, all) => all.indexOf(h) === i);
+      if (heads.length === 1) return heads[0];
+    }
     // 3x3 の PLL：Ua・Ub → U、Ga〜Gd → G（大文字1つ＋小文字1つまで。T・Y などはそのまま）
     if (names.length && names.every((n) => /^[A-Z][a-d]?$/.test(String(n)))) {
       const kinds = names.map((n) => String(n)[0]).filter((k, i, all) => all.indexOf(k) === i);
