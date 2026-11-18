@@ -212,7 +212,7 @@ for (const set of ['pll', 'oll', 'coll', 'zbll']) {
       const list = raw[c.name];
       if (given) assert.ok(list.length >= 1 && list.length <= COUNT, c.name);
       else assert.equal(list.length, COUNT, c.name);
-      assert.equal(new Set(list).size, COUNT, c.name + ': 重複');
+      assert.equal(new Set(list).size, list.length, c.name + ': 重複');
       list.forEach((s) => {
         assert.match(s, FORMAT);
         assert.ok(s.split(' ').length >= (given ? 1 : G.MIN_MOVES) && s.split(' ').length <= 24, c.name + ': ' + s);
