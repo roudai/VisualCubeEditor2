@@ -19,7 +19,7 @@ MegaminxImageEditor の `reference/CLOUD_SYNC_SPEC.md` を VisualCube Editor 用
 
 ## 保存の窓口（`js/store.js`）
 - エディタ・一覧・練習・記録のページの保存はすべて `Store.get(name)` / `Store.set(name, value)` を通す（localStorage のキーは `visualcube-editor:<name>`）
-- 名前：`settings`（配色・画像の設定）、`progress`（習得状況。`{ pll: {…}, oll: {…}, coll: {…} }`）、`list-filter`（一覧の絞り込み）、`custom-algs`（自分の手順）、`practice`（練習の設定と記録）、`lang`（言語）
+- 名前：`settings`（配色・画像の設定）、`progress`（習得状況。`{ pll: {…}, oll: {…}, coll: {…}, zbll: {…} }`）、`list-filter`（一覧の絞り込み）、`custom-algs`（自分の手順）、`practice`（練習の設定と記録）、`lang`（言語）
   - `settings` = `{ preset, faceColors: { U, R, F, D, L, B }, beforeOll, customScheme, imageSize, border, bgColor, bg }`
     （`border` はエディタの Cube Color、`bgColor`・`bg` は Background Color と Background。パズルの種類・表示・マスク・回転・矢印は保存しない）
 - `set` は値が変わったときだけ、名前ごとの更新時刻（`visualcube-editor:updated`）を記録し、`store-change` を通知する
@@ -68,7 +68,7 @@ MegaminxImageEditor の `reference/CLOUD_SYNC_SPEC.md` を VisualCube Editor 用
 
 ## 利用規約（`terms.html`）
 - 本文は日本語・英語（言語の切り替えは `js/legal.js`。プライバシーポリシーと共通）。制定日・運営（roudai.net）・問い合わせ（GitHub の Issues）はプライバシーポリシーと同じ
-- 内容：適用、無料、アカウント（各サービスの規約にも従う）、禁止事項、作った画像は自由に使える、保存できる記録の量（PLL・OLL・COLL の練習の記録は合わせて最新 2000 件、ケースごとの最近のタイムは各 10 件、通しは最新 2000 件。超えると古い順に自動で削除・元に戻せない・上限は予告なく変わることがある）、無保証・免責（故意・重大な過失を除く）、予告なしの変更・停止・終了、規約の変更、準拠法（日本法）、個人情報はプライバシーポリシー
+- 内容：適用、無料、アカウント（各サービスの規約にも従う）、禁止事項、作った画像は自由に使える、保存できる記録の量（PLL・OLL・COLL・ZBLL の練習の記録は合わせて最新 2000 件、ケースごとの最近のタイムは各 10 件、通しは最新 2000 件。超えると古い順に自動で削除・元に戻せない・上限は予告なく変わることがある）、無保証・免責（故意・重大な過失を除く）、予告なしの変更・停止・終了、規約の変更、準拠法（日本法）、個人情報はプライバシーポリシー
 - ログインのメニュー（ログイン前・ログイン中とも）の「プライバシーポリシー」の下に「利用規約」。プライバシーポリシーの本文の最後からもリンク
 
 ## Firebase の設定（サイトの管理者がやる）
@@ -85,5 +85,5 @@ VisualCube Editor を公開するときに足すこと：
 公開（`main` へのマージ）で自動的にサイトが更新される場合は、1・2 が済むまでマージしない（ログインのボタンは出るのに、ログインや保存が失敗する状態で公開されるため）。
 
 ## 使い方（`guide.html`、URL は `/guide`）
-- サイトの使い方（エディタ・PLL一覧 / OLL一覧 / COLL一覧・練習・記録・保存とログイン・問い合わせ）を日本語・英語で書いたページ（言語の切り替えは `js/legal.js`。画像は入れず文章だけ）
+- サイトの使い方（エディタ・PLL一覧 / OLL一覧 / COLL一覧 / ZBLL一覧・練習・記録・保存とログイン・問い合わせ）を日本語・英語で書いたページ（言語の切り替えは `js/legal.js`。画像は入れず文章だけ）
 - ログインのメニュー（ログイン前・ログイン中とも）の区切り線のすぐ下、「プライバシーポリシー」の上に「使い方」（MegaminxImageEditor 06459e1）

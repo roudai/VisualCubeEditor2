@@ -3,7 +3,7 @@
 **English** | [日本語](README.ja.md)
 
 A web app for making Rubik's Cube images with a GUI, and for learning and practicing the last-layer algorithms
-(PLL, OLL and COLL) with a timer.
+(PLL, OLL, COLL and ZBLL) with a timer.
 Images are drawn with [VisualCube TS](https://github.com/tdecker91/visualcube).
 
 URL: https://visualcube.roudai.net/
@@ -23,17 +23,19 @@ URL: https://visualcube.roudai.net/
   (lists, practice, stats). You can go back to the default and undo
 - 3x3x3 algorithms are checked as you type: unknown moves are reported, and repeats such as `(R U)2` work
 
-### Case lists (`/pll`, `/oll`, `/coll`)
-- All 21 PLL, 57 OLL and 40 COLL cases with images and algorithms. Click a case to open it in the editor
+### Case lists (`/pll`, `/oll`, `/coll`, `/zbll`)
+- All 21 PLL, 57 OLL, 40 COLL and 472 ZBLL cases with images and algorithms. Click a case to open it in the editor
+  (ZBLL has no row in the editor; its algorithm is opened with `/?case=`)
 - Mark each case as **To learn / Learning / Learned**, see your progress, and filter by status
 - Order by group or by **learning order** (13 stages each for PLL and OLL). OLL can also be shown in number order (1–57)
 - Show only the groups or stages you pick, practice exactly those cases, and reset all progress (with undo)
 - Download all images as a ZIP, with the colors and image settings you saved in the editor
-- The COLL list is linked from the OLL list
+- ZBLL is grouped into 40 subsets (T / 2GLL, …) or 7 OCLL sets (T, U, L, H, Pi, Sune, Antisune)
+- The COLL and ZBLL lists are linked from the OLL list
 
 ### Practice (`/practice`)
-- **PLL / OLL / COLL**: a scramble for a random case is shown. Solve it with your cube and stop the timer.
-  A case solved within the target time (2 / 3 / 5 / 8 s or any value, set separately for PLL, OLL and COLL)
+- **PLL / OLL / COLL / ZBLL**: a scramble for a random case is shown. Solve it with your cube and stop the timer.
+  A case solved within the target time (2 / 3 / 5 / 8 s or any value, set separately for PLL, OLL, COLL and ZBLL)
   is marked as learned automatically. Hints (the first moves), "couldn't solve", skip and undo are available
 - **Full solve**: WCA-style random-state scrambles generated in the browser, 15-second inspection with automatic +2 / DNF,
   ao5 / ao12, penalties and deletion
@@ -60,7 +62,7 @@ URL: https://visualcube.roudai.net/
 | `/?alg=R U R' U'` | Draw the state after the algorithm |
 | `/?case=R U R' U'` | Draw the state that the algorithm solves |
 | `/?pll=Aa`, `/?oll=27`, `/?coll=21-1` | Open the editor with that case selected (priority: `pll` → `oll` → `coll` → `case` → `alg`) |
-| `/practice?set=oll&filter=new` | Open practice with the set (`pll` / `oll` / `coll` / `full`) and the target (`new` / `learning` / `learned` / `all`) |
+| `/practice?set=oll&filter=new` | Open practice with the set (`pll` / `oll` / `coll` / `zbll` / `full`) and the target (`new` / `learning` / `learned` / `all`) |
 | `/stats?set=coll` | Open the stats of that set |
 
 Page URLs have no `.html`. Old links such as `/index.html?alg=…` still work, and the address bar is rewritten to `/?alg=…`.
@@ -70,6 +72,7 @@ Page URLs have no `.html`. Old links such as `/index.html?alg=…` still work, a
 - PLL / OLL / COLL algorithms, case names and image orientation: [roudai.net](https://roudai.net/)
   ([PLL](https://roudai.net/pll/pll/), [OLL](https://roudai.net/oll/oll/), [COLL](https://roudai.net/oll/coll/)).
   PLL names follow that page: Ua/Ub, Aa/Ab, Ra/Rb, Ga/Gd and Gb/Gc are swapped compared with the common international naming
+- ZBLL algorithms and scrambles: provided data (`data/zbll/`), normalized as described in `reference/ZBLL_SPEC.md`
 - Learning order: [Cube Voyage](https://cubevoyage.net/)
   ([PLL](https://cubevoyage.net/how-to-solve/advanced/pllsequence/), [OLL](https://cubevoyage.net/how-to-solve/advanced/ollsequence/))
 - The case lists, practice and stats were ported from [Megaminx Image Editor](https://github.com/roudai/MegaminxImageEditor)
@@ -100,8 +103,9 @@ Generated data: edit the JSON, then regenerate. The tests fail if a generated fi
 node tools/build-pll-data.js     # data/pll/algs_info.json (+ learn_order.json) -> js/pll-data.js
 node tools/build-oll-data.js     # data/oll/algs_info.json (+ learn_order.json) -> js/oll-data.js
 node tools/build-coll-data.js    # data/coll/algs_info.json -> js/coll-data.js
-node tools/gen-scrambles.js      # case scrambles -> data/{pll,oll,coll}/scrambles.json
-node tools/build-scrambles.js    # -> js/{pll,oll,coll}-scrambles.js
+node tools/build-zbll-data.js    # data/zbll/algs_info.json -> js/zbll-data.js
+node tools/gen-scrambles.js      # case scrambles -> data/{pll,oll,coll}/scrambles.json (ZBLL scrambles are provided, not generated)
+node tools/build-scrambles.js    # -> js/{pll,oll,coll,zbll}-scrambles.js (every scramble is verified)
 ```
 
 Each case has `a` (an algorithm that solves it) and `s` (an algorithm that makes it). The build checks that they
@@ -112,13 +116,13 @@ and every scramble is verified.
 
 | Path | Contents |
 |---|---|
-| `index.html`, `pll.html`, `oll.html`, `coll.html`, `practice.html`, `stats.html`, `guide.html`, `privacy.html`, `terms.html` | Pages |
+| `index.html`, `pll.html`, `oll.html`, `coll.html`, `zbll.html`, `practice.html`, `stats.html`, `guide.html`, `privacy.html`, `terms.html` | Pages |
 | `js/` | Scripts (plain scripts, no modules or bundler): `cube-state.js` (3x3x3 state), `case-check.js` (algorithm checks), `cube-solver.js` (solver), `store.js` / `cloud-sync.js` (saving), `i18n.js` (translations), and one script per page |
 | `css/` | Styles |
 | `data/` | Source data (algorithms, learning order, scrambles). Do not put a folder named like a page (`pll/`, `oll/`, …) at the root: GitHub Pages would serve the folder for `/pll` |
 | `tools/` | Data builders, scramble generator, local server |
 | `test/` | Tests |
-| `reference/` | Specifications (Japanese): `PLL_SPEC.md`, `OLL_SPEC.md`, `COLL_SPEC.md`, `PRACTICE_SPEC.md`, `I18N_SPEC.md`, `CLOUD_SYNC_SPEC.md` |
+| `reference/` | Specifications (Japanese): `PLL_SPEC.md`, `OLL_SPEC.md`, `COLL_SPEC.md`, `ZBLL_SPEC.md`, `PRACTICE_SPEC.md`, `I18N_SPEC.md`, `CLOUD_SYNC_SPEC.md` |
 | `library/` | VisualCube TS (`srVisualizer.min.js`) |
 | `firestore.rules` | Firestore security rules (shared with Megaminx Image Editor) |
 
