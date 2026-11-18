@@ -651,7 +651,11 @@
   // 止めたタップ（クリック）で、そのままボタンまで押してしまわないように少しの間ボタンを無視する
   let ignoreClicksUntil = 0;
 
+  // スタートした直後に続けて押して止めてしまわないように、スタートから MIN_RUN_MS の間は止めない
+  // （キー・タップとも。Esc の中止・「解けなかった」「スキップ」はこれまでどおり）
+  const MIN_RUN_MS = 500;
   function stop() {
+    if (performance.now() - startAt < MIN_RUN_MS) return;
     ignoreClicksUntil = performance.now() + 400;
     startCooldown();
     cancelAnimationFrame(frame);

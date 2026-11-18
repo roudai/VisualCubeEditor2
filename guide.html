@@ -102,7 +102,7 @@
           <h2>練習</h2>
           <ul>
             <li>PLL・OLL・COLL・ZBLL・通しから選びます。PLL・OLL・COLL・ZBLL は、対象（未習得・練習中・習得済み・すべて）とグループ（ZBLL は小グループか OCLL）で出すケースを絞れます。</li>
-            <li>スクランブルの通りに回してから、スペースキー（スマホはタイマーをタップ）でスタートし、解けたらもう一度押して止めます。Esc で中止できます。止めてから 2 秒は、続けて押してもスタートしません（その間はタイマーの数字が赤くなります）。</li>
+            <li>スクランブルの通りに回してから、スペースキー（スマホはタイマーをタップ）でスタートし、解けたらもう一度押して止めます。Esc で中止できます。続けて押してしまったときのため、スタートから 0.5 秒は止まらず、止めてから 2 秒はタイマーの数字が赤くなって次がスタートしません。</li>
             <li>「習得の目安」の秒数以内に解けたケースは習得済み、超えたケースは練習中になります。目安は PLL・OLL・COLL・ZBLL で別々に決められます。</li>
             <li>「出題」が「苦手を多めに」（最初の設定）のときは、最近のタイムが遅いケースや解けなかったケース、まだ解いたことのないケースが出やすくなります（苦手な順に出るのではなく、ランダムの中で出やすくなります）。「ランダム」にすると、どのケースも同じ確率で出ます。</li>
             <li>わからないときは、「ヒント」でケースの名前と手順の最初の3手を見られます。ヒントを見たときは、目安以内でも練習中になります。</li>
@@ -112,7 +112,7 @@
 
           <h2>記録</h2>
           <ul>
-            <li>上のボタンで PLL・OLL・COLL・ZBLL・通しと期間を選びます。</li>
+            <li>上のボタンで PLL・OLL・COLL・ZBLL・通しと期間を選びます。種類の選択は練習と共通で、練習と記録を行き来しても同じものが表示されます。</li>
             <li>グラフは1回ごとのタイムです。通しには ao5・ao12 の線が、PLL・OLL・COLL・ZBLL には習得の目安の線が出ます。</li>
             <li>PLL・OLL・COLL・ZBLL の「ケースごと」の表では、ケースごとの回数・ベスト・平均・最近（直近10回の平均）を見られます。並びは「苦手順」（最近のタイムが遅いケースから）・「グループ順」（OLL は「番号順」、ZBLL は「小グループ順」）・「覚える順」（PLL・OLL のみ）から選べます。ケースを押すと、そのケースを練習できます。</li>
             <li>「記録の一覧」では、記録を1件ずつ、または選んでまとめて削除できます。「すべての記録を削除」で、その種類（PLL・OLL・COLL・ZBLL・通し）の記録を期間に関係なくすべて消せます。どれも削除したあとに「元に戻す」で取り消せます。記録を消しても、習得状況は変わりません。</li>
@@ -163,7 +163,7 @@
           <h2>Practice</h2>
           <ul>
             <li>Choose PLL, OLL, COLL, ZBLL or Full solve. For PLL, OLL, COLL and ZBLL you can narrow down the cases by status (To learn, Learning, Learned, All) and by group (for ZBLL, by subset or by OCLL).</li>
-            <li>Apply the scramble, then press Space (tap the timer on phones) to start, and press again when you have solved it. Esc cancels. For 2 seconds after you stop, pressing again does not start the timer (the numbers turn red during that time).</li>
+            <li>Apply the scramble, then press Space (tap the timer on phones) to start, and press again when you have solved it. Esc cancels. To guard against accidental double presses, the timer won't stop during the first 0.5 seconds, and for 2 seconds after you stop, the numbers turn red and the timer won't start again.</li>
             <li>A case solved within the "Learned within" time becomes Learned; a slower one becomes Learning. This time can be set separately for PLL, OLL, COLL and ZBLL.</li>
             <li>With "Picks" set to "Favor weak" (the default), cases with slow recent times, failed solves, or no solves yet come up more often (still at random, not in order). Choose "Random" to give every case the same chance.</li>
             <li>If you are stuck, "Hint" shows the case name and the first three moves of its algorithm. A case solved after a hint stays Learning even within the target.</li>
@@ -173,7 +173,7 @@
 
           <h2>Stats</h2>
           <ul>
-            <li>Choose PLL, OLL, COLL, ZBLL or Full solve and the period with the buttons at the top.</li>
+            <li>Choose PLL, OLL, COLL, ZBLL or Full solve and the period with the buttons at the top. This choice is shared with Practice, so switching between the two pages keeps it.</li>
             <li>The chart shows every solve. Full solves show ao5 and ao12 lines; PLL, OLL, COLL and ZBLL show the target time line.</li>
             <li>For PLL, OLL, COLL and ZBLL, the "By case" table shows each case's solves, best, average and recent average (the last 10 solves). Sort by "Weakest first" (slowest recent times on top), "By group" ("By number" for OLL, "By subset" for ZBLL), or "By learning order" (PLL and OLL only). Click a case to practice it.</li>
             <li>In the "Solves" list you can delete solves one at a time or several at once. "Delete all solves" removes every solve of that type (PLL, OLL, COLL, ZBLL or Full solve), whatever the period. You can undo any deletion. Deleting solves doesn't change your progress.</li>
