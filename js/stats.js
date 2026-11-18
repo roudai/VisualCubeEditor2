@@ -38,8 +38,11 @@
     return p && typeof p === 'object' ? p : {};
   };
   const saved = practice().stats || {};
+  // 種類（PLL / OLL / COLL / ZBLL / 通し）は練習ページと共通（practice.set）。
+  // 練習と記録を行き来しても、選んでいた種類のまま開く（無ければ以前の記録のページだけの値）
+  const shared = practice();
   const view = {
-    set: SETS.includes(saved.set) ? saved.set : SETS.includes(practice().set) ? practice().set : 'pll',
+    set: SETS.includes(shared.set) ? shared.set : SETS.includes(saved.set) ? saved.set : 'pll',
     period: Object.prototype.hasOwnProperty.call(PERIODS, saved.period) ? saved.period : '30',
     // 並びの既定は苦手順。苦手順を足す前（sortV が無い）に保存した並び（平均の遅い順）は使わず、苦手順にする
     sort: saved.sortV === 2 && saved.sort ? saved.sort : 'weak',
@@ -52,7 +55,7 @@
   if (SETS.includes(params.get('set'))) view.set = params.get('set');
   if (params.has('set')) saveView();
   function saveView() {
-    S.set('practice', Object.assign({}, practice(), { stats: Object.assign({}, view) }));
+    S.set('practice', Object.assign({}, practice(), { set: view.set, stats: Object.assign({}, view) }));
   }
 
   const fmt = (sec) => (typeof sec === 'number' ? P.formatTime(sec) : '–'); // 60 秒以上は分表記（1:05.23）

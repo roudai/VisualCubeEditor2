@@ -58,7 +58,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 ## 記録（`stats.html`・`js/stats.js`・`css/stats.css`）
 - 判定のたびに `practice.log` に `{ at: 日時(ms), set, name, sec(null=解けなかった), status, hint }` を足す（新しい順、PLL と OLL を合わせて最大 2000 件。「取り消す」でその1件も消す）。集計は `js/progress.js` の `addLog`・`summarize`・`daily`・`perCase`
 - ナビバーの「記録 / Stats」、練習ページの「すべての記録を見る」（`/stats?set=oll` のように今の種類を渡す）から開く
-- 種類（PLL / OLL / COLL / ZBLL / 通し）・期間（7日 / 30日 / すべて）で絞る（`practice.stats` に保存）
+- 種類（PLL / OLL / COLL / ZBLL / 通し）・期間（7日 / 30日 / すべて）で絞る（`practice.stats` に保存）。種類は練習ページと共通（`practice.set`）で、練習と記録を行き来しても選んでいた種類のまま開く（どちらのページで変えても、もう一方に引き継ぐ）
 - 集計のカード：練習回数、平均（とベスト）、解けなかった回数、習得済みの数（今の習得状況）
 - タイムの推移：横軸＝期間内の1回ごとの記録（古い順、1 から数える）、縦軸＝タイム。ライブラリを使わず SVG で描く（表示する幅で描く）
   - 通し：点＝1回のタイム、線＝その時点の ao5・ao12（`Progress.rollingAverages`。期間より前の記録も使って出す。DNF・回数が足りないところは線が途切れる）

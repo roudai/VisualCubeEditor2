@@ -16,7 +16,7 @@ const W = require('../js/wca-scramble.js');
 const DAY = 24 * 60 * 60 * 1000;
 // 習得の目安（秒）。種類ごと（移植元の PLL 8・OLL 5 を、このテストデータの速さ 1.2〜6.5 秒に合わせて読み替えた）
 const THRESHOLDS = { pll: 3, oll: 2, coll: 3, zbll: 3 };
-const VERSION = 2; // 2：COLL・ZBLL の記録を入れた
+const VERSION = 3; // 2：COLL・ZBLL の記録を入れた。3：記録のページを通しで開くよう practice.set を full に
 
 // 種を固定した乱数（mulberry32）
 function rng(seed) {
@@ -96,7 +96,7 @@ function build(opts) {
   });
 
   const practice = {
-    set: 'pll',
+    set: 'full', // 練習と記録で共通の種類（記録のページを通しで開く）
     filter: 'all',
     thresholds: THRESHOLDS,
     log: caseRecords,
