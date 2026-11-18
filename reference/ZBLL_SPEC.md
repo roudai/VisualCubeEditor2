@@ -40,6 +40,7 @@
 - **揃わない別解を消した**（3本）：U-SS6 の2本目 `(U') r' F R' F' R F' r U r' U2 L' U2 r R`、L-SO8 の2本目 `(U') R2' D' R U2 R' D R U2 R' D' r U2 r' D' R U2 R`、
   Antisune-JN2 の3本目 `F U' R' U' R U F U2 R' U R U' R' U2 R`
 - **`scrambles.json`**：キーを通し番号からケース名にした
+- **一覧の向き**：同じ OCLL のケースは、一覧の向き（上面の U の色の位置）がすべて同じになるようにした。そろっていなかった Antisune-JN4 は、1本目の頭の AUF を `(U)` から `(U')` にした（手順の本体は同じ。`test/zbll-data.test.js` で確かめる）
 - どちらもインデント 2 の JSON にした
 
 ### OCLL と小グループ（7 種類・40 組）
