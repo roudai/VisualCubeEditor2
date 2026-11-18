@@ -27,6 +27,6 @@ MegaminxImageEditor の `reference/I18N_SPEC.md` を VisualCube Editor 用に書
 - `test/pages.test.js` が、英語と日本語のキーがそろっていること、html と画面のスクリプトで使うキーがあることを確かめる
 
 ## ナビバー（全ページ共通。`js/navbar.js`・`css/common.css`）
-- 中身：タイトル、言語の切り替え、アカウント（ログイン）、ページへのリンク（エディタ・PLL一覧・OLL一覧・練習・記録）、GitHub。今いるページのリンクは太字（`aria-current="page"`）
+- 中身：タイトル、言語の切り替え、アカウント（ログイン）、ページへのリンク（エディタ・PLL・OLL・練習・記録。PLL・OLL は一覧ページ。以前は「PLL一覧」「PLL List」）、GitHub。今いるページのリンクは太字（`aria-current="page"`）
 - 広い画面（md 以上）：言語 → アカウント → リンク → GitHub を1行に並べる
 - スマホ（md 未満）：1行に収めるため、タイトル・アカウントのアイコン・メニューのボタン（☰）だけを出す。ボタンを押すと、言語の切り替えとリンクが縦に並んだメニューが開く（外を押す・Esc で閉じる）
