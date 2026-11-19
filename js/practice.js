@@ -345,6 +345,7 @@
       const picked = two.children.filter((c) => c.active).map((c) => c.label);
       const name = I.t(`stage.${prefs.set}.${two.active}`);
       label.textContent = two.refine ? `${two.active}: ${picked.join(', ')}` : name.startsWith('stage.') ? two.active : name;
+      button.title = label.textContent; // 要約が「…」で切れても、マウスを乗せると選んだものが全部見えるように
     } else {
       const labels = {};
       CS.list(DATA[prefs.set], byStage(prefs.set)).forEach((s) => {
@@ -352,9 +353,8 @@
       });
       const names = [...chosen].map((k) => labels[k] || k);
       label.textContent = names.length <= 4 ? names.join(', ') : `${names.slice(0, 4).join(', ')} … (${names.length})`;
+      button.title = names.join(', '); // 要約が「…」で切れても、マウスを乗せると選んだものが全部見えるように
     }
-    // 選んだグループが長くて「…」で切れたときのため、マウスを乗せると全部を出す
-    if (chosen) button.title = label.textContent;
     button.append(label, el('span', 'practice-groups-caret', groupsOpen ? '▴' : '▾'));
     button.addEventListener('click', () => {
       groupsOpen = !groupsOpen;
