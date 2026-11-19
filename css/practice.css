@@ -101,7 +101,9 @@
   display: flex;
   align-items: center;
   gap: .4rem;
-  width: 19rem; /* ラベルと同じ行に収める（狭い画面では折り返して幅いっぱい） */
+  /* ラベルと同じ行に収める（狭い画面では折り返して幅いっぱい）。移植元は 19rem（2〜20 秒）。1〜10 秒で刻みが半分なので短くし、
+     グループを選んで要約が最大幅（12rem）になっても、広い画面で設定の 4 つの欄が 1 行に収まるようにする */
+  width: 16rem;
   max-width: 100%;
 }
 .practice-threshold-track {
@@ -241,7 +243,7 @@
   display: inline-flex;
   align-items: center;
   gap: .35rem;
-  max-width: 14rem;
+  max-width: 12rem; /* 長いときは「…」で切る（全部は title）。英語でも広い画面で設定の 4 つの欄が 1 行に収まる幅 */
   padding: .2rem .7rem;
   border: 1px solid #dee2e6;
   border-radius: 50rem;

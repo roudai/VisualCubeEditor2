@@ -353,6 +353,8 @@
       const names = [...chosen].map((k) => labels[k] || k);
       label.textContent = names.length <= 4 ? names.join(', ') : `${names.slice(0, 4).join(', ')} … (${names.length})`;
     }
+    // 選んだグループが長くて「…」で切れたときのため、マウスを乗せると全部を出す
+    if (chosen) button.title = label.textContent;
     button.append(label, el('span', 'practice-groups-caret', groupsOpen ? '▴' : '▾'));
     button.addEventListener('click', () => {
       groupsOpen = !groupsOpen;
