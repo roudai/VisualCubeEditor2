@@ -32,11 +32,13 @@
  *                                   list から weightOf(item) に比例した確率で1つ選ぶ（重みがすべて 0 以下なら一様。random 既定 Math.random）
  *   通しの練習（WCA と同じ扱い）。rec = { at, sec, penalty: '' | '+2' | 'DNF' }
  *   effectiveTime(rec)              ペナルティを含めたタイム（+2 なら sec + 2、DNF なら null）
- *   average(recs, n)                直近 n 回（recs は新しい順）の WCA 式の平均：最速と最遅を除いた平均。
- *                                     DNF は最遅とみなし、DNF が2つ以上なら null（DNF）。n 回に足りなければ undefined
+ *   average(recs, n)                直近 n 回（recs は新しい順）の WCA 式の平均：速い方・遅い方を ceil(n × 5%) 回ずつ除いた平均
+ *                                     （ao5・ao12 は 1 回ずつ、ao100 は 5 回ずつ。csTimer と同じ）。
+ *                                     DNF は最遅とみなし、DNF が除く回数より多ければ null（DNF）。n 回に足りなければ undefined
  *   rollingAverages(recs, n)        各記録の時点の n 回平均の配列（recs と同じ並び。i 番目は recs[i] から古い方へ n 回の average）
  *   bestAverage(recs, n)            これまでで最も速い n 回平均（DNF・足りなければ null / undefined）
  *   bestSingle(recs)                最速の1回（DNF を除く。無ければ null）
+ *   meanTime(recs)                  DNF を除いたタイムの平均（小数 2 桁に丸める。解けた記録が無ければ null）
  *   formatTime(sec, digits)         タイムの表示。60 秒以上は分表記（例：65.234 → "1:05.23"、5.2 → "5.20"）。digits は小数の桁数（既定 2）
  *   wrapAuf(scramble, pre, post)    スクランブルの前後に U を pre・post 回（90°単位 0〜3）足す。もともと前後にある U とはまとめる
  *                                     （例：wrapAuf("U R U'", 1, 1) → "U2 R"）。前後の AUF を足しても同じケースのまま（練習の出題用）
@@ -283,11 +285,12 @@
     const list = Array.isArray(recs) ? recs.slice(0, n) : [];
     if (list.length < n) return undefined;
     const times = list.map(effectiveTime);
+    const trim = Math.ceil(n * 0.05); // 速い方・遅い方を除く回数（ao5・ao12 は 1、ao100 は 5）
     const dnf = times.filter((t) => t === null).length;
-    if (dnf >= 2) return null;
-    // DNF は最遅とみなすので、DNF が1つなら最遅として除かれる
+    if (dnf > trim) return null;
+    // DNF は最遅とみなすので、DNF が除く回数までなら最遅として除かれる
     const sorted = times.map((t) => (t === null ? Infinity : t)).sort((a, b) => a - b);
-    const kept = sorted.slice(1, -1);
+    const kept = sorted.slice(trim, n - trim);
     return Math.round((kept.reduce((a, b) => a + b, 0) / kept.length) * 100) / 100;
   }
 
@@ -310,6 +313,11 @@
   function bestSingle(recs) {
     const times = (Array.isArray(recs) ? recs : []).map(effectiveTime).filter((t) => typeof t === 'number');
     return times.length ? Math.min(...times) : null;
+  }
+
+  function meanTime(recs) {
+    const times = (Array.isArray(recs) ? recs : []).map(effectiveTime).filter((t) => typeof t === 'number');
+    return times.length ? Math.round((times.reduce((a, b) => a + b, 0) / times.length) * 100) / 100 : null;
   }
 
   // ---- 練習の出題 ----
@@ -337,6 +345,7 @@
     rollingAverages: rollingAverages,
     bestAverage: bestAverage,
     bestSingle: bestSingle,
+    meanTime: meanTime,
     addLog: addLog,
     summarize: summarize,
     daily: daily,

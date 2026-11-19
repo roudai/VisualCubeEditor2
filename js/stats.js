@@ -718,12 +718,18 @@
       return c;
     };
     const best = P.bestSingle(recs);
+    const mean = P.meanTime(recs);
     const dnf = recs.filter((r) => P.effectiveTime(r) === null).length;
+    // キーは文字列のまま書く（test/pages.test.js の訳のキーの確認で拾えるように）
+    const ao = (key, n) => card(key, showAvg(P.bestAverage(recs, n)), I.t('stats.current', { t: showAvg(P.average(recs, n)) }));
+    // 6 枚（広い画面は 3 列 × 2 段。css の .stats-cards.full）
     $('statsCards').replaceChildren(
       card('stats.count', String(recs.length), dnf ? I.t('stats.dnfCount', { n: dnf }) : ''),
+      card('practice.mean', mean == null ? '–' : fmt(mean), I.t('stats.excludingDnf')),
       card('practice.bestSingle', best == null ? '–' : fmt(best)),
-      card('practice.bestAo5', showAvg(P.bestAverage(recs, 5)), I.t('stats.current', { t: showAvg(P.average(recs, 5)) })),
-      card('practice.bestAo12', showAvg(P.bestAverage(recs, 12)), I.t('stats.current', { t: showAvg(P.average(recs, 12)) }))
+      ao('practice.bestAo5', 5),
+      ao('practice.bestAo12', 12),
+      ao('practice.bestAo100', 100)
     );
   }
 
@@ -1146,6 +1152,7 @@
       $('statsPager').hidden = true;
     }
     $('statsTable').classList.toggle('stats-full-table', full); // スマホでは通しの一覧を2段のカード風にする
+    $('statsCards').classList.toggle('full', full); // 通しはカードが 6 枚なので広い画面で 3 列
     if (full) {
       const all = fullLog(); // 読むたびに別のオブジェクトになるので1回だけ読む
       const recs = all.filter((r) => r.at >= from());

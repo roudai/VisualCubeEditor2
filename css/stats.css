@@ -36,8 +36,13 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .75rem;
 }
+/* 通し：6 枚なので 3 列 × 2 段（スマホは下の 2 列のまま） */
+.stats-cards.full {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 @media (max-width: 767.98px) {
-  .stats-cards {
+  .stats-cards,
+  .stats-cards.full {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

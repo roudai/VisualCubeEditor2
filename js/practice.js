@@ -829,7 +829,7 @@
     result.append(body);
   }
 
-  // 通しの ao5・ao12・ベスト（直近の記録の上）
+  // 通しの ao5・ao12・ao100・平均（DNF を除く）・ベスト（直近の記録の上）
   function renderFullStats() {
     const box = $('practiceFullStats');
     if (!isFull()) {
@@ -848,9 +848,12 @@
     box.replaceChildren(
       item('practice.ao5', showAvg(P.average(log, 5))),
       item('practice.ao12', showAvg(P.average(log, 12))),
+      item('practice.ao100', showAvg(P.average(log, 100))),
+      item('practice.mean', P.meanTime(log) == null ? '–' : format(P.meanTime(log))),
       item('practice.bestSingle', P.bestSingle(log) == null ? '–' : format(P.bestSingle(log))),
       item('practice.bestAo5', showAvg(P.bestAverage(log, 5))),
-      item('practice.bestAo12', showAvg(P.bestAverage(log, 12)))
+      item('practice.bestAo12', showAvg(P.bestAverage(log, 12))),
+      item('practice.bestAo100', showAvg(P.bestAverage(log, 100)))
     );
   }
 

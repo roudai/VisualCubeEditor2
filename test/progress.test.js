@@ -185,6 +185,27 @@ test('average（WCA 式）：最速と最遅を除く。DNF 1つは最遅、2つ
   assert.equal(P.average([r(10), r(10), r(10), r(10), r(10), r(99)], 5), 10);
 });
 
+test('average：ao100 は速い方・遅い方を 5 回ずつ除く。DNF 5 回までは最遅として除き、6 回で DNF', () => {
+  const r = (sec, penalty) => ({ sec, penalty: penalty || '' });
+  // 1..100 秒：6..95 の平均 = 50.5
+  const recs = Array.from({ length: 100 }, (_, i) => r(i + 1));
+  assert.equal(P.average(recs, 100), 50.5);
+  // 遅い 5 回を DNF にしても同じ
+  const dnf5 = recs.map((x, i) => (i >= 95 ? r(0, 'DNF') : x));
+  assert.equal(P.average(dnf5, 100), 50.5);
+  const dnf6 = recs.map((x, i) => (i >= 94 ? r(0, 'DNF') : x));
+  assert.equal(P.average(dnf6, 100), null);
+  assert.equal(P.average(recs.slice(0, 99), 100), undefined);
+});
+
+test('meanTime：DNF を除いたタイムの平均（+2 は足す）。解けた記録が無ければ null', () => {
+  const r = (sec, penalty) => ({ sec, penalty: penalty || '' });
+  assert.equal(P.meanTime([r(50), r(60, 'DNF'), r(55, '+2')]), 53.5); // (50 + 57) / 2
+  assert.equal(P.meanTime([r(10), r(10), r(11)]), 10.33);
+  assert.equal(P.meanTime([r(50, 'DNF')]), null);
+  assert.equal(P.meanTime([]), null);
+});
+
 test('bestAverage / bestSingle：これまでで最も速い平均と1回（DNF は除く）', () => {
   const r = (sec, penalty) => ({ sec, penalty: penalty || '' });
   const recs = [r(70), r(50), r(51), r(52), r(53), r(54), r(40, 'DNF')];
