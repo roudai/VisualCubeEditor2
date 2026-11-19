@@ -579,8 +579,18 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   .practice-settings:not(.open) {
     padding: .5rem .75rem;
   }
+  /* 対象（未習得・練習中・習得済み・すべて ＋件数）が 1 行に収まるよう詰める */
   .practice-segment button {
-    padding: .2rem .55rem;
+    padding: .2rem .45rem;
+    font-size: .78rem;
+  }
+  .practice-segment .count {
+    margin-left: .2rem;
+    font-size: .68rem;
+  }
+  /* それでも折り返すときに角の丸みで崩れて見えないように */
+  .practice-segment {
+    border-radius: 1rem;
   }
   .practice-result {
     flex-direction: column;

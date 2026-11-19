@@ -633,7 +633,7 @@
   function renderTable(log) {
     const head = el('tr');
     COLUMNS.forEach((col) => {
-      const th = el('th', col.num ? 'text-end' : '');
+      const th = el('th', (col.num ? 'text-end ' : '') + 'stats-col-' + col.key); // stats-col-group はスマホで隠す
       if (col.sortable !== false) {
         const b = el('button', 'stats-sort');
         b.type = 'button';
@@ -682,10 +682,10 @@
           I.set(recentTd, 'stats.fewTitle', { n: rc.attempts }, 'title');
         }
         const cells = [
-          el('td', 'text-muted', r.group),
+          el('td', 'text-muted stats-col-group', r.group),
           statusTd,
           recentTd,
-          el('td', 'text-end', r.dnf ? `${r.count} (${r.dnf} DNF)` : String(r.count)),
+          el('td', 'text-end stats-col-count', r.dnf ? `${r.count} (${r.dnf} DNF)` : String(r.count)),
           el('td', 'text-end', fmt(r.best)),
           el('td', 'text-end', fmt(r.avg)),
           el('td', 'text-end text-muted', `${last.getMonth() + 1}/${last.getDate()}`),
@@ -891,7 +891,7 @@
       bar.append(text, yes, no);
       return;
     }
-    // スマホでは通しの一覧の見出しを隠すので、「すべて選ぶ」をここに出す（PLL・OLL の一覧は見出しを出したまま）
+    // スマホでは記録の一覧（ソルブ・PLL・OLL・COLL・ZBLL）の見出しを隠すので、「すべて選ぶ」をここに出す
     const allLabel = el('label', 'stats-select-all-mobile');
     const allBox = el('input', 'form-check-input');
     allBox.type = 'checkbox';
@@ -905,7 +905,7 @@
     const allText = el('span');
     I.set(allText, 'stats.selectAllShort');
     allLabel.append(allBox, allText);
-    if (view.set === 'full') bar.append(allLabel);
+    bar.append(allLabel); // 広い画面では CSS で隠す（見出しのチェックを使う）
     const del = el('button', 'btn btn-outline-secondary btn-sm');
     del.type = 'button';
     I.set(del, 'stats.deleteSelected', { n: n });
@@ -1082,7 +1082,7 @@
         const date = dateTime(r.at);
         const tr = el('tr');
         tr.classList.toggle('table-active', selected.has(r.at));
-        const checkTd = el('td', 'stats-check');
+        const checkTd = el('td', 'stats-check cell-check');
         const check = el('input', 'form-check-input');
         check.type = 'checkbox';
         check.checked = selected.has(r.at);
@@ -1094,7 +1094,7 @@
           render();
         });
         checkTd.append(check);
-        const statusTd = el('td', 'stats-shrink');
+        const statusTd = el('td', 'stats-shrink cell-verdict');
         const badge = el('span', 'stats-status ' + (r.status === 'learned' ? 'learned' : 'learning'));
         I.set(badge, 'status.' + (r.status === 'learned' ? 'learned' : 'learning'));
         statusTd.append(badge);
@@ -1103,10 +1103,10 @@
           I.set(hint, 'stats.hintUsed');
           statusTd.append(hint);
         }
-        const timeTd = el('td', 'text-end fw-semibold stats-shrink');
+        const timeTd = el('td', 'text-end fw-semibold stats-shrink cell-time');
         if (typeof r.sec === 'number') timeTd.textContent = fmt(r.sec);
         else I.set(timeTd, 'stats.dnf');
-        const delTd = el('td', 'text-end');
+        const delTd = el('td', 'text-end cell-del');
         const del = el('button', 'stats-row-delete');
         del.type = 'button';
         del.textContent = '×';
@@ -1114,7 +1114,7 @@
         I.set(del, 'stats.deleteRow', { date: date }, 'title');
         del.addEventListener('click', () => afterDelete(1, deleteRecords([r.at])));
         delTd.append(del);
-        tr.append(checkTd, el('td', 'text-muted stats-shrink', date), el('td', 'stats-shrink fw-semibold', r.name), timeTd, statusTd, delTd);
+        tr.append(checkTd, el('td', 'text-muted stats-shrink cell-date', date), el('td', 'stats-shrink fw-semibold cell-case', r.name), timeTd, statusTd, delTd);
         return tr;
       })
     );
@@ -1152,6 +1152,7 @@
       $('statsPager').hidden = true;
     }
     $('statsTable').classList.toggle('stats-full-table', full); // スマホでは通しの一覧を2段のカード風にする
+    $('statsTable').classList.toggle('stats-caselog-table', !full && solves); // PLL・OLL の記録の一覧も同じく 2 段にする
     $('statsCards').classList.toggle('full', full); // 通しはカードが 6 枚なので広い画面で 3 列
     if (full) {
       const all = fullLog(); // 読むたびに別のオブジェクトになるので1回だけ読む

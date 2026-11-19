@@ -158,6 +158,10 @@
     return f;
   }
 
+  // マウスが無く、指で操作する画面か（操作の説明をタップの文にする）
+  const TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)');
+  TOUCH.addEventListener('change', () => renderSettings());
+
   function renderSettings() {
     // 種類は見出しの横に置く（設定の行を1行に収めるため）
     const setBox = $('practiceSetBox');
@@ -186,7 +190,9 @@
     box.append(settingsSummary());
     document.body.classList.toggle('practice-full', isFull());
     // 操作の説明：通しでインスペクションがオンのときはその手順
-    I.set($('timerHint'), isFull() ? (fullPrefs().inspection ? 'practice.hintInspection' : 'practice.hintFull') : 'practice.hint');
+    // タッチの画面（マウスが無い）ではタップの説明にする
+    const touch = TOUCH.matches ? 'Touch' : '';
+    I.set($('timerHint'), (isFull() ? (fullPrefs().inspection ? 'practice.hintInspection' : 'practice.hintFull') : 'practice.hint') + touch);
     if (isFull()) {
       // 通し：インスペクションのオン・オフだけ
       box.append(
