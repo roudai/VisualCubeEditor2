@@ -70,7 +70,7 @@ roudai.net の COLL（https://roudai.net/oll/coll/ ）に準拠する。
   - COLL を選ぶと、配色は PLL を選んだときと同じ扱い（OLL 配色なら OLL を選ぶ前の配色に戻す）にし、Stage Mask を COLL にする
   - COLL 以外を選ぶ・選択を外す・Clear で、COLL で付けた Stage Mask を外す。COLL を選んでいる間に手で Stage Mask を変えたら、それ以降は触らない
   - 自分の手順は PLL・OLL と同じく保存できる（`custom-algs` の `coll`）
-- 練習・記録：種類のボタンに COLL を足す（PLL / OLL / COLL / 通し）。記録の表の並びは苦手順 / グループ順
+- 練習・記録：種類のボタンに COLL を足す（PLL / OLL / COLL / ソルブ）。記録の表の並びは苦手順 / グループ順
 - 保存：習得状況は `progress.coll`、最近のタイムは `practice.times.coll`、練習の記録は `practice.log`（`set: 'coll'`。PLL・OLL・COLL を合わせて最新 2000 件）
 
 ## テスト（`test/coll-data.test.js` ほか）
