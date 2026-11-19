@@ -16,7 +16,7 @@ const W = require('../js/wca-scramble.js');
 const DAY = 24 * 60 * 60 * 1000;
 // 習得の目安（秒）。種類ごと（移植元の PLL 8・OLL 5 を、このテストデータの速さ 1.2〜6.5 秒に合わせて読み替えた）
 const THRESHOLDS = { pll: 3, oll: 2, coll: 3, zbll: 3 };
-const VERSION = 3; // 2：COLL・ZBLL の記録を入れた。3：記録のページを通しで開くよう practice.set を full に
+const VERSION = 4; // 2：COLL・ZBLL の記録を入れた。3：記録のページを通しで開くよう practice.set を full に。4：どの種類も最近まで記録があるようにした（通しが 12 日前で終わっていた）
 
 // 種を固定した乱数（mulberry32）
 function rng(seed) {
@@ -34,15 +34,28 @@ const round2 = (x) => Math.round(x * 100) / 100;
 // count 回の練習の日時（古い順）。days 日前から今まで、練習する日と1日の中の時刻をばらつかせる
 function sessions(random, count, days, now) {
   const out = [];
-  let t = now - days * DAY;
+  const start = now - days * DAY;
+  let t = start;
   const step = (days * DAY) / count;
+  let reached = false;
   for (let i = 0; i < count; i++) {
     // ときどき数日あける（練習しない日）。それ以外は数分おき
     t += random() < 0.04 ? step * (8 + random() * 20) : step * (0.2 + random() * 0.6);
-    if (t > now - 60 * 1000) break;
-    out.push(Math.round(t));
+    if (t > now - 60 * 1000) {
+      reached = true;
+      break;
+    }
+    out.push(t);
   }
-  return out;
+  // 練習しない日が少ないと、今に届く前に count 回を使い切り、最近の記録が無くなる（期間「7日」が空になる）。
+  // そのときは、最後の記録が今の少し前（平均の間隔の半分前）に来るよう全体を引き伸ばす。
+  // 乱数は使わない（あとの種類のテストデータが変わらないように）
+  if (!reached && out.length) {
+    const last = out[out.length - 1];
+    const k = (now - step / 2 - start) / (last - start);
+    if (k > 1) for (let i = 0; i < out.length; i++) out[i] = start + (out[i] - start) * k;
+  }
+  return out.map(Math.round);
 }
 
 // PLL・OLL：前の方のケースほど多く、速く解けるようにする（6 秒前後から 2 秒前後へ）

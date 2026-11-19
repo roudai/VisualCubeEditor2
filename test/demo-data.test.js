@@ -48,6 +48,18 @@ test('demo-data：通しの記録は新しい順で、スクランブルは 3x3 
   });
 });
 
+test('demo-data：どの種類も最近まで記録がある（記録のページの期間「7日」が空にならない）', () => {
+  const recent = (list) => list.filter((r) => r.at > NOW - 7 * 864e5).length;
+  ['pll', 'oll', 'coll', 'zbll'].forEach((set) => {
+    const list = data.practice.log.filter((e) => e.set === set);
+    assert.ok(recent(list) >= 10, `${set}：7 日以内 ${recent(list)} 件`);
+    assert.ok(NOW - list[0].at < 2 * 864e5, `${set}：最後の記録が 2 日以内`);
+  });
+  const full = data.practice.full.log;
+  assert.ok(recent(full) >= 10, `通し：7 日以内 ${recent(full)} 件`);
+  assert.ok(NOW - full[0].at < 2 * 864e5, '通し：最後の記録が 2 日以内');
+});
+
 // --demo のサーバーに1回だけ問い合わせる
 function get(server, pathname) {
   return new Promise((resolve, reject) => {
