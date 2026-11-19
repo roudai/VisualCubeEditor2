@@ -6,6 +6,7 @@
 // 仕様: reference/PRACTICE_SPEC.md「記録」
 //   - 種類（PLL / OLL / COLL / 通し）・期間（7日 / 30日 / すべて）で絞る（選んだものは practice.stats に保存）
 //   - 集計（回数・平均・解けなかった・習得済みの数）、タイムの推移（横軸＝1回ごと、点＝タイム、線＝ao5・ao12）の SVG、
+//     グラフは「推移 / 分布」で切り替え（分布＝期間内のタイムを区間ごとに数えた棒グラフ。選んだものは practice.stats.chart に保存）、
 //     ケースごとの表（並び：苦手順（既定。直近 10 回の平均の遅い順）/ グループ順（OLL は番号順）/ 覚える順。見出しでも並べ替え。
 //     ケースを押すとそのケースを練習ページで出題）
 (function () {
@@ -49,6 +50,7 @@
     desc: saved.sortV === 2 ? saved.desc !== false : true,
     sortV: 2,
     tab: saved.tab === 'solves' ? 'solves' : 'cases', // PLL・OLL の表：ケースごと / 記録の一覧
+    chart: saved.chart === 'dist' ? 'dist' : 'trend', // グラフ：推移（折れ線） / 分布（棒グラフ）
   };
   // 練習ページの「すべての記録を見る」から開いたとき（?set=oll など）は、その種類を出す（表示の設定として保存する）
   const params = new URLSearchParams(location.search);
@@ -171,10 +173,50 @@
     return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   };
 
+  // 詳しい値の箱を、指している位置（グラフの左からの px）の左右どちらかに寄せる（右半分なら左に出す）
+  function placeTip(tip, box, left) {
+    const boxW = box.clientWidth;
+    tip.style.top = '4px';
+    if (left > boxW / 2) {
+      tip.style.left = '';
+      tip.style.right = Math.max(0, boxW - left + 12) + 'px';
+    } else {
+      tip.style.right = '';
+      tip.style.left = left + 12 + 'px';
+    }
+  }
+  const legendItem = (cls, key, params, text) => {
+    const s = el('span', 'stats-legend-item');
+    const label = el('span');
+    if (key) I.set(label, key, params);
+    else label.textContent = text;
+    s.append(el('span', 'stats-legend-mark ' + cls), label);
+    return s;
+  };
+
+  // グラフの見出しの右：推移 / 分布 の切り替え
+  function renderChartTabs() {
+    I.set($('statsChartTitle'), view.chart === 'dist' ? 'stats.dist' : 'stats.trend');
+    $('statsChartTabs').replaceChildren(
+      segment(
+        [
+          { value: 'trend', key: 'stats.chartTrend' },
+          { value: 'dist', key: 'stats.chartDist' },
+        ],
+        view.chart,
+        (v) => change({ chart: v })
+      )
+    );
+  }
+
   function renderChart(recs) {
     const box = $('statsChart');
     box.replaceChildren();
     lastWidth = box.clientWidth;
+    if (view.chart === 'dist') {
+      renderDist(recs);
+      return;
+    }
     const f = from();
     const cases = view.set !== 'full';
     const ao5All = cases ? [] : P.rollingAverages(recs, 5);
@@ -314,17 +356,7 @@
       if (!cases) rows.push(row('ao5', showAvg(p.ao5), 'ao5'), row('ao12', showAvg(p.ao12), 'ao12'));
       tip.replaceChildren(...rows);
       tip.hidden = false;
-      // 点の左右どちらかに寄せる（右半分なら左に出す）
-      const left = (x(i) / W) * rect.width;
-      const boxW = box.clientWidth;
-      tip.style.top = '4px';
-      if (left > boxW / 2) {
-        tip.style.left = '';
-        tip.style.right = Math.max(0, boxW - left + 12) + 'px';
-      } else {
-        tip.style.right = '';
-        tip.style.left = left + 12 + 'px';
-      }
+      placeTip(tip, box, (x(i) / W) * rect.width);
     };
     const hide = () => {
       tip.hidden = true;
@@ -336,14 +368,7 @@
 
     // 凡例
     const legend = el('div', 'stats-legend');
-    const item = (cls, key, params, text) => {
-      const s = el('span', 'stats-legend-item');
-      const label = el('span');
-      if (key) I.set(label, key, params);
-      else label.textContent = text;
-      s.append(el('span', 'stats-legend-mark ' + cls), label);
-      return s;
-    };
+    const item = legendItem;
     if (cases) {
       legend.append(
         item('line time', 'stats.col.time'),
@@ -360,6 +385,167 @@
       );
     }
     if (typeof target === 'number') legend.append(item('target', 'stats.legendTarget', { t: fmt(target) }));
+    box.append(legend);
+  }
+
+  // ---- タイムの分布（横軸＝タイムの区間、縦軸＝その区間に入った回数） ----
+  // 期間内の解けた記録だけを数える（通しは +2 を足したタイム。DNF・解けなかった回は凡例に回数だけ出す）。
+  // 区間の幅はきりのよい秒数。外れ値で棒がつぶれないよう、右の端は 95% 点まで（全部が近ければいちばん遅いタイムまで）にし、
+  // それより遅い記録は右の端の「〜以上」の棒にまとめる。PLL・OLL は今の習得の目安を縦の破線で出し、
+  // 目安以内の回を緑で棒の下に積む（凡例に目安以内の割合）
+  const BIN_STEPS = [0.05, 0.1, 0.2, 0.25, 0.5, 1, 2, 5, 10, 15, 20, 30, 60, 120, 300, 600];
+  function renderDist(recs) {
+    const box = $('statsChart');
+    const f = from();
+    const cases = view.set !== 'full';
+    const inPeriod = recs.filter((r) => r.at >= f);
+    const times = inPeriod
+      .map((r) => P.effectiveTime(r))
+      .filter((t) => typeof t === 'number')
+      .sort((a, b) => a - b);
+    const n = times.length;
+    const dnf = inPeriod.length - n;
+    if (!n) {
+      const empty = el('p', 'stats-chart-empty text-muted small');
+      I.set(empty, 'stats.empty');
+      box.append(empty);
+      return;
+    }
+    const target = cases ? P.thresholdOf(practice(), view.set) : null;
+
+    const W = Math.round(Math.min(1200, Math.max(280, box.clientWidth || 720)));
+    const H = W < 500 ? 210 : 260;
+    const pad = { l: 40, r: 10, t: 12, b: 24 };
+    const iw = W - pad.l - pad.r;
+    const ih = H - pad.t - pad.b;
+
+    // 区間
+    const min = times[0];
+    const max = times[n - 1];
+    const p95 = times[Math.min(n - 1, Math.floor(n * 0.95))];
+    const top = max <= p95 * 1.25 ? max : p95;
+    const want = Math.max(4, Math.min(W < 500 ? 12 : 24, Math.ceil(Math.sqrt(n) * 2)));
+    const w = BIN_STEPS.find((st) => st >= (top - min) / want) || Math.ceil((top - min) / want / 600) * 600;
+    const start = Math.floor(min / w + 1e-9) * w;
+    const count = Math.max(1, Math.floor((top - start) / w + 1e-9) + 1);
+    const bins = [];
+    for (let i = 0; i < count; i++) bins.push({ lo: start + i * w, hi: start + (i + 1) * w, n: 0, fast: 0 });
+    let over = null;
+    // 目安以内（習得の判定と同じく、目安ちょうども含む。Progress の judge）
+    const isFast = (t) => typeof target === 'number' && t <= target;
+    times.forEach((t) => {
+      const i = Math.floor((t - start) / w + 1e-9);
+      let b = bins[i];
+      if (i >= count) {
+        if (!over) over = { lo: start + count * w, hi: null, n: 0, fast: 0, over: true };
+        b = over;
+      }
+      b.n++;
+      if (isFast(t)) b.fast++;
+    });
+    const fastAll = times.filter(isFast).length;
+    if (over) bins.push(over);
+    const nb = bins.length;
+    const digits = w < 0.1 ? 2 : w < 1 ? 1 : 0;
+    const edge = (v) => (v >= 60 ? P.formatTime(v, digits) : v.toFixed(digits) + 's'); // 60 秒以上は分表記（推移の目盛りと同じく s をつけない）
+
+    // 縦軸（回数）
+    const maxN = Math.max(...bins.map((b) => b.n));
+    const yStep = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((st) => maxN / st <= 4) || 1000;
+    const yHi = Math.max(yStep, Math.ceil(maxN / yStep) * yStep);
+    const bw = iw / nb;
+    const bx = (i) => pad.l + bw * i;
+    const y = (v) => pad.t + ih * (1 - v / yHi);
+
+    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'stats-svg', role: 'img' });
+    svg.setAttribute('aria-label', I.t('stats.dist'));
+    for (let v = 0; v <= yHi; v += yStep) {
+      svg.append(svgEl('line', { x1: pad.l, x2: W - pad.r, y1: y(v), y2: y(v), class: 'stats-grid' }));
+      const t = svgEl('text', { x: pad.l - 6, y: y(v) + 3.5, class: 'stats-axis', 'text-anchor': 'end' });
+      t.textContent = String(v);
+      svg.append(t);
+    }
+    // 横の目盛り：区間の境目（多いときは間引く）。「〜以上」の棒は左の端に「≥」をつける
+    const maxTicks = W < 500 ? 5 : 9;
+    const every = Math.max(1, Math.ceil((nb + 1) / maxTicks));
+    for (let i = 0; i <= count; i += every) {
+      // 左右の端の文字ははみ出さないよう、端に揃える
+      const anchor = i === 0 ? 'start' : bx(i) > W - pad.r - 16 ? 'end' : 'middle';
+      const t = svgEl('text', { x: bx(i), y: H - 6, class: 'stats-axis', 'text-anchor': anchor });
+      t.textContent = (over && i === count ? '≥' : '') + edge(start + i * w);
+      svg.append(t);
+    }
+    const gap = bw > 8 ? 2 : bw > 4 ? 1 : 0;
+    // 棒：PLL・OLL は目安以内（緑）を下に、残り（青）を上に積む。区間ごとの rect の組
+    const bars = bins.map((b, i) => {
+      const segs = [];
+      const seg = (from, to, cls) => {
+        if (to <= from) return;
+        const r = svgEl('rect', {
+          x: bx(i) + gap / 2,
+          y: y(to),
+          width: Math.max(0.5, bw - gap),
+          height: Math.max(0, y(from) - y(to)),
+          // 積み上げの境目が角丸で欠けないよう、角を丸めるのは棒のいちばん上の段だけ
+          rx: to === b.n ? Math.min(2, (bw - gap) / 4) : 0,
+          class: 'stats-bar' + (cls ? ' ' + cls : '') + (b.over ? ' over' : ''),
+        });
+        svg.append(r);
+        segs.push(r);
+      };
+      seg(0, b.fast, 'fast');
+      seg(b.fast, b.n, '');
+      return segs;
+    });
+    // 習得の目安（PLL・OLL）
+    if (typeof target === 'number' && target >= start && target <= start + count * w) {
+      const tx = pad.l + ((target - start) / w) * bw;
+      svg.append(svgEl('line', { x1: tx, x2: tx, y1: pad.t, y2: pad.t + ih, class: 'stats-target' }));
+    }
+    const hit = svgEl('rect', { x: pad.l, y: 0, width: iw, height: H, fill: 'transparent' });
+    svg.append(hit);
+    box.append(svg);
+
+    // マウス・タッチで、その棒の区間と回数を出す
+    const tip = el('div', 'stats-tip');
+    tip.hidden = true;
+    box.append(tip);
+    const show = (ev) => {
+      const rect = svg.getBoundingClientRect();
+      const px = ((ev.clientX - rect.left) / rect.width) * W;
+      const i = Math.max(0, Math.min(nb - 1, Math.floor((px - pad.l) / bw)));
+      const b = bins[i];
+      bars.forEach((segs, k) => segs.forEach((r) => r.classList.toggle('active', k === i)));
+      const head = el('div', 'stats-tip-head', b.over ? I.t('stats.distOver', { t: edge(b.lo) }) : `${edge(b.lo)} – ${edge(b.hi)}`);
+      const row = el('div', 'stats-tip-row');
+      row.append(
+        el('span', 'stats-tip-value', I.t('stats.distSolves', { n: b.n })),
+        el('span', 'stats-tip-label', I.t('stats.distShare', { p: Math.round((b.n / n) * 100) }))
+      );
+      tip.replaceChildren(head, row);
+      tip.hidden = false;
+      placeTip(tip, box, ((bx(i) + bw / 2) / W) * rect.width);
+    };
+    const hide = () => {
+      tip.hidden = true;
+      bars.forEach((segs) => segs.forEach((r) => r.classList.remove('active')));
+    };
+    hit.addEventListener('pointermove', show);
+    hit.addEventListener('pointerdown', show);
+    hit.addEventListener('pointerleave', hide);
+
+    // 凡例：棒の色（PLL・OLL は目安以内・目安より遅い。通しは青＝DNF を除いた回数）、PLL・OLL は「解けた n 回」、DNF・解けなかった回数、目安（と目安以内の割合）
+    const legend = el('div', 'stats-legend');
+    if (typeof target === 'number') {
+      // 青は目安より遅い回だけなので、全体の回数は色の印をつけずに別に出す
+      legend.append(legendItem('bar fast', 'stats.distFast'), legendItem('bar', 'stats.distSlow'), el('span', 'stats-legend-item', I.t('stats.distTotal', { n: n })));
+    } else {
+      legend.append(legendItem('bar', 'stats.distFullTotal', { n: n })); // 通しは「解けた」ではなく、DNF を除いた回数
+    }
+    if (dnf) legend.append(legendItem('dnf', cases ? 'stats.distDnf' : 'stats.dnfCount', { n: dnf }));
+    if (typeof target === 'number') {
+      legend.append(legendItem('target', 'stats.legendTargetShare', { t: fmt(target), p: Math.round((fastAll / n) * 100) }));
+    }
     box.append(legend);
   }
 
@@ -949,6 +1135,7 @@
 
   function render() {
     renderControls();
+    renderChartTabs();
     renderTableTabs();
     renderSortBar();
     const full = view.set === 'full';

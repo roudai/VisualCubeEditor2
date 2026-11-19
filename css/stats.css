@@ -140,6 +140,21 @@
   stroke-dasharray: 4 4;
   opacity: .7;
 }
+/* タイムの分布（棒＝区間ごとの回数。右の端の「〜以上」の棒は薄く） */
+.stats-bar {
+  fill: #0d6efd;
+  opacity: .55;
+  transition: opacity .1s ease;
+}
+.stats-bar.fast {
+  fill: #198754; /* 目安以内（目安の破線と同じ緑） */
+}
+.stats-bar.over {
+  opacity: .3;
+}
+.stats-bar.active {
+  opacity: .9;
+}
 .stats-cursor {
   stroke: #adb5bd;
   stroke-width: 1;
@@ -226,6 +241,16 @@
 .stats-legend-mark.line.time {
   background: #0d6efd;
   opacity: .55;
+}
+.stats-legend-mark.bar {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #0d6efd;
+  opacity: .55;
+}
+.stats-legend-mark.bar.fast {
+  background: #198754;
 }
 .stats-legend-mark.target {
   width: 14px;

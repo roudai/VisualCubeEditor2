@@ -67,7 +67,11 @@
       <section id="statsCards" class="stats-cards"></section>
 
       <section class="stats-panel mt-3">
-        <h2 class="stats-title" data-i18n="stats.trend">Times</h2>
+        <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
+          <h2 class="stats-title" id="statsChartTitle" data-i18n="stats.trend">Times</h2>
+          <!-- グラフ：推移（折れ線） / 分布（棒グラフ）の切り替え（js/stats.js） -->
+          <div id="statsChartTabs"></div>
+        </div>
         <div id="statsChart" class="stats-chart"></div>
       </section>
 
