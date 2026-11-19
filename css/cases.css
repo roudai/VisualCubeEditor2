@@ -114,6 +114,37 @@
   .status-badge.pop::before { animation: none; }
 }
 
+/* スマホ（1 行 3 枚）：カードの中を詰め、文字とバッジを小さくする */
+@media (max-width: 575.98px) {
+  .case-card .card-body {
+    padding: .35rem .3rem .45rem !important;
+  }
+  .case-card .card-body .fw-bold {
+    font-size: .85rem;
+  }
+  .case-card .card-body .font-monospace {
+    font-size: .66rem;
+    line-height: 1.35;
+  }
+  .case-image {
+    margin-top: .4rem !important;
+  }
+  .status-badge {
+    top: 1px;
+    right: 1px;
+    width: 28px;
+    height: 28px;
+  }
+  .status-badge::before {
+    width: 18px;
+    height: 18px;
+  }
+  .status-badge svg {
+    width: 11px;
+    height: 11px;
+  }
+}
+
 /* ---- 上部の進み具合 ---- */
 .progress-summary .progress-stacked {
   height: 8px;
@@ -255,11 +286,15 @@
   color: var(--status-learned);
 }
 
-/* ケースの画像（cube-draw.js が中に svg を入れる） */
+/* ケースの画像（cube-draw.js が中に svg を入れる）：カードの幅に合わせて縮む（最大 120px。js/cases.js の IMAGE_SIZE）。
+   svg は width・height の属性が 120 なので、CSS で幅いっぱいにして正方形のまま縮める */
 .case-image {
-  width: 120px;
-  height: 120px;
+  width: calc(100% - 1rem);
+  max-width: 120px;
+  aspect-ratio: 1;
 }
 .case-image svg {
   display: block;
+  width: 100%;
+  height: 100%;
 }

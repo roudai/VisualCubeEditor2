@@ -85,6 +85,7 @@
     link.href = SET === 'zbll' ? `/?zbll=${encodeURIComponent(c.name)}&case=${encodeURIComponent(c.alg)}` : `/?${SET}=${encodeURIComponent(c.name)}`;
     I.set(link, 'list.openTitle', { name: c.name }, 'title');
 
+    // 表示の大きさは CSS（.case-image：カードの幅に合わせて縮み、最大 IMAGE_SIZE）
     const image = el('div', 'case-image mx-auto mt-2');
     const colors = caseColors(c, settings);
     D.draw(image, colors.ucolor, colors.scolor, { size: IMAGE_SIZE, border: settings.border });
@@ -510,7 +511,7 @@
       heading.append(el('span', 'group-count'));
       heading.hidden = flat;
       section.append(heading);
-      const row = el('div', 'row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2');
+      const row = el('div', 'row row-cols-3 row-cols-md-4 row-cols-lg-6 g-2'); // スマホでも 1 行 3 枚
       s.cases.forEach((c) => row.append(CARDS[c.name]));
       section.append(row);
       list.insertBefore(section, empty);

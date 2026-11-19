@@ -200,6 +200,7 @@ Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
 ### 一覧（`pll.html`、`js/cases.js`、`css/cases.css`）
 - 21ケースの画像・名前・手順をグループごとに並べる。画像は solve case の状態（`alg` の逆手順を回し、センターが動いたぶんを打ち消す）の上面図
   （`js/cube-draw.js`。srVisualizer の Plan 表示なので、エディタと同じ見た目）
+- カードの並び：スマホ（幅 576px 未満）も 1 行 3 枚、768px 以上は 4 枚、992px 以上は 6 枚（`js/cases.js` の `buildSections`。OLL・COLL・ZBLL の一覧も同じ）。画像はカードの幅に合わせて縮む（最大 120px。`.case-image` の中の svg を CSS で縮める）。スマホではカードの中の余白・ケース名・手順の文字と、右上の習得状況の丸（見た目 18px・押せる範囲 28px）を小さくする
 - 配色はエディタで保存した設定：保存した配色（OLL 配色のときは OLL を選ぶ前の配色、それも無ければ Standard）。Cube Color も保存した設定
 - ケースを押すと、そのケースを選んだ状態でエディタ（`/?pll=…`）を開く。自分の手順があるケースはその手順と画像で出し、「custom」を付ける
 - 習得状況（未習得 / 練習中 / 習得済み）：カード右上の丸を押すたびに切り替える（`visualcube-editor:progress`）。
