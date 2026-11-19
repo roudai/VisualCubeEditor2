@@ -180,6 +180,10 @@
     $('allStatsLink').href = '/stats?' + statsQuery;
     const box = $('practiceSettings');
     box.replaceChildren();
+    // スマホ（狭い画面）では、設定を今の選択を並べた 1 行にたたむ（押すと開く。開いているかは prefs.settingsOpen）。
+    // 広い画面では 1 行の要約は出さず、いつも開いている（css/practice.css）
+    box.classList.toggle('open', prefs.settingsOpen === true);
+    box.append(settingsSummary());
     document.body.classList.toggle('practice-full', isFull());
     // 操作の説明：通しでインスペクションがオンのときはその手順
     I.set($('timerHint'), isFull() ? (fullPrefs().inspection ? 'practice.hintInspection' : 'practice.hintFull') : 'practice.hint');
@@ -233,6 +237,36 @@
       )
     );
     if (groupsOpen) box.append(groupPicker());
+  }
+
+  // スマホでたたんだときの 1 行：アイコン 対象 · 習得の目安 8.0秒 · 出題（グループを絞っていればそれも）。ソルブはインスペクション
+  function settingsSummary() {
+    const button = el('button', 'practice-settings-summary');
+    button.type = 'button';
+    const open = prefs.settingsOpen === true;
+    button.setAttribute('aria-expanded', String(open));
+    button.setAttribute('aria-controls', 'practiceSettings');
+    const parts = [];
+    if (isFull()) {
+      parts.push(I.t('practice.inspection') + ' ' + I.t(fullPrefs().inspection ? 'practice.on' : 'practice.off'));
+    } else {
+      const chosen = chosenGroups(prefs.set);
+      if (chosen) parts.push(I.t('practice.groupsCount', { n: chosen.size }));
+      parts.push(I.t('practice.target') + ' ' + I.t(prefs.filter === 'all' ? 'list.filterAll' : 'status.' + prefs.filter));
+      parts.push(I.t('practice.threshold') + ' ' + I.t('practice.seconds', { n: threshold().toFixed(1) }));
+      parts.push(I.t(weighted() ? 'practice.pickWeak' : 'practice.pickRandom'));
+    }
+    const icon = el('span', 'practice-settings-icon');
+    // 設定のアイコン（3 本のつまみ）
+    icon.innerHTML =
+      '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">' +
+      '<path d="M2 4h12M2 8h12M2 12h12"/><circle cx="5" cy="4" r="1.7" fill="#fbfbfc"/><circle cx="10.5" cy="8" r="1.7" fill="#fbfbfc"/><circle cx="6.5" cy="12" r="1.7" fill="#fbfbfc"/></svg>';
+    button.append(icon, el('span', 'practice-settings-text', parts.join(' · ')), el('span', 'practice-settings-caret', open ? '▴' : '▾'));
+    button.addEventListener('click', () => {
+      savePrefs({ settingsOpen: !open });
+      renderSettings();
+    });
+    return button;
   }
 
   // 習得の目安（今の種類の分）：スライドバー（1〜10 秒・0.5 秒刻み）と「−」「＋」（0.5 秒ずつ）、右に今の秒数。

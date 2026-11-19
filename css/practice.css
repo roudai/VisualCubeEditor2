@@ -15,6 +15,43 @@
   border-radius: .75rem;
   background: #fbfbfc;
 }
+/* スマホでたたんだときの 1 行（js/practice.js の settingsSummary）。広い画面では出さない */
+.practice-settings-summary {
+  display: none;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #495057;
+  font-size: .8rem;
+  text-align: left;
+}
+.practice-settings-icon {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+  color: #6c757d;
+}
+.practice-settings-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.practice-settings-caret {
+  flex: none;
+  color: #6c757d;
+  font-size: .7rem;
+}
+.practice-settings-summary:focus-visible {
+  outline: none;
+  border-radius: .35rem;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
 .practice-field {
   display: flex;
   align-items: center;
@@ -531,6 +568,16 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
 @media (max-width: 575.98px) {
   .practice-settings {
     padding: .65rem .75rem;
+  }
+  /* 設定は 1 行の要約にたたむ（押すと開く）。開いているときは要約が見出しになる */
+  .practice-settings-summary {
+    display: flex;
+  }
+  .practice-settings:not(.open) > :not(.practice-settings-summary) {
+    display: none;
+  }
+  .practice-settings:not(.open) {
+    padding: .5rem .75rem;
   }
   .practice-segment button {
     padding: .2rem .55rem;
