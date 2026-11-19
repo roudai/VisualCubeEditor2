@@ -19,15 +19,26 @@ function withStorage(initial, fn) {
   }
 }
 
-test('thresholdOf：種類ごとの目安。無ければ以前の共通の threshold、それも無ければ 3（範囲外の値は使わない）', () => {
+test('thresholdOf：種類ごとの目安。無ければ以前の共通の threshold、それも無ければ OLL 2 秒・ほかは 3 秒（範囲外の値は使わない）', () => {
   assert.equal(P.thresholdOf({ thresholds: { pll: 5, oll: 2, coll: 8 } }, 'pll'), 5);
   assert.equal(P.thresholdOf({ thresholds: { pll: 5, oll: 2, coll: 8 } }, 'oll'), 2);
   assert.equal(P.thresholdOf({ thresholds: { pll: 5, oll: 2, coll: 8 } }, 'coll'), 8);
   assert.equal(P.thresholdOf({ threshold: 10, thresholds: { pll: 6 } }, 'coll'), 10);
   assert.equal(P.thresholdOf({ threshold: 10 }, 'pll'), 10);
   assert.equal(P.thresholdOf({}, 'pll'), 3);
-  assert.equal(P.thresholdOf(null, 'oll'), 3);
+  assert.equal(P.thresholdOf(null, 'oll'), 2);
+  assert.equal(P.thresholdOf({}, 'coll'), 3);
+  assert.equal(P.thresholdOf({}, 'zbll'), 3);
+  assert.equal(P.thresholdOf({ thresholds: { pll: 5 } }, 'oll'), 2);
   assert.equal(P.thresholdOf({ thresholds: { pll: 0, oll: 'x' }, threshold: 500 }, 'pll'), 3);
+  // 1〜10 秒・0.5 秒刻みにそろえる（以前は 120 秒まで選べた）
+  assert.equal(P.thresholdOf({ thresholds: { pll: 30 } }, 'pll'), 10);
+  assert.equal(P.thresholdOf({ threshold: 120 }, 'oll'), 10);
+  assert.equal(P.thresholdOf({ thresholds: { pll: 0.5 } }, 'pll'), 1);
+  assert.equal(P.thresholdOf({ thresholds: { pll: 6.3 } }, 'pll'), 6.5);
+  assert.equal(P.clampThreshold(5.5), 5.5);
+  assert.equal(P.clampThreshold(25), 10);
+  assert.equal(P.clampThreshold(0.2), 1);
 });
 
 test('judge：しきい値以内なら習得済み、超えた・解けなかった（null）なら練習中', () => {

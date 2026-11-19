@@ -46,7 +46,6 @@
   };
   const SCRAMBLES = { pll: window.PLL_SCRAMBLES || {}, oll: window.OLL_SCRAMBLES || {}, coll: window.COLL_SCRAMBLES || {}, zbll: window.ZBLL_SCRAMBLES || {} };
   const FILTERS = ['new', 'learning', 'learned', 'all'];
-  const THRESHOLDS = [2, 3, 5, 8];
   const MAX_TIMES = 10;
   const HISTORY = 12;
 
@@ -66,7 +65,7 @@
   };
   const saveFull = (change) => savePrefs({ full: Object.assign(fullPrefs(), change) });
   if (!FILTERS.includes(prefs.filter)) prefs.filter = 'new';
-  // 習得の目安は種類ごと（prefs.thresholds = { pll, oll, coll }。既定は 3 秒。以前の共通の threshold は P.thresholdOf が引き継ぐ）
+  // 習得の目安は種類ごと（prefs.thresholds = { pll, oll, coll, zbll }。既定は OLL 2 秒・ほかは 3 秒（P.thresholdOf）。以前の共通の threshold は P.thresholdOf が引き継ぐ）
   const threshold = (set) => P.thresholdOf(prefs, set || prefs.set);
   const setThreshold = (v) => changeSettings({ thresholds: Object.assign({}, prefs.thresholds, { [prefs.set]: v }) }, false);
 
@@ -218,30 +217,7 @@
         )
       )
     );
-    // 目安（今の種類の分）：よく使う秒数のボタンと、任意の秒数の入力欄（任意の秒数はボタンには足さず、入力欄を強調する）
-    const secs = threshold();
-    const custom = el('input', 'form-control form-control-sm practice-seconds' + (THRESHOLDS.includes(secs) ? '' : ' active'));
-    custom.type = 'number';
-    custom.min = '1';
-    custom.max = '120';
-    custom.step = '0.5';
-    custom.value = String(secs);
-    I.set(custom, 'practice.customSeconds', null, 'aria-label');
-    custom.addEventListener('change', () => {
-      const v = Number(custom.value);
-      if (v > 0 && v <= 120) setThreshold(v);
-      else custom.value = String(secs);
-    });
-    const thresholdBox = el('div', 'd-flex align-items-center gap-2');
-    thresholdBox.append(
-      segment(
-        THRESHOLDS.map((t) => ({ value: t, key: 'practice.seconds', params: { n: t } })),
-        secs,
-        setThreshold
-      ),
-      custom
-    );
-    box.append(field('practice.threshold', thresholdBox));
+    box.append(field('practice.threshold', thresholdSlider()));
     // 出題：苦手を多めに（既定）/ ランダム（PLL・OLL・COLL 共通）。変えても今の問題はそのまま
     box.append(
       field(
@@ -257,6 +233,61 @@
       )
     );
     if (groupsOpen) box.append(groupPicker());
+  }
+
+  // 習得の目安（今の種類の分）：スライドバー（1〜10 秒・0.5 秒刻み）と「−」「＋」（0.5 秒ずつ）、右に今の秒数。
+  // 動かしている間は秒数の表示だけを変え、離したとき（change）に保存する（途中の値を次々に保存しないように）
+  function thresholdSlider() {
+    const secs = threshold();
+    const wrap = el('div', 'practice-threshold');
+    const range = el('input', 'practice-threshold-range');
+    range.type = 'range';
+    range.min = String(P.THRESHOLD_MIN);
+    range.max = String(P.THRESHOLD_MAX);
+    range.step = '0.5';
+    range.value = String(secs);
+    I.set(range, 'practice.customSeconds', null, 'aria-label');
+    // 秒数：数字はいつも小数 1 桁（8.0・8.5・10.0）・等幅の数字にする（動かすたびに文字の幅が変わって「秒」がずれないように）
+    const value = el('span', 'practice-threshold-value');
+    const num = el('span', 'practice-threshold-num');
+    const unit = el('span', 'practice-threshold-unit');
+    I.set(unit, 'practice.secondsUnit');
+    value.append(num, unit);
+    const show = (v) => {
+      num.textContent = v.toFixed(1);
+      range.setAttribute('aria-valuetext', I.t('practice.seconds', { n: v }));
+      range.style.setProperty('--fill', ((v - P.THRESHOLD_MIN) / (P.THRESHOLD_MAX - P.THRESHOLD_MIN)) * 100 + '%');
+    };
+    show(secs);
+    range.addEventListener('input', () => show(Number(range.value)));
+    range.addEventListener('change', () => setThreshold(P.clampThreshold(Number(range.value))));
+    const step = (delta, key) => {
+      const b = el('button', 'practice-threshold-step');
+      b.type = 'button';
+      // 文字の「−」「＋」はフォントによって上下にずれるので、線で描いて円の真ん中に置く
+      b.innerHTML =
+        '<svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><path d="' +
+        (delta < 0 ? 'M1.5 5h7' : 'M1.5 5h7M5 1.5v7') +
+        '" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>';
+      I.set(b, key, null, 'aria-label');
+      const next = P.clampThreshold(secs + delta);
+      b.disabled = next === secs;
+      b.addEventListener('click', () => setThreshold(next));
+      return b;
+    };
+    // 目盛り（1・3・5・8・10 秒の位置）
+    const scale = el('div', 'practice-threshold-scale');
+    scale.setAttribute('aria-hidden', 'true');
+    [P.THRESHOLD_MIN, 3, 5, 8, P.THRESHOLD_MAX].forEach((t) => {
+      const tick = el('span', 'practice-threshold-tick');
+      tick.textContent = String(t);
+      tick.style.left = ((t - P.THRESHOLD_MIN) / (P.THRESHOLD_MAX - P.THRESHOLD_MIN)) * 100 + '%';
+      scale.append(tick);
+    });
+    const track = el('div', 'practice-threshold-track');
+    track.append(range, scale);
+    wrap.append(step(-0.5, 'practice.thresholdDown'), track, step(0.5, 'practice.thresholdUp'), value);
+    return wrap;
   }
 
   // 選んでいるグループの要約（押すとグループを選ぶ欄を開く・閉じる）

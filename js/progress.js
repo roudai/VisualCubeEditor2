@@ -8,7 +8,9 @@
  *   setStatus(set, name, status)    習得状況を書く（'new' なら消す）
  *   judge(time, threshold)          練習の判定：time（秒）がしきい値以内なら 'learned'、超えた・null（解けなかった）なら 'learning'
  *   thresholdOf(practice, set)      練習の設定（store.js の 'practice'）から、その種類（'pll' | 'oll' | 'coll'）の習得の目安（秒）。
- *                                     thresholds[set] → 以前の共通の threshold → 3 の順に使う（1〜120 秒の範囲外は使わない）
+ *                                     thresholds[set] → 以前の共通の threshold → 既定（OLL 2 秒、ほかは 3 秒）の順に使う（0〜120 秒の範囲外は使わない）。
+ *                                     THRESHOLD_MIN〜THRESHOLD_MAX（1〜10 秒）の 0.5 秒刻みにそろえる（以前は 120 秒まで選べた）
+ *   clampThreshold(v)               目安の秒数を 1〜10 秒・0.5 秒刻みにそろえる
  *   addTime(list, time, max)        最近のタイムの配列に足した新しい配列（新しい順、最大 max 件）
  *   displaySettings(set)            エディタで保存した設定から、画像の配色・線の色・背景・サイズを決める
  *                                     PLL：保存した配色（OLL 配色のときは OLL を選ぶ前の配色、無ければ Standard）
@@ -79,13 +81,19 @@
   const judge = (time, threshold) => (typeof time === 'number' && time <= threshold ? 'learned' : 'learning');
 
   // 習得の目安は種類ごと（thresholds: { pll, oll, coll }）。以前は共通の threshold だったので、無ければそれを使う
-  const DEFAULT_THRESHOLD = 3; // 練習ページの既定（移植元は 8 秒）
+  // 既定：OLL は手順が短いものが多いので短め（移植元は PLL 8 秒・OLL 5 秒）
+  const DEFAULT_THRESHOLDS = { pll: 3, oll: 2, coll: 3, zbll: 3 };
+  // 範囲は 3x3 の LL に合わせて 1〜10 秒（移植元は 2〜20 秒）
+  const THRESHOLD_MIN = 1;
+  const THRESHOLD_MAX = 10;
+  // 以前の範囲（120 秒まで）の値は読み、1〜10 秒にそろえる。それ以外の壊れた値は使わない
   const validThreshold = (v) => typeof v === 'number' && v > 0 && v <= 120;
+  const clampThreshold = (v) => Math.min(THRESHOLD_MAX, Math.max(THRESHOLD_MIN, Math.round(v * 2) / 2));
   function thresholdOf(practice, set) {
     const p = isObject(practice) ? practice : {};
     const own = isObject(p.thresholds) ? p.thresholds[set] : undefined;
-    if (validThreshold(own)) return own;
-    return validThreshold(p.threshold) ? p.threshold : DEFAULT_THRESHOLD;
+    if (validThreshold(own)) return clampThreshold(own);
+    return validThreshold(p.threshold) ? clampThreshold(p.threshold) : DEFAULT_THRESHOLDS[set] || DEFAULT_THRESHOLDS.pll;
   }
 
   function addTime(list, time, max) {
@@ -336,6 +344,9 @@
   return {
     STATUSES: STATUSES,
     thresholdOf: thresholdOf,
+    clampThreshold: clampThreshold,
+    THRESHOLD_MIN: THRESHOLD_MIN,
+    THRESHOLD_MAX: THRESHOLD_MAX,
     weakScores: weakScores,
     pickWeighted: pickWeighted,
     wrapAuf: wrapAuf,

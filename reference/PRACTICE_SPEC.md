@@ -21,7 +21,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
   - グループ：「すべてのグループ」または選んだグループ（例：`Dot, Square`）。押すとグループのボタンが並ぶ欄が開き、押したグループだけを出題する（1つも選んでいなければすべて。「選択を解除」で戻す）。グループのボタンにマウスを乗せると説明とケースの数が出る。PLL・OLL・COLL・ZBLL それぞれで覚えておく
     - ZBLL の小グループ順は2段：OCLL を1つ選び、その中の小グループで絞る（一覧と同じ決まり。`reference/ZBLL_SPEC.md`）
   - 対象：未習得 / 練習中 / 習得済み / すべて（それぞれ件数付き。グループで絞った中の件数）
-  - 習得の目安：2秒 / 3秒 / 5秒 / 8秒（既定は 3秒）、または入力欄に数値（1〜120 秒）。入力した秒数はボタンには足さず、入力欄を強調する。PLL・OLL・COLL・ZBLL で別々に持ち、設定欄には今の種類の目安を出す（例：PLL は 5 秒、OLL は 2 秒）。判定・記録のページのグラフの破線・苦手順の並びも、その種類の目安を使う（`Progress.thresholdOf`）
+  - 習得の目安：スライドバー（1〜10 秒・0.5 秒刻み。1・3・5・8・10 秒に目盛り）と両側の「−」「＋」（0.5 秒ずつ。端では押せない）、右に今の秒数（`practice-threshold`）。動かしている間は秒数の表示だけを変え、離したとき（change）に保存する。以前の範囲（120 秒まで）で保存した値は `Progress.thresholdOf` で 1〜10 秒・0.5 秒刻みにそろえる（`clampThreshold`。すでに習得済みのケースはそのまま）。既定は OLL 2 秒、PLL・COLL・ZBLL 3 秒。PLL・OLL・COLL・ZBLL で別々に持ち、設定欄には今の種類の目安を出す（例：PLL は 5 秒、OLL は 2 秒）。判定・記録のページのグラフの破線・苦手順の並びも、その種類の目安を使う（`Progress.thresholdOf`）
   - 出題：苦手を多めに / ランダム（PLL・OLL・COLL・ZBLL 共通。既定は苦手を多めに）。苦手を多めにでは苦手なケースほど出やすくし（下の「出題」）、ランダムではどのケースも同じ確率。変えても今の問題はそのまま
   - グループを選ぶ欄で「グループ順 / 覚える順」（OLL は「番号順 / 覚える順」）を切り替える（一覧と共通の `list-filter` の `<set>Order`）。覚える順では段階（PLL は U〜N、OLL は A〜M。Cube Voyage 準拠）で選ぶ（`prefs.groups['<set>-stage']`）。
     OLL の番号順ではグループを選ばない（すべてから出題。前に選んだ OLL のグループは使わない）。OLL の範囲（No Dot / Dot）は無い（Megaminx 版にだけある）
@@ -117,7 +117,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 ## Megaminx 版（移植元）との違い
 - スクランブル：Pochmann 記法 7 行 → random-state の 1 行。短い形は 13 文字固定 → 1 手 1 文字（可変長）
 - ケース用スクランブルに出題時の AUF を足さない（`Progress.wrapAuf` は使っていない。関数とテストは残してある）
-- 習得の目安：5 / 8 / 10 / 15 秒（既定 8）→ 2 / 3 / 5 / 8 秒（既定 3）。種類ごとに別々に持つのは同じ（MegaminxImageEditor a9f039b）
+- 習得の目安：スライドバーの範囲 2〜20 秒（目盛り 2・5・10・15・20）→ 1〜10 秒（目盛り 1・3・5・8・10）。既定 PLL 8 秒・OLL 5 秒 → PLL・COLL・ZBLL 3 秒・OLL 2 秒。種類ごとに別々に持つのは同じ（MegaminxImageEditor a9f039b・968acad）
 - OLL の範囲（No Dot / Dot）が無い。覚える順は PLL・OLL とも Cube Voyage 準拠の 13 段階（Megaminx は PLL だけ 27 段階）。OLL は番号順もある
 - 以前の形のソルブの記録を短い形に直す処理は無い（新しいアプリなので古い記録が無い）
 - 画像は canvas ではなく SVG（srVisualizer）

@@ -59,12 +59,144 @@
   opacity: .55;
   font-variant-numeric: tabular-nums;
 }
-.practice-seconds {
-  width: 3.75rem;
+/* 習得の目安：−［スライドバー（目盛り）］＋ 8秒 */
+.practice-threshold {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  width: 19rem; /* ラベルと同じ行に収める（狭い画面では折り返して幅いっぱい） */
+  max-width: 100%;
 }
-.practice-seconds.active {
-  border-color: #212529;
+.practice-threshold-track {
+  position: relative;
+  flex: 1;
+  min-width: 8rem;
+  padding-bottom: .9rem; /* 目盛りの文字のぶん */
+}
+.practice-threshold-range {
+  --fill: 0%;
+  display: block;
+  width: 100%;
+  height: 1.25rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.practice-threshold-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #212529 var(--fill), #dee2e6 var(--fill));
+}
+.practice-threshold-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #dee2e6;
+}
+.practice-threshold-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: #212529;
+}
+.practice-threshold-range::-webkit-slider-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: calc(2px - .55rem);
+  border: 2px solid #212529;
+  border-radius: 50%;
+  background: #fff;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.practice-threshold-range::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  box-sizing: border-box;
+  border: 2px solid #212529;
+  border-radius: 50%;
+  background: #fff;
+}
+.practice-threshold-range:focus-visible {
+  outline: none;
+}
+.practice-threshold-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.practice-threshold-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+/* 目盛り：つまみの中心が端から半分（.55rem）内側を動くので、そのぶん内側に置く */
+.practice-threshold-scale {
+  position: absolute;
+  right: .55rem;
+  bottom: 0;
+  left: .55rem;
+  height: .9rem;
+  pointer-events: none;
+}
+.practice-threshold-tick {
+  position: absolute;
+  top: 0;
+  color: #adb5bd;
+  font-size: .65rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+}
+.practice-threshold-tick::before {
+  content: '';
+  position: absolute;
+  top: -.3rem;
+  left: 50%;
+  width: 1px;
+  height: .2rem;
+  background: #ced4da;
+}
+.practice-threshold-step {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  margin-bottom: .9rem; /* スライドバーの高さにそろえる */
+  border: 1px solid #dee2e6;
+  border-radius: 50%;
+  background: #fff;
+  color: #212529;
+  line-height: 0;
+}
+.practice-threshold-step svg {
+  display: block;
+}
+.practice-threshold-step:hover:not(:disabled) {
+  background: #f1f3f5;
+}
+.practice-threshold-step:disabled {
+  color: #ced4da;
+  cursor: default;
+}
+.practice-threshold-step:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.practice-threshold-value {
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  min-width: 3.6rem; /* 「20.0秒」が入る幅。秒数が変わってもスライドバーの長さが変わらないように */
+  /* 「−」「＋」はスライドバーに合わせて上げるが、秒数はラベル（習得の目安・出題など）と同じ高さにする */
+  font-size: .9rem;
   font-weight: 600;
+}
+/* 数字は左寄せで「＋」のすぐ右。小数 1 桁・等幅の数字なので、2.0〜9.5 のあいだは「秒」の位置が動かない */
+.practice-threshold-num {
+  font-variant-numeric: tabular-nums;
+}
+.practice-threshold-unit {
+  margin-left: .1rem;
 }
 
 /* グループの絞り込み */
