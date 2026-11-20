@@ -69,6 +69,37 @@
   font-size: .75rem;
   font-variant-numeric: tabular-nums;
 }
+/* スマホ（幅 576px 未満）：カードを小さくする。2 列のまま、ラベル（左）と数字（右）を横に並べ、
+   小さい字（ベスト・現在など）は数字の下に右寄せ。余白・角も詰める */
+@media (max-width: 575.98px) {
+  .stats-cards {
+    gap: .5rem;
+  }
+  .stats-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto; /* 狭い画面ではラベルの方を折り返し、数字は 1 行のまま */
+    align-content: center;
+    align-items: baseline;
+    column-gap: .4rem;
+    padding: .4rem .7rem;
+    border-radius: .7rem;
+  }
+  .stats-card-label {
+    font-size: .7rem;
+    line-height: 1.2;
+  }
+  .stats-card-value {
+    font-size: 1.2rem;
+    line-height: 1.25;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .stats-card-sub {
+    grid-column: 1 / -1;
+    font-size: .68rem;
+    text-align: right;
+  }
+}
 
 /* パネル（グラフ・表） */
 .stats-panel {
