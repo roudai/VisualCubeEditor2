@@ -89,6 +89,10 @@
           <div id="visualcube"></div>
           {{ algorithm }}
         </div>
+        <!-- ダウンロード：画像のすぐ下に置く（Megaminx Image Editor と同じ。ファイル名の欄は下の設定の中） -->
+        <div class="text-center mb-3">
+          <button class="btn btn-outline-secondary" type="button" id="downloadImage" @click="downloadImage">{{ t('editor.download') }}</button>
+        </div>
 
         <p>
           <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">{{ t('editor.showParameter') }}</button>
@@ -97,13 +101,10 @@
           <div class="card card-body">{{ parameter }}</div>
         </div>
 
-        <!-- Download / File Name -->
+        <!-- File Name（ダウンロードのボタンは画像のすぐ下） -->
         <div class="mb-2">
           <label class="form-label" for="fileName">{{ t('editor.fileName') }}</label>
-          <div class="input-group">
-            <input type="text" class="form-control" id="fileName" v-model="fileName" autocomplete="off" spellcheck="false" />
-            <button class="btn btn-outline-secondary" type="button" id="downloadImage" @click="downloadImage">{{ t('editor.download') }}</button>
-          </div>
+          <input type="text" class="form-control" id="fileName" v-model="fileName" autocomplete="off" spellcheck="false" />
         </div>
 
         <!-- Puzzle Type -->

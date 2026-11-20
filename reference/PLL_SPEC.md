@@ -183,7 +183,7 @@ Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
 - 選ぶとパズルの種類を 3x3、表示を Plan（上面図）に切り替える（保存しない）。未選択から選んだときは種類を「Algorithm to solve case」にし、
   種類に応じて手順の欄に `alg`（Algorithm to solve case）または `setup`（Algorithm to apply）を入れる。どちらでも同じケースの画像になる
 - 画像サイズ：数値の入力欄 `#imageSize`（Megaminx Image Editor と同じ。↑↓で 1 ずつ）。確定（Enter・欄を離れる）で反映し、整数に丸めて 100（Megaminx Image Editor と同じ最小）〜`imageMax`（画面の幅の 80% を 100 単位に丸めたもの、最大 1000）に収める。空・数でないときは前の値に戻す。横の「リセット」で 128（上限が 128 より小さい画面では上限）に戻す
-- 画像（`#editorPreview`）は下にスクロールしても画面の上に残す（`sticky-top`）。表示は画面の高さの 35% まで（描く大きさ・ダウンロードする PNG は画像サイズのまま）。入力欄までのスクロールで画像の下に隠れないよう、画像の高さを `scroll-padding-top` にする（`js/main.js` の mounted）
+- 画像（`#editorPreview`）は下にスクロールしても画面の上に残す（`sticky-top`）。表示は画面の高さの 35% まで（描く大きさ・ダウンロードする PNG は画像サイズのまま）。「ダウンロード」のボタンは画像のすぐ下（Megaminx Image Editor と同じ。ファイル名の欄は設定の中）。入力欄までのスクロールで画像の下に隠れないよう、画像の高さを `scroll-padding-top` にする（`js/main.js` の mounted）
 - 手順の種類（Algorithm to apply / to solve case / Defines the cube state）の選び方：広い画面はラジオボタン、スマホ（幅 576px 未満）はプルダウン `#algorithmTypeSelect`
   （3 つ目だけ 2 行目に落ちて崩れるため）。どちらも Vue の `algtype` を v-model で共有する。キューブが 7 以上で「Defines the cube state」を選べないのも同じ
 - ファイル名は `pll-<名前>.png`（Download ボタンで、表示中の画像を PNG で保存する）
