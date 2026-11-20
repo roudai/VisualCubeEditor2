@@ -456,7 +456,10 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
 .practice-full #practiceHintText {
   display: none;
 }
-.practice-full-scramble {
+/* 結果のスクランブル（1 行約 41 文字・折り返さない）。スマホの幅にも収まるよう画面の幅に合わせて小さくする。
+   .practice-case-alg（.85rem）より後に書かれていても負けないよう、2 つのクラスで指定する */
+.practice-case-alg.practice-full-scramble {
+  text-align: left; /* スマホでは結果が中央寄せになるが、スクランブルは行の頭をそろえる */
   white-space: pre-line;
   color: #6c757d;
   font-size: min(.75rem, 2.7vw);

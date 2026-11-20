@@ -597,6 +597,10 @@
     padding: .25rem .25rem .5rem 2rem;
     border-bottom: 1px solid #e9ecef;
   }
+  /* スクランブル（1 行約 41 文字・折り返さない）を、狭いスマホでも横にスクロールせずに読める大きさにする */
+  .stats-table.stats-full-table .stats-scramble-text {
+    font-size: min(.72rem, 2.6vw);
+  }
 }
 
 /* ---- PLL・OLL・COLL・ZBLL の記録の一覧：スマホでは 2 段にまとめる（ソルブの一覧と同じ形）----
