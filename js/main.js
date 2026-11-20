@@ -65,6 +65,7 @@ const app = Vue.createApp({
     arrows: '',
     cubeSize: 3,
     imageSize: 128,
+    imageMin: 100, // Megaminx Image Editor と同じ最小
     imageMax: Math.min(Math.round((window.innerWidth * 0.8) / 100, 0) * 100, 1000),
     cubeView: 'normal',
     stageMask: '',
@@ -332,11 +333,11 @@ const app = Vue.createApp({
         })
       })
     },
-    // 画像サイズの入力欄を確定したとき：整数に丸めて 1〜imageMax に収める。空・数でないときは今の値に戻す
+    // 画像サイズの入力欄を確定したとき：整数に丸めて imageMin〜imageMax に収める。空・数でないときは今の値に戻す
     onImageSizeChange(e) {
       const n = Math.round(Number(e.target.value))
       if (e.target.value !== '' && Number.isFinite(n)) {
-        this.imageSize = Math.min(this.imageMax, Math.max(1, n))
+        this.imageSize = Math.max(this.imageMin, Math.min(this.imageMax, n))
       }
       e.target.value = this.imageSize // 範囲外を入れたときも、欄の表示を実際の値にそろえる
     },

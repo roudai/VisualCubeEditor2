@@ -462,7 +462,7 @@
           if (HEX.test(faceColors[face])) this['face' + face] = faceColors[face].toLowerCase();
         });
         if (PRESETS.includes(settings.preset)) this.colorPreset = settings.preset;
-        if (/^\d+$/.test(settings.imageSize)) this.imageSize = Math.min(this.imageMax, Math.max(1, Number(settings.imageSize)));
+        if (/^\d+$/.test(settings.imageSize)) this.imageSize = Math.max(this.imageMin, Math.min(this.imageMax, Number(settings.imageSize)));
         if (HEX.test(settings.border)) this.cubeColor = settings.border.toLowerCase();
         if (HEX.test(settings.bgColor)) this.backgroundColor = settings.bgColor.toLowerCase();
         if (settings.bg === 'y' || settings.bg === 'n') this.background = settings.bg;

@@ -119,7 +119,7 @@
         <div class="mb-2">
           <label class="form-label" for="imageSize">{{ t('editor.imageSize') }}</label>
           <!-- Megaminx Image Editor と同じ数値の入力欄。確定（Enter・欄を離れる・↑↓）で反映する（js/main.js の onImageSizeChange） -->
-          <input type="number" class="form-control" id="imageSize" min="1" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
+          <input type="number" class="form-control" id="imageSize" :min="imageMin" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
         </div>
 
         <!-- Algorithm -->
