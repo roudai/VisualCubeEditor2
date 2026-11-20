@@ -991,6 +991,7 @@
 
   function renderHistory() {
     renderFullStats();
+    $('practiceHistory').classList.toggle('full', isFull()); // ソルブはタイムだけなので、丸を同じ幅でそろえる（css/practice.css）
     if (isFull()) {
       // 通し：保存してある直近の記録（ページを開き直しても出る）
       $('practiceHistory').replaceChildren(...fullLog().slice(0, HISTORY).map((r) => el('li', P.effectiveTime(r) === null ? 'learning' : '', showTime(r))));

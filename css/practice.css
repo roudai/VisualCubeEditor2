@@ -662,6 +662,22 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   font-size: .78rem;
   font-variant-numeric: tabular-nums;
 }
+/* ソルブ：タイムだけなので、丸を同じ幅にして格子にそろえる（「1:33.46+」が入る幅。折り返しても列がそろう）。
+   スマホは行いっぱいに均等に広げる（右に半端な隙間を残さない） */
+.practice-history.full {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 4.7rem);
+}
+.practice-history.full li {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}
+@media (max-width: 575.98px) {
+  .practice-history.full {
+    grid-template-columns: repeat(auto-fill, minmax(4.7rem, 1fr));
+  }
+}
 .practice-history li.learned {
   background: rgba(25, 135, 84, .1);
   color: #146c43;
