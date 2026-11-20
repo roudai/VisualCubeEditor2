@@ -60,6 +60,8 @@
       <p class="text-muted small mb-2" data-i18n="list.zbllIntro">Solve the whole last layer at once when the edges are already oriented (472 cases in 7 OCLL sets). Tap the circle to mark your progress; click a case to open its algorithm in the editor.</p>
       <a id="practiceLink" href="/practice" class="btn btn-primary btn-sm mb-2 me-1" data-i18n="practice.listButton" data-i18n-title="practice.listButtonTitle">Practice</a>
       <button id="downloadZip" type="button" class="btn btn-outline-secondary btn-sm mb-2 d-none d-md-inline-block" title="472 cases as PNG, with the colors shown here and the image settings saved in the editor">Download ZIP</button>
+      <!-- ZIP でダウンロードの確認（押してすぐにはダウンロードしない。js/cases.js の renderZipConfirm） -->
+      <div id="zipConfirm" class="zip-confirm d-none d-md-flex" hidden></div>
       <div id="progressBox"></div>
       <div id="groupNav" class="mb-1"></div>
       <div id="caseList"></div>

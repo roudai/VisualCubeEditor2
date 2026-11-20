@@ -60,6 +60,8 @@
       <p class="text-muted small mb-2" data-i18n="list.collIntro">Orient and permute the corners at once, for cases whose edges are already oriented. Click a case to open it in the editor; tap the circle to mark your progress.</p>
       <a id="practiceLink" href="/practice" class="btn btn-primary btn-sm mb-2 me-1" data-i18n="practice.listButton" data-i18n-title="practice.listButtonTitle">Practice</a>
       <button id="downloadZip" type="button" class="btn btn-outline-secondary btn-sm mb-2 d-none d-md-inline-block" title="40 cases as PNG, with the colors shown here and the image settings saved in the editor">Download ZIP</button>
+      <!-- ZIP でダウンロードの確認（押してすぐにはダウンロードしない。js/cases.js の renderZipConfirm） -->
+      <div id="zipConfirm" class="zip-confirm d-none d-md-flex" hidden></div>
       <div id="progressBox"></div>
       <div id="groupNav" class="mb-1"></div>
       <div id="caseList"></div>

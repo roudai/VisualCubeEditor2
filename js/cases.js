@@ -15,6 +15,7 @@
 //     1つも選んでいなければすべて。「選択を解除」で戻す）。選んだものは 'list-filter' の <set>Groups（覚える順は <set>Stages）に保存
 //   - エディタで保存した自分の手順があれば、そのケースはその手順（と画像）で表示し、名前の横に「custom」を付ける
 //   - ZIP でダウンロード（Download ZIP）：全ケースを一覧と同じ配色で PNG にし、zip（visualcube-<pll|oll>.zip）にまとめる。
+//     押してすぐにはダウンロードせず、件数・画像の大きさ・背景を書いた確認の行を出し、「ダウンロード」で始める。
 //     画像サイズ・Cube Color・背景はエディタで保存した設定（zip-store.js で無圧縮の zip を作る）
 (function () {
   'use strict';
@@ -32,6 +33,7 @@
   const P = window.Progress; // 習得状況・画像の色（progress.js。練習ページと共通）
   // エディタで保存した設定から、画像の配色・線の色・背景・サイズを決める
   const savedSettings = () => P.displaySettings(SET);
+  let zipConfirming = false; // ZIP でダウンロードの確認を出しているか（renderZipConfirm）
 
   const groupLabel = (g) => (NOTES[g] ? `${g} (${NOTES[g]})` : g);
   const el = (tag, className, text) => {
@@ -394,6 +396,7 @@
     if (!zip.disabled) {
       I.set(zip, 'list.download');
     }
+    if (zipConfirming) renderZipConfirm(); // 言語を変えたら文を直す
     zip.title = I.t('list.downloadTitle', { n: total });
     document.querySelectorAll('#progressBox [data-filter]').forEach((b) => {
       const on = b.dataset.filter === filter;
@@ -600,5 +603,45 @@
     updateSummary();
     applyFilter();
   });
-  $('downloadZip').addEventListener('click', (e) => downloadAll(e.currentTarget));
+  // ZIP でダウンロード：押したら確認の行を出す（もう一度押すと閉じる）
+  function renderZipConfirm() {
+    const box = $('zipConfirm');
+    const button = $('downloadZip');
+    box.replaceChildren();
+    box.hidden = !zipConfirming;
+    button.setAttribute('aria-expanded', String(zipConfirming));
+    if (!zipConfirming) return;
+    const settings = savedSettings(); // 今の設定（ダウンロードのときにも読み直す）
+    const text = el('span', 'zip-confirm-text');
+    I.set(text, settings.background ? 'list.downloadConfirmBg' : 'list.downloadConfirm', {
+      set: SET.toUpperCase(),
+      n: DATA.length,
+      size: settings.size,
+      bg: settings.background || '',
+    });
+    const yes = el('button', 'btn btn-primary btn-sm');
+    yes.type = 'button';
+    I.set(yes, 'list.downloadYes');
+    yes.addEventListener('click', () => {
+      zipConfirming = false;
+      renderZipConfirm();
+      downloadAll(button);
+    });
+    const no = el('button', 'btn btn-outline-secondary btn-sm');
+    no.type = 'button';
+    I.set(no, 'stats.cancel');
+    no.addEventListener('click', () => {
+      zipConfirming = false;
+      renderZipConfirm();
+      button.focus();
+    });
+    const note = el('span', 'zip-confirm-note');
+    I.set(note, 'list.downloadNote');
+    box.append(text, yes, no, note);
+    yes.focus();
+  }
+  $('downloadZip').addEventListener('click', () => {
+    zipConfirming = !zipConfirming;
+    renderZipConfirm();
+  });
 })();

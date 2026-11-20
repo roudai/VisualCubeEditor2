@@ -225,6 +225,7 @@ Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
 
 ### 一括ダウンロード
 - 「Download ZIP」（スマホの幅では出さない）：全21ケースを一覧と同じ配色で PNG にし、`visualcube-pll.zip`（中は `pll-<名前>.png`）にまとめる（`js/zip-store.js`、無圧縮）
+- 押してすぐにはダウンロードしない。ボタンの下に確認の行（「PLL の 21 ケースの画像（200px・背景は透明）を 1 つの ZIP にまとめてダウンロードしますか？」、**ダウンロード**・**キャンセル**、その下に「画像の大きさや色はエディタで変えられます」）を出し、ダウンロードで始める。ボタンをもう一度押すかキャンセルで閉じる。言語を変えると文を直す。OLL・COLL・ZBLL の一覧も同じ（`#zipConfirm`・`renderZipConfirm`）
 - 画像サイズ・Cube Color・背景はエディタで保存した設定（サイズは 100〜1000 px に収める。保存が無ければ 200 px、透明）。SVG を Image → canvas で PNG にする
 
 ## テスト（`test/pll-data.test.js`、`node --test test/pll-data.test.js`）
