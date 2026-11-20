@@ -540,7 +540,12 @@
       $('scramble').textContent = '';
       return;
     }
-    const candidates = list.length > 1 ? list.filter((c) => c.name !== lastName) : list;
+    // 直前と同じケースと、PLL では直前の逆手順のケース（Ua のあとの Ub など。pll-data.js の inverse）は続けて出さない。
+    // それで候補が無くなるとき（対象がその 2 ケースだけなど）は、同じケースだけを外す
+    const last = lastName ? DATA[prefs.set].find((x) => x.name === lastName) : null;
+    const notSame = list.length > 1 ? list.filter((c) => c.name !== lastName) : list;
+    const notInverse = last && last.inverse ? notSame.filter((c) => c.name !== last.inverse) : notSame;
+    const candidates = notInverse.length ? notInverse : notSame;
     const c = forced ? forced : P.pickWeighted(candidates, weightFor(prefs.set));
     // スクランブルはランダムな AUF 込みで作ってある（tools/gen-scrambles.js）ので、そのまま出す
     const scrambles = SCRAMBLES[prefs.set][c.name] || [];

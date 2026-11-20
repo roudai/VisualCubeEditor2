@@ -32,11 +32,11 @@ const PLL_SRC = {
   2: { name: 'Jb', group: 'Adjacent swap', algset: 'PLL', s: JB_SETUP, a: JB },
 };
 
-test('PLL：元データの順に { name, group, alg, setup } を出力する', () => {
+test('PLL：元データの順に { name, group, alg, setup, inverse } を出力する（inverse は逆手順のケース。T・Jb は自分自身）', () => {
   withSource('pll', PLL_SRC, (b) => {
     assert.deepEqual(b.cases(), [
-      { name: 'T', group: 'Adjacent swap', alg: T, setup: T },
-      { name: 'Jb', group: 'Adjacent swap', alg: JB, setup: JB_SETUP },
+      { name: 'T', group: 'Adjacent swap', alg: T, setup: T, inverse: 'T' },
+      { name: 'Jb', group: 'Adjacent swap', alg: JB, setup: JB_SETUP, inverse: 'Jb' },
     ]);
     const text = b.build();
     assert.match(text, /^\/\/ 自動生成ファイル。手で編集しないこと。\n\/\/ 元データ: data\/pll\/algs_info\.json \/ 生成: node tools\/build-pll-data\.js\n/);
@@ -118,7 +118,7 @@ test('覚える順番（learn_order.json）があれば stage・order を付け�
           ['Jb', 1, 1],
         ]
       );
-      assert.deepEqual(Object.keys(b.cases()[0]), ['name', 'group', 'stage', 'order', 'alg', 'setup']);
+      assert.deepEqual(Object.keys(b.cases()[0]), ['name', 'group', 'stage', 'order', 'alg', 'setup', 'inverse']);
     },
     [['Jb'], ['T']]
   );
@@ -129,7 +129,7 @@ test('覚える順番（learn_order.json）があれば stage・order を付け�
 
 test('手順の配列：1本目を alg、2本目以降を alts にし、別解は同じケースを前後の AUF を除いて揃えること', () => {
   withSource('pll', { 1: { name: 'T', group: 'G', s: T, a: [T, `(U2) ${T}`] } }, (b) => {
-    assert.deepEqual(b.cases(), [{ name: 'T', group: 'G', alg: T, alts: [`(U2) ${T}`], setup: T }]);
+    assert.deepEqual(b.cases(), [{ name: 'T', group: 'G', alg: T, alts: [`(U2) ${T}`], setup: T, inverse: 'T' }]);
   });
   // 別解が別のケース（Jb）を揃える手順ならエラー
   withSource('pll', { 1: { name: 'T', group: 'G', s: T, a: [T, JB] } }, (b) => {

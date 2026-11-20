@@ -179,10 +179,10 @@ test('グループの説明（js/pll-groups.js）が全グループにあり、�
   Object.values(NOTES).forEach((note) => assert.ok(typeof note === 'string' && note.length > 0));
 });
 
-test('js/pll-data.js が最新（生成し直しても変わらない）で、項目は name・group・stage・order・alg・setup だけ', () => {
+test('js/pll-data.js が最新（生成し直しても変わらない）で、項目は name・group・stage・order・alg・setup・inverse だけ', () => {
   assert.equal(fs.readFileSync(OUT, 'utf8'), build());
   assert.deepEqual(PLL, cases());
-  PLL.forEach((c) => assert.deepEqual(Object.keys(c), ['name', 'group', 'stage', 'order', 'alg', 'setup']));
+  PLL.forEach((c) => assert.deepEqual(Object.keys(c), ['name', 'group', 'stage', 'order', 'alg', 'setup', 'inverse']));
   Object.values(SRC).forEach((c) => {
     assert.deepEqual(Object.keys(c), ['name', 'group', 'algset', 's', 'a']);
     assert.equal(c.algset, 'PLL');
@@ -361,4 +361,18 @@ test('覚える順：Cube Voyage の 13 段階どおりで、全ケースがち�
   assert.equal(new Set(stages.flat()).size, PLL.length);
   // 段階の名前（一覧の見出し・練習のボタン）
   assert.deepEqual(CS.list(PLL, true).map((s) => s.label), ['U', 'T', 'Y', 'H', 'Z', 'J', 'A', 'F', 'V', 'R', 'E', 'G', 'N']);
+});
+
+test('inverse（逆手順のケース）は実在のケース名で、対になっている（逆の逆が自分）', () => {
+  const byName = new Map(PLL.map((c) => [c.name, c]));
+  PLL.forEach((c) => {
+    assert.ok(byName.has(c.inverse), `${c.name}: inverse ${c.inverse}`);
+    assert.equal(byName.get(c.inverse).inverse, c.name, c.name);
+  });
+  assert.equal(byName.get('Ua').inverse, 'Ub');
+  assert.equal(byName.get('Aa').inverse, 'Ab');
+  assert.equal(byName.get('Ga').inverse, 'Gb');
+  assert.equal(byName.get('Gc').inverse, 'Gd');
+  assert.equal(byName.get('H').inverse, 'H');
+  assert.equal(byName.get('Ja').inverse, 'Ja');
 });

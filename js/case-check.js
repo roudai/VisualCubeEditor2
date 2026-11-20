@@ -17,6 +17,8 @@
  *   stripEnd(set, a)        a の最後の AUF・持ち替え（x y z）を外す（OLL では括弧の無い U も最後の AUF とみなす）。
  *                             向きを元に戻すための持ち替え（手順全体でセンターが元の位置に戻る）は外さない
  *   findCase(set, a, data)  a で揃うケース（data の要素）を探す（無ければ null）
+ *   caseKey(set, alg, opts) alg を揃った状態に回した状態のキー（PLL は前後の AUF の違いを、OLL は上面の向き以外を無視）。
+ *                             opts は CubeState.applyAlg のオプション（inverse・cancelRotation）
  *
  * a・s は読み替え済み（convert 後）の手順。set は 'pll' / 'oll' / 'coll' / 'zbll'（ZBLL は PLL と同じ確認）。
  * 手順中の持ち替え・2層回し・中層回しで完成後の向きが変わっても揃ったとみなす（cancelRotation）。
@@ -202,5 +204,6 @@
     fitSetup: fitSetup,
     stripEnd: stripEnd,
     findCase: findCase,
+    caseKey: caseKey,
   };
 });

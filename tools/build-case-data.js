@@ -23,7 +23,10 @@
 //   ZBLL は learn_order.json を使わず、OCLL（algset の T-ZBLL など）を段階にする（stage は OCLL が出てくる順、order はデータの順）。
 //   group は「T / 2GLL」のように OCLL と小グループを合わせたものにする
 //
-//   出力 js/<set>-data.js = [{ name, group, (stage, order,) alg, (alts,) setup }, …]（ブラウザでは window.<SET>_DATA）
+//   PLL は各ケースに inverse（逆手順のケース名）を付ける：そのケースの手順 alg を揃った状態に回してできる状態（前後の AUF の違いは無視）が、
+//   setup の状態と一致するケース（自分自身のこともある）。ちょうど 1 つでなければエラー。練習で直前の逆手順を続けて出さないのに使う
+//
+//   出力 js/<set>-data.js = [{ name, group, (stage, order,) alg, (alts,) setup, (inverse) }, …]（ブラウザでは window.<SET>_DATA）
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -176,6 +179,17 @@ function createBuilder(set, options) {
       return item;
     });
     if (errors.length) throw new Error(`${srcName} に問題があります:\n  ` + errors.join('\n  '));
+    // PLL：逆手順のケース
+    if (set === 'pll') {
+      const keys = out.map((c) => C.caseKey('pll', c.setup));
+      out.forEach((c) => {
+        const k = C.caseKey('pll', c.alg, { cancelRotation: true });
+        const found = out.filter((x, i) => keys[i] === k);
+        if (found.length === 1) c.inverse = found[0].name;
+        else errors.push(`${c.name}: 逆手順のケースが ${found.length} 個あります（${found.map((x) => x.name).join(', ')}）`);
+      });
+      if (errors.length) throw new Error(`${srcName} に問題があります:\n  ` + errors.join('\n  '));
+    }
     return out;
   }
 

@@ -140,10 +140,13 @@ s = [AUF] setup [AUF]
 - 形式（元データの順番を保つ。`alg` = `a`、`setup` = `s`）
   ```js
   [
-    { name: 'Ua', group: 'Edges only', alg: "R2 U R U R' U' R' U' R' U R'", setup: "R U' R U R U R U' R' U' R2" },
+    { name: 'Ua', group: 'Edges only', stage: 1, order: 1, alg: "R2 U R U R' U' R' U' R' U R'", setup: "R U' R U R U R U' R' U' R2", inverse: 'Ub' },
     ...
   ]
   ```
+- `inverse`：逆手順のケース名。そのケースの `alg` を揃った状態に回してできる状態（前後の AUF の違いは無視。`CaseCheck.caseKey`）が `setup` の状態と一致するケース。ちょうど 1 つでなければ生成でエラー（`tools/build-case-data.js`。PLL だけ）
+  - Ua ↔ Ub、Aa ↔ Ab、Ga ↔ Gb、Gc ↔ Gd。ほかの 13 ケース（H、Z、E、T、F、Ja、Jb、Ra、Rb、Y、V、Na、Nb）は自分自身
+  - 練習で、直前のケースの逆手順を続けて出さないのに使う（reference/PRACTICE_SPEC.md）
 - 練習用のスクランブル（`data/pll/scrambles.json` → `js/pll-scrambles.js`）は別のツール（`tools/gen-scrambles.js`・`tools/build-scrambles.js`）で作る。
   このスクリプトは作らない（Megaminx では `build-pll-data.js` が両方作っていた）
 
@@ -241,6 +244,7 @@ Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
   - `SITE_ALGS`：出典（roudai.net）で各ケースの2本目以降に載っている手順。`findCase` で同じ名前のケースになる
   - `OTHER_ALGS`：データとは別の、国際的な呼び方で広く知られている手順（各ケース1〜2本）を、名前の入れ替え（Ua⇔Ub・Aa⇔Ab・Ra⇔Rb・Ga⇔Gd・Gb⇔Gc）をしてここでの名前に読み替えたもの。`findCase` で同じ名前のケースになる
   - 逆の関係：Ua⇔Ub、Aa⇔Ab、Ga⇔Gb、Gc⇔Gd は互いに逆、ほかは自分が逆
+- `inverse` が実在のケース名で、対になっている（逆の逆が自分）。Ua ↔ Ub、Aa ↔ Ab、Ga ↔ Gb、Gc ↔ Gd、H ↔ H、Ja ↔ Ja
 - 全ケースが互いに違うケースで、あるケースの手順でほかのケースは揃わない
 
 名前を入れ替える（たとえば Ua と Ub の `a`・`s` を交換する）と、生成は通るがこのテストが落ちる。
