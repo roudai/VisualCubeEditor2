@@ -922,24 +922,36 @@
     const mean = P.meanTime(log) == null ? '–' : format(P.meanTime(log));
     const single = P.bestSingle(log) == null ? '–' : format(P.bestSingle(log));
 
-    // 広い画面：8 つのチップを 1 行に
+    // 広い画面：「今」（ao5・ao12・ao100・平均）と「ベスト」（ao5・ao12・ao100・単発）の 2 行。
+    // ao の列は上下でそろえる（css/practice.css の grid・subgrid）。まだ出ていない「–」は欄の真ん中に置く（empty）
     const item = (key, value) => {
       const d = el('div', 'practice-stat');
       const label = el('span', 'practice-stat-label');
       I.set(label, key);
-      d.append(label, el('span', 'practice-stat-value', value));
+      d.append(label, el('span', 'practice-stat-value' + (value === '–' ? ' empty' : ''), value));
       return d;
+    };
+    const statRow = (headKey, items) => {
+      const r = el('div', 'practice-stat-row');
+      const head = el('span', 'practice-stat-row-head');
+      I.set(head, headKey);
+      r.append(head, ...items);
+      return r;
     };
     const chips = el('div', 'practice-stat-chips');
     chips.append(
-      item('practice.ao5', now[0]),
-      item('practice.ao12', now[1]),
-      item('practice.ao100', now[2]),
-      item('practice.mean', mean),
-      item('practice.bestSingle', single),
-      item('practice.bestAo5', best[0]),
-      item('practice.bestAo12', best[1]),
-      item('practice.bestAo100', best[2])
+      statRow('practice.statNow', [
+        item('practice.ao5', now[0]),
+        item('practice.ao12', now[1]),
+        item('practice.ao100', now[2]),
+        item('practice.mean', mean),
+      ]),
+      statRow('practice.statBest', [
+        item('practice.ao5', best[0]),
+        item('practice.ao12', best[1]),
+        item('practice.ao100', best[2]),
+        item('practice.single', single),
+      ])
     );
 
     // スマホ：チップだと幅がばらばらに折り返すので、1 枚の表（列 ao5・ao12・ao100、行 今・ベスト）と、その下に平均・単発ベスト

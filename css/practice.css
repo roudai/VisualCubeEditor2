@@ -475,11 +475,45 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   color: #6c757d;
   font-size: min(.75rem, 2.7vw);
 }
-/* ソルブの ao5・ao12 など：広い画面はチップを 1 行に、スマホは 1 枚の表（js/practice.js の renderFullStats） */
+/* ソルブの ao5・ao12 など：広い画面は「今」と「ベスト」の 2 行（列をそろえる）、スマホは 1 枚の表（js/practice.js の renderFullStats） */
 .practice-stat-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
+  display: grid;
+  grid-template-columns: auto repeat(4, auto);
+  justify-content: start;
+  row-gap: .4rem;
+  max-width: 100%;
+}
+.practice-stat-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  column-gap: 1.5rem;
+  padding: .35rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: .6rem;
+  background: #fff;
+}
+.practice-stat-row-head {
+  min-width: 3em;
+  color: #6c757d;
+  font-size: .78rem;
+  font-weight: 600;
+}
+/* 数字の欄は「1:00.00」が入る幅をいつも取る（まだ出ていない「–」のときも、記録が増えても幅が変わらないように） */
+.practice-stat-row .practice-stat-value {
+  display: inline-block;
+  min-width: 6.2ch;
+}
+.practice-stat-row .practice-stat-value.empty {
+  text-align: center;
+}
+/* 576〜767px：1 行に収まるよう間隔を詰める */
+@media (max-width: 767.98px) {
+  .practice-stat-row {
+    column-gap: .7rem;
+    padding: .35rem .75rem;
+  }
 }
 .practice-full-card {
   display: none;
@@ -543,10 +577,7 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   display: inline-flex;
   align-items: baseline;
   gap: .4rem;
-  padding: .3rem .75rem;
-  border: 1px solid #e9ecef;
-  border-radius: .6rem;
-  background: #fff;
+  white-space: nowrap;
 }
 .practice-stat-label {
   color: #6c757d;
