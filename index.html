@@ -118,21 +118,8 @@
         <!-- Size of generated image -->
         <div class="mb-2">
           <label class="form-label" for="imageSize">{{ t('editor.imageSize') }}</label>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="input-group">
-                <input type="text" class="form-control" id="imageSize" v-model.number="imageSize" disabled />
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,10)">-10</button>
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,1)">-1</button>
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,imageMax,1)">+1</button>
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,imageMax,10)">+10</button>
-                <button type="submit" class="btn btn-outline-secondary" @click="resetSize">{{ t('common.reset') }}</button>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <input type="range" class="form-range" min="1" v-bind:max="imageMax" step="1" id="imageSize" v-model="imageSize" />
-            </div>
-          </div>
+          <!-- Megaminx Image Editor と同じ数値の入力欄。確定（Enter・欄を離れる・↑↓）で反映する（js/main.js の onImageSizeChange） -->
+          <input type="number" class="form-control" id="imageSize" min="1" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
         </div>
 
         <!-- Algorithm -->

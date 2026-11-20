@@ -332,8 +332,13 @@ const app = Vue.createApp({
         })
       })
     },
-    resetSize() {
-      this.imageSize = 128
+    // 画像サイズの入力欄を確定したとき：整数に丸めて 1〜imageMax に収める。空・数でないときは今の値に戻す
+    onImageSizeChange(e) {
+      const n = Math.round(Number(e.target.value))
+      if (e.target.value !== '' && Number.isFinite(n)) {
+        this.imageSize = Math.min(this.imageMax, Math.max(1, n))
+      }
+      e.target.value = this.imageSize // 範囲外を入れたときも、欄の表示を実際の値にそろえる
     },
     addAlgorithm(text) {
       if (this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {

@@ -35,7 +35,7 @@
       'title.editor': 'VisualCube Editor 3.0',
       'editor.download': 'Download',
       'editor.fileName': 'File Name',
-      'editor.imageSize': 'Size of generated image',
+      'editor.imageSize': 'Size of generated image (px)',
       'editor.algorithm': 'Algorithm',
       'editor.typeAlg': 'Algorithm to apply',
       'editor.typeCase': 'Algorithm to solve case',
