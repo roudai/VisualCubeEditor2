@@ -19,7 +19,7 @@ MegaminxImageEditor の `reference/CLOUD_SYNC_SPEC.md` を VisualCube Editor 用
 - Firebase プロジェクト（`roudainet-cube-tools`）とアカウントは Megaminx Image Editor と共通。各アプリは `users/{uid}/apps/<アプリ名>` に保存し、互いの保存先はぶつからない
   - ほかのアプリも同じ形（`{ json, savedAt }`）で保存すれば、`firestore.rules` は変えなくてよい
   - localStorage のキーの頭は `visualcube-editor:`（`Store.PREFIX`）。Megaminx Image Editor（`megaminx-image-editor:`）と同じドメインに置いても混ざらない
-- `firestore.rules`：本人の `users/{uid}/apps/{アプリ名}` だけ読み書きでき、中身は `json`（50万文字未満の文字列）と `savedAt` だけ（プロジェクト共通のルール）。作る・書き換えるのはルールの `appIds()` に書いたアプリ名（`megaminx-image-editor`・`visualcube-editor`）だけ。アプリを増やしたら名前を足して Firebase コンソールに貼り直す。
+- `firestore.rules`：本人の `users/{uid}/apps/{アプリ名}` だけ読み書きでき、中身は `json`（50万文字未満の文字列）と `savedAt` だけ（プロジェクト共通のルール）。作る・書き換えるのはルールの `appIds()` に書いたアプリ名（`megaminx-image-editor`・`visualcube-editor`）と、その練習の記録の文書 `<アプリ名>-log-<種類>`（種類は英小文字・数字の 1〜12 文字。`logDoc()`）だけ。種類を増やしてもルールは変えなくてよい。アプリを増やしたら `appIds()` と `logDoc()` の両方に名前を足して Firebase コンソールに貼り直す。
   このリポジトリの `firestore.rules` は Megaminx Image Editor のものと同じ内容（どちらか片方を直したら、もう片方も同じ内容にする）
 
 ## 保存の窓口（`js/store.js`）
