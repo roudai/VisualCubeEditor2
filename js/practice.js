@@ -994,23 +994,33 @@
       if (isFull()) fullUp();
     }
   });
-  // 画面ではタイマーをタップするとスタート（通しは長押しして離すとスタート）、計測中はどこをタップしても止まる
-  timerEl.addEventListener('pointerdown', (e) => {
+  // 画面ではタイマーのカード（スクランブル〜ボタンの上）のどこを押してもスタート（ソルブは長押しして離すとスタート）。
+  // 計測中はどこをタップしても止まる。カードの中のボタン・リンクは、それぞれのボタンとして押す
+  const stageEl = $('practiceStage');
+  const onTimerArea = (e) => stageEl.contains(e.target) && !e.target.closest('button:not(#timer), a, input, select, textarea');
+  stageEl.addEventListener('pointerdown', (e) => {
+    if (!onTimerArea(e) || e.button !== 0) return;
     e.preventDefault();
+    // 指がカードの外にずれても、離したとき（pointerup）をここで受け取る（ソルブの長押しを離したところで始めるため）
+    try {
+      stageEl.setPointerCapture(e.pointerId);
+    } catch (err) {
+      // 取れなくても動作は続ける
+    }
     if (isFull()) fullDown();
     else press();
   });
-  timerEl.addEventListener('pointerup', () => {
+  stageEl.addEventListener('pointerup', () => {
     if (isFull()) fullUp();
   });
-  timerEl.addEventListener('pointercancel', () => {
+  stageEl.addEventListener('pointercancel', () => {
     if (isFull()) clearHold();
   });
   timerEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') e.preventDefault(); // ボタンの Enter で押した扱いにしない
   });
   document.addEventListener('pointerdown', (e) => {
-    if (state !== 'running' || e.target === timerEl) return;
+    if (state !== 'running' || (onTimerArea(e) && e.button === 0)) return; // カードの中は上（stageEl）で止める
     // 計測中に「スキップ」「解けなかった」を押したときは、タイムを記録せずに止める
     // （そのあとのクリックで、スキップ＝記録せず次へ、解けなかった＝練習中、になる）
     if (e.target.closest('#skipButton')) {
