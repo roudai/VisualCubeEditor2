@@ -34,6 +34,7 @@
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr; /* 段が分かれても（スマホの 2 列など）、下の小さい字の無いカードも同じ高さにそろえる */
   gap: .75rem;
 }
 /* 通し：6 枚なので 3 列 × 2 段（スマホは下の 2 列のまま） */
