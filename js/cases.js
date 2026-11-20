@@ -495,6 +495,8 @@
     const nav = $('groupNav');
     nav.replaceChildren();
     nav.hidden = flat;
+    // 2 文字の名前（COLL・ZBLL の Pi など）があるか。スマホではそれに合わせてそろえる幅を決める（css/cases.css）
+    nav.classList.toggle('two-char', sections.some((s) => s.label.length === 2));
     const foot = $('groupClear') && $('groupClear').parentElement;
     if (foot) foot.hidden = flat;
     // 2段のときのボタンは applyFilter → renderTwoLevelNav で作る

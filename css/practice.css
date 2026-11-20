@@ -275,8 +275,9 @@
   gap: .2rem .15rem;
 }
 .practice-group-chip {
-  min-width: 1.6rem;
-  padding: .15rem .28rem;
+  min-width: 1.6rem; /* 1〜2 文字（U・T、A〜M、H・Pi など）は同じ幅にそろえる */
+  font-variant-numeric: tabular-nums;
+  padding: .15rem .2rem;
   border: 1px solid #dee2e6;
   border-radius: .45rem;
   background: #fff;

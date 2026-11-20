@@ -326,10 +326,26 @@
   display: none !important;
 }
 /* グループ（覚える順なら段階）のボタン：OLL の 13 段階が PC の幅で1行に収まるよう小さめにする */
+/* 1〜2 文字（PLL・OLL の段階の U・T・A〜M、COLL・ZBLL の H・Pi など）は同じ幅にそろえる（min-width は 2 文字が入る幅）。
+   それより長い名前（Edges only・Anti-Sune など）は中身の幅 */
 .group-nav-btn {
+  min-width: 1.7rem;
   margin: 0 .15rem .2rem 0;
-  padding: .15rem .35rem;
+  padding: .15rem .22rem;
   font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+/* スマホ（幅 576px 未満）：そろえる幅を少し狭く。
+   2 文字の名前がある並び（COLL・ZBLL の Pi。js/cases.js の .two-char）は 2 文字が入る幅にそろえる */
+@media (max-width: 575.98px) {
+  .group-nav-btn {
+    min-width: 1.4rem;
+    margin-right: .1rem;
+  }
+  .two-char .group-nav-btn {
+    min-width: 1.55rem;
+  }
 }
 /* 2段のグループのボタン（ZBLL：上の段が OCLL、下の段が選んだ OCLL の小グループ） */
 .group-nav-children {
