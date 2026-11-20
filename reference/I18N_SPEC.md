@@ -23,6 +23,8 @@ MegaminxImageEditor の `reference/I18N_SPEC.md` を VisualCube Editor 用に書
 - JS で作る文は `I18N.set(el, key, params, attr)` で入れる（言語を切り替えたときに自動で入れ直す）。件数など毎回作る文は `I18N.onChange(fn)` で作り直す
 - **エディタ（`index.html`）の Vue の中（`#app`）** は Vue が描き直すので `data-i18n` を使わず、`{{ t('key') }}`・`:title="t('key')"` と書く
   （`js/main.js` の `t`。言語を切り替えると `I18N.onChange` で `lang` が変わり、Vue が描き直す）。ナビバーは `#app` の外なので `data-i18n`
+  - いくつかの文をつないだ文など、その場で作って data に置く文（自分の手順の保存のメッセージ）は、文字ではなく作る関数を置き、computed（`lang` を読む。`myAlgText`）で作る。言語を切り替えたら、出ている間も訳し直す
+- その場で出す知らせ・結果（練習ページの結果の判定・取り消す・最近のベストと平均・取り消しました・削除しました など）も `I18N.t` で文字を入れるだけにしない（言語を切り替えても前の言語のまま残るため）。`I18N.set` を使う
 - 各ページで、ほかのスクリプトより先に `js/store.js` → `js/i18n.js` を読み込む
 - `test/pages.test.js` が、英語と日本語のキーがそろっていること、html と画面のスクリプトで使うキーがあることを確かめる
 

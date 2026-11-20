@@ -775,7 +775,7 @@
       renderHistory();
       renderSettings();
       const result = $('practiceResult');
-      result.replaceChildren(el('div', 'text-muted small', I.t('practice.undone')));
+      result.replaceChildren(note('practice.undone'));
     });
     renderHistory();
     renderSettings(); // 対象の件数を更新
@@ -784,6 +784,13 @@
     timerEl.textContent = sec === null ? 'DNF' : format(sec);
     $('solvedCase').textContent = `${set.toUpperCase()} ${c.name}`;
     shownRecAt = logEntry.at;
+  }
+
+  // 結果の欄の短い知らせ（言語を切り替えたら訳し直す）
+  function note(key, params) {
+    const d = el('div', 'text-muted small');
+    I.set(d, key, params);
+    return d;
   }
 
   function showResult(entry, undo) {
@@ -801,15 +808,12 @@
     const head = el('div', 'd-flex flex-wrap align-items-baseline gap-2');
     head.append(el('span', 'practice-result-time', sec === null ? 'DNF' : `${format(sec)}`));
     const verdict = el('span', 'practice-verdict ' + status);
-    verdict.textContent =
-      sec === null
-        ? I.t('practice.verdict.dnf')
-        : hinted
-          ? I.t('practice.verdict.hint')
-          : I.t('practice.verdict.' + status, { t: threshold });
+    if (sec === null) I.set(verdict, 'practice.verdict.dnf');
+    else if (hinted) I.set(verdict, 'practice.verdict.hint');
+    else I.set(verdict, 'practice.verdict.' + status, { t: threshold });
     const undoButton = el('button', 'btn btn-link practice-undo');
     undoButton.type = 'button';
-    undoButton.textContent = I.t('practice.undo');
+    I.set(undoButton, 'practice.undo');
     undoButton.addEventListener('click', undo);
     head.append(verdict, undoButton);
 
@@ -820,7 +824,7 @@
     if (times.length) {
       const best = Math.min(...times);
       const avg = times.reduce((a, b) => a + b, 0) / times.length;
-      stats.textContent = I.t('practice.caseStats', { best: format(best), avg: format(avg), n: times.length });
+      I.set(stats, 'practice.caseStats', { best: format(best), avg: format(avg), n: times.length });
     }
     body.append(head, name, alg, stats);
     result.append(image, body);
@@ -892,7 +896,7 @@
     del.addEventListener('click', () => {
       saveFull({ log: fullLog().filter((r) => r.at !== rec.at) });
       if (state === 'idle' && shownRecAt === rec.at) resetTimer();
-      result.replaceChildren(el('div', 'text-muted small', I.t('practice.deleted')));
+      result.replaceChildren(note('practice.deleted'));
       renderHistory();
     });
     head.append(seg, del);

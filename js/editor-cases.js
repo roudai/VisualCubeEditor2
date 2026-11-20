@@ -45,7 +45,7 @@
       caseSel: { pll: { group: '', name: '' }, oll: { group: '', name: '' }, coll: { group: '', name: '' } },
       collMaskSet: false, // COLL を選んで Stage Mask を COLL にしたか（外すときに戻すため）
       customVersion: 0, // 自分の手順を保存・消したら増やす（caseData を作り直す）
-      myAlgMessage: { text: '', kind: '', undo: null, forAlg: null },
+      myAlgMessage: { make: null, kind: '', undo: null, forAlg: null }, // make：文を作る関数（言語を切り替えたら作り直す。myAlgText）
       colorPreset: 'standard',
       schemeBeforeOll: null, // OLL を選ぶ前の配色 { preset, scheme }。手で配色を変えたら忘れる
       customScheme: null, // 最後のカスタム配色。Color Preset で Custom を選ぶとこの配色に戻す
@@ -55,6 +55,11 @@
     }),
 
     computed: {
+      // 自分の手順のメッセージ（今の言語で作る。出している間に言語を切り替えても訳し直す）
+      myAlgText() {
+        void this.lang;
+        return this.myAlgMessage.make ? this.myAlgMessage.make() : '';
+      },
       // 自分の手順を既定データに重ねたもの
       caseData() {
         void this.customVersion;
@@ -136,7 +141,7 @@
     watch: {
       // 手で書き換えたら、前のメッセージ（保存のエラーなど）は消す
       algorithm(value) {
-        if (this.myAlgMessage.text && value !== this.myAlgMessage.forAlg) this.setMyAlgMessage('');
+        if (this.myAlgMessage.make && value !== this.myAlgMessage.forAlg) this.setMyAlgMessage('');
       },
       // 種類を切り替えたら、選択中のケースの手順を入れ直す（編集中の内容は捨てる）
       algtype() {
@@ -292,8 +297,10 @@
 
       // ---- 自分の手順 ----
       // undo を渡すと、メッセージの右に「元に戻す」を出す（押すと保存・既定に戻す前の状態に戻す）
-      setMyAlgMessage(text, kind, undo) {
-        this.myAlgMessage = { text: text || '', kind: kind || '', undo: undo || null, forAlg: this.algorithm };
+      // message：文を作る関数（言語を切り替えたら、出ている間も訳し直す。myAlgText）。消すときは '' か無し
+      setMyAlgMessage(message, kind, undo) {
+        const make = typeof message === 'function' ? message : message ? () => message : null;
+        this.myAlgMessage = { make: make, kind: kind || '', undo: undo || null, forAlg: this.algorithm };
       },
       // 保存・既定に戻すのあと：データを作り直し、選択中のケースの手順で欄と画像を描き直す
       afterMyAlgChange(message, undo) {
@@ -308,7 +315,7 @@
         return () => {
           if (before) CA.save(key, name, before);
           else CA.reset(key, name);
-          this.afterMyAlgChange(I.t('myAlg.undone'));
+          this.afterMyAlgChange(() => I.t('myAlg.undone'));
         };
       },
       saveMyAlg() {
@@ -316,8 +323,8 @@
         if (!sel || !CA || this.algtype !== 'case' || !this.caseEdited) return;
         const result = CA.validate(sel.key, sel.c, this.algorithm, BASE[sel.key]);
         if (!result.ok) {
-          const text = result.code === 'parse' ? I.error(result.error) : I.t('myAlg.err.' + result.code, result.params);
-          this.setMyAlgMessage('✗ ' + text, 'error');
+          const text = () => (result.code === 'parse' ? I.error(result.error) : I.t('myAlg.err.' + result.code, result.params));
+          this.setMyAlgMessage(() => '✗ ' + text(), 'error');
           return;
         }
         const undo = this.undoFor(sel.key, sel.c.name);
@@ -326,19 +333,20 @@
           // 自分の手順があったときは消して既定に戻し（元に戻せる）、無かったときは「既定の手順と同じです」
           const hadCustom = !!sel.c.custom;
           CA.reset(sel.key, sel.c.name);
-          this.afterMyAlgChange(I.t(hadCustom ? 'myAlg.resetDone' : 'myAlg.sameAsDefault'), hadCustom ? undo : null);
+          this.afterMyAlgChange(() => I.t(hadCustom ? 'myAlg.resetDone' : 'myAlg.sameAsDefault'), hadCustom ? undo : null);
           return;
         }
         CA.save(sel.key, sel.c.name, result);
-        const notes = result.notes.map((n) => I.t('myAlg.' + n));
-        this.afterMyAlgChange([I.t('myAlg.saved')].concat(notes, [I.t('myAlg.setup', { setup: result.setup })]).join(' '), undo);
+        const message = () =>
+          [I.t('myAlg.saved')].concat(result.notes.map((n) => I.t('myAlg.' + n)), [I.t('myAlg.setup', { setup: result.setup })]).join(' ');
+        this.afterMyAlgChange(message, undo);
       },
       resetMyAlg() {
         const sel = this.selectedCase;
         if (!sel || !CA) return;
         const undo = this.undoFor(sel.key, sel.c.name);
         CA.reset(sel.key, sel.c.name);
-        this.afterMyAlgChange(I.t('myAlg.resetDone'), undo);
+        this.afterMyAlgChange(() => I.t('myAlg.resetDone'), undo);
       },
 
       // ---- 描画に渡す手順（main.js の drawCube が呼ぶ）----

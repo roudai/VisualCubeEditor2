@@ -250,7 +250,7 @@
             </div>
           </div>
           <div class="my-alg-message small d-flex align-items-center gap-2 mb-2" id="myAlgMessage" :class="myAlgMessage.kind === 'error' ? 'text-danger' : 'text-success'" aria-live="polite" v-show="!showFacelets">
-            <span class="text-truncate" :title="myAlgMessage.text">{{ myAlgMessage.text }}</span>
+            <span class="text-truncate" :title="myAlgText">{{ myAlgText }}</span>
             <button type="button" class="btn btn-link btn-sm p-0 flex-none my-alg-undo" v-if="myAlgMessage.undo" @click="myAlgMessage.undo()">{{ t('myAlg.undo') }}</button>
           </div>
 
