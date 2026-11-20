@@ -581,7 +581,7 @@
       'practice.stagesAll': 'すべてのグループ',
       'practice.threshold': '習得の目安',
       'practice.pick': '出題',
-      'practice.pickWeak': '苦手を多めに',
+      'practice.pickWeak': '苦手優先',
       'practice.groupsCount': '{n} グループ',
       'practice.pickRandom': 'ランダム',
       'practice.seconds': '{n}秒',
