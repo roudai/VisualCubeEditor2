@@ -419,3 +419,36 @@
 html {
   scroll-padding-top: calc(var(--editor-preview-height, 0px) + .5rem); /* 画像のすぐ下にくっつかないよう少し空ける */
 }
+
+/* 練習と記録の切り替え（練習ページ・記録のページの見出し）。今のページは濃い字の h1、もう一方は同じ大きさの薄い字のリンク */
+.page-switch {
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+}
+.page-switch-link {
+  color: #adb5bd;
+  text-decoration: none;
+}
+.page-switch-link:hover,
+.page-switch-link:focus-visible {
+  color: #6c757d;
+}
+/* ナビバーのリンクが並ぶ広い画面（768px 以上。ナビバーと同じ境目）では、そこから行き来できるので見出しだけにする */
+@media (min-width: 768px) {
+  .page-switch-link {
+    display: none;
+  }
+}
+/* 切り替えを出す幅（768px 未満）：見出しの行（.page-head）を両ページで同じ間隔・大きさにして、種類の切り替えの位置をそろえる */
+@media (max-width: 767.98px) {
+  .page-head {
+    column-gap: .5rem !important;
+  }
+  .page-switch {
+    gap: .4rem;
+  }
+  .page-switch > * {
+    font-size: 1.1rem;
+  }
+}

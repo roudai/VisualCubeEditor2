@@ -179,9 +179,8 @@
         (v) => changeSettings({ set: v })
       )
     );
-    // 「すべての記録を見る」は今の種類の記録を開く
-    const statsQuery = new URLSearchParams({ set: prefs.set });
-    $('allStatsLink').href = '/stats?' + statsQuery;
+    // 見出しの「記録」は今の種類の記録を開く
+    $('pageSwitchLink').href = '/stats?' + new URLSearchParams({ set: prefs.set });
     const box = $('practiceSettings');
     box.replaceChildren();
     // スマホ（狭い画面）では、設定を今の選択を並べた 1 行にたたむ（押すと開く。開いているかは prefs.settingsOpen）。

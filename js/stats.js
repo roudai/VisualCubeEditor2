@@ -52,7 +52,7 @@
     tab: saved.tab === 'solves' ? 'solves' : 'cases', // PLL・OLL の表：ケースごと / 記録の一覧
     chart: saved.chart === 'dist' ? 'dist' : 'trend', // グラフ：推移（折れ線） / 分布（棒グラフ）
   };
-  // 練習ページの「すべての記録を見る」から開いたとき（?set=oll など）は、その種類を出す（表示の設定として保存する）
+  // 練習ページの見出しの「記録」から開いたとき（?set=oll など）は、その種類を出す（表示の設定として保存する）
   const params = new URLSearchParams(location.search);
   if (SETS.includes(params.get('set'))) view.set = params.get('set');
   if (params.has('set')) saveView();
@@ -88,6 +88,8 @@
   }
 
   function renderControls() {
+    // 見出しの「練習」は今の種類の練習を開く
+    $('pageSwitchLink').href = '/practice?' + new URLSearchParams({ set: view.set });
     const box = $('statsControls');
     box.replaceChildren(
       segment(

@@ -57,8 +57,14 @@
       </nav>
 
 
-      <div class="d-flex flex-wrap align-items-center gap-3 mt-3 mb-3">
-        <h1 class="h4 m-0" data-i18n="practice.heading">Practice</h1>
+      <div class="page-head d-flex flex-wrap align-items-center gap-3 mt-3 mb-3">
+        <!-- 練習と記録の切り替え（見出し）。今のページは h1、もう一方は薄い字のリンク（両ページとも「練習 → 記録」の順。css/common.css）。
+             ナビバーのリンクが並ぶ広い画面（768px 以上）ではリンクを隠し、今のページの見出しだけにする。
+             リンクには今の種類（?set=）を js/{practice,stats}.js が入れる -->
+        <div class="page-switch">
+          <h1 class="h4 m-0" data-i18n="practice.heading" aria-current="page">Practice</h1>
+          <a href="/stats" id="pageSwitchLink" class="h4 m-0 page-switch-link" data-i18n="stats.heading">Stats</a>
+        </div>
         <!-- 種類（PLL / OLL / ソルブ）。js/practice.js が作る -->
         <div id="practiceSetBox" class="d-flex flex-wrap align-items-center gap-2"></div>
       </div>
@@ -92,10 +98,7 @@
       <section class="mt-3">
         <!-- ソルブの ao5・ao12・ベスト（js/practice.js） -->
         <div id="practiceFullStats" class="practice-full-stats mb-2" hidden></div>
-        <div class="d-flex align-items-baseline gap-3">
-          <h2 class="h6 text-muted" data-i18n="practice.history">Recent results</h2>
-          <a href="/stats" id="allStatsLink" class="small" data-i18n="practice.allStats">See all stats</a>
-        </div>
+        <h2 class="h6 text-muted" data-i18n="practice.history">Recent results</h2>
         <ol id="practiceHistory" class="practice-history"></ol>
       </section>
     </div>

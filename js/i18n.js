@@ -261,7 +261,6 @@
       // 記録（stats.html・stats.js）
       'nav.stats': 'Stats',
       'title.stats': 'Stats - VisualCube Editor 3.0',
-      'practice.allStats': 'See all stats',
       'stats.heading': 'Stats',
       'stats.days': { one: '{n} day', other: '{n} days' },
       'stats.allTime': 'All time',
@@ -594,7 +593,6 @@
       'practice.listButtonTitle': 'ここに表示しているケースをタイマーで練習する',
       'nav.stats': '記録',
       'title.stats': '記録 - VisualCube Editor 3.0',
-      'practice.allStats': 'すべての記録を見る',
       'stats.heading': '記録',
       'stats.days': '{n}日間',
       'stats.allTime': 'すべて',
