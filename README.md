@@ -92,6 +92,9 @@ node tools/serve.js --demo    # http://localhost:8001/stats  (sample records, si
 recent times and progress (`tools/demo-data.js`) and shows a badge with a reset link (`/__demo/reset`).
 When `VERSION` in `tools/demo-data.js` changes, a browser with older sample data is filled in again.
 
+To open the site in Chrome on an Android phone connected over USB, run `tools/android.sh [--demo] [page]`
+(it starts the server, runs `adb reverse` and opens Chrome; no Wi-Fi needed).
+
 Tests (Node.js built-in test runner; checked with Node.js 24):
 
 ```sh

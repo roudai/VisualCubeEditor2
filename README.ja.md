@@ -87,6 +87,8 @@ node tools/serve.js --demo    # http://localhost:8001/stats （テストデー�
 （`tools/demo-data.js`）、画面の右下に入れ直すためのリンク（`/__demo/reset`）を出します。
 `tools/demo-data.js` の `VERSION` を上げると、古いテストデータが入ったブラウザにも入れ直します。
 
+USB でつないだ Android の Chrome で開くときは `tools/android.sh [--demo] [ページ]`（サーバーの起動・`adb reverse`・Chrome で開くをまとめて行う。Wi-Fi は使わない）。
+
 テスト（Node.js 標準のテストランナー。Node.js 24 で確認）：
 
 ```sh
