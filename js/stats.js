@@ -320,6 +320,49 @@
       nav.older.addEventListener('click', () => moveTo(trendEnd + half));
       nav.newer.addEventListener('click', () => moveTo(trendEnd - half));
       nav.latest.addEventListener('click', () => moveTo(0));
+      // 帯はスクロールバーのように掴んで動かす。つまみを掴めば掴んだ点を保ち、帯の他を押せばそこへ飛んでそのまま動かせる
+      nav.track.tabIndex = 0;
+      nav.track.setAttribute('role', 'slider');
+      nav.track.setAttribute('aria-valuemin', String(n));
+      nav.track.setAttribute('aria-valuemax', String(total));
+      I.set(nav.track, 'stats.trendSlider', null, 'aria-label');
+      // grab：{ id, left・width：押したときの帯の位置（動かしている間に「最新」や回目の文の幅で帯が動いても、押したときの位置で数える）、
+      //         thumb：つまみの幅（px）、offset：掴んだ点とつまみの左端の差（px） }
+      let grab = null;
+      const startFrom = (ev) => {
+        const room = grab.width - grab.thumb; // つまみの左端が動ける幅
+        const p = room > 0 ? (ev.clientX - grab.left - grab.offset) / room : 0;
+        moveTo(total - n - Math.round(p * (total - n)));
+      };
+      nav.track.addEventListener('pointerdown', (ev) => {
+        if (ev.button > 0) return;
+        ev.preventDefault(); // 押しただけでは枠（キーボードで選んだ印）を出さない。キーボードは Tab で帯を選んで動かす
+        const rect = nav.track.getBoundingClientRect();
+        const th = nav.thumb.getBoundingClientRect();
+        const at = ev.clientX - th.left;
+        // つまみの上なら掴んだ点のまま、外ならつまみの真ん中をそこへ
+        grab = { id: ev.pointerId, left: rect.left, width: rect.width, thumb: th.width, offset: at >= 0 && at <= th.width ? at : th.width / 2 };
+        nav.track.setPointerCapture(ev.pointerId);
+        nav.track.classList.add('dragging');
+        startFrom(ev);
+      });
+      nav.track.addEventListener('pointermove', (ev) => {
+        if (!grab || grab.id !== ev.pointerId) return;
+        startFrom(ev);
+      });
+      const release = (ev) => {
+        if (!grab || grab.id !== ev.pointerId) return;
+        grab = null;
+        nav.track.classList.remove('dragging');
+      };
+      nav.track.addEventListener('pointerup', release);
+      nav.track.addEventListener('pointercancel', release);
+      nav.track.addEventListener('keydown', (ev) => {
+        const to = { ArrowLeft: trendEnd + half, ArrowRight: trendEnd - half, PageUp: trendEnd + n, PageDown: trendEnd - n, Home: total, End: 0 }[ev.key];
+        if (to === undefined) return;
+        ev.preventDefault();
+        moveTo(to);
+      });
       box.append(nav.row);
     }
 
@@ -391,8 +434,12 @@
         nav.older.disabled = start === 0;
         nav.newer.disabled = trendEnd === 0;
         nav.latest.hidden = trendEnd === 0;
-        nav.thumb.style.left = (start / total) * 100 + '%';
-        nav.thumb.style.width = (n / total) * 100 + '%';
+        // つまみ：幅は全体のうちの窓の割合（細すぎるときは 8px）。左端は動ける幅（帯 − つまみ）のうちの位置
+        const tw = `max(8px, ${(n / total) * 100}%)`;
+        nav.thumb.style.width = tw;
+        nav.thumb.style.left = `calc((100% - ${tw}) * ${total > n ? start / (total - n) : 0})`;
+        nav.track.setAttribute('aria-valuenow', String(start + n));
+        nav.track.setAttribute('aria-valuetext', nav.label.textContent);
       }
     }
     function moveTo(end) {

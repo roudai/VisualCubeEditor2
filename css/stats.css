@@ -281,14 +281,39 @@
   margin: 0 .25rem;
   border-radius: 999px;
   background: #e9ecef;
+  cursor: grab;
+  touch-action: none; /* 帯の上で指を横に動かしたら、ページではなく窓を動かす */
+}
+/* 掴める範囲：見た目の 4px の線の上下に広げる */
+.stats-trend-track::before {
+  content: "";
+  position: absolute;
+  inset: -10px 0;
+}
+.stats-trend-track:focus {
+  outline: none;
+}
+.stats-trend-track:focus-visible {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.stats-trend-track.dragging {
+  cursor: grabbing;
 }
 .stats-trend-thumb {
   position: absolute;
   top: 0;
   bottom: 0;
-  min-width: 4px;
   border-radius: 999px;
   background: #adb5bd;
+  transition: top .15s ease, bottom .15s ease, background-color .15s ease;
+}
+/* 触れている・掴んでいる間は、つまみを少し太く・濃く */
+.stats-trend-track:hover .stats-trend-thumb,
+.stats-trend-track.dragging .stats-trend-thumb,
+.stats-trend-track:focus-visible .stats-trend-thumb {
+  top: -2px;
+  bottom: -2px;
+  background: #6c757d;
 }
 .stats-trend-latest {
   padding: .1rem .5rem;
