@@ -140,18 +140,27 @@
           <div>
             <label class="form-label" for="algorithm">{{ t('editor.algorithm') }}</label>
           </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio1" value="alg" v-model="algtype" />
-            <label class="form-check-label" for="algorithmRadio1">{{ t('editor.typeAlg') }}</label>
+          <!-- 手順の扱い：広い画面はラジオボタン、スマホ（幅 576px 未満）はプルダウン（3 つ目だけ 2 行目に落ちて崩れるため）。
+               どちらも同じ algtype（v-model）を変える -->
+          <div class="d-none d-sm-block mb-2">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio1" value="alg" v-model="algtype" />
+              <label class="form-check-label" for="algorithmRadio1">{{ t('editor.typeAlg') }}</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype" />
+              <label class="form-check-label" for="algorithmRadio2">{{ t('editor.typeCase') }}</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled" />
+              <label class="form-check-label" for="algorithmRadio3">{{ t('editor.typeState') }}</label>
+            </div>
           </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype" />
-            <label class="form-check-label" for="algorithmRadio2">{{ t('editor.typeCase') }}</label>
-          </div>
-          <div class="form-check form-check-inline mb-2">
-            <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled" />
-            <label class="form-check-label" for="algorithmRadio3">{{ t('editor.typeState') }}</label>
-          </div>
+          <select id="algorithmTypeSelect" class="form-select d-sm-none mb-2" v-model="algtype" :aria-label="t('editor.typeAria')">
+            <option value="alg">{{ t('editor.typeAlg') }}</option>
+            <option value="case">{{ t('editor.typeCase') }}</option>
+            <option value="state" :disabled="algorithmDisabled">{{ t('editor.typeState') }}</option>
+          </select>
           <!-- PLL のケースを選ぶ（Group → Case、Prev / Next）。選ぶと 3x3・Plan 表示になる -->
           <div class="row g-2 mb-2 align-items-center" v-for="set in caseSets" :key="set.key" v-show="!showFacelets">
             <div class="col-12 col-md-1">
