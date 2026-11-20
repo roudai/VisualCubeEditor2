@@ -333,6 +333,10 @@ const app = Vue.createApp({
         })
       })
     },
+    // 画像サイズの「リセット」：既定の 128 に戻す（上限が 128 より小さい画面では上限）
+    resetSize() {
+      this.imageSize = Math.max(this.imageMin, Math.min(128, this.imageMax))
+    },
     // 画像サイズの入力欄を確定したとき：整数に丸めて imageMin〜imageMax に収める。空・数でないときは今の値に戻す
     onImageSizeChange(e) {
       const n = Math.round(Number(e.target.value))
@@ -979,6 +983,13 @@ const app = Vue.createApp({
   mounted() {
     // 保存してある設定・URL パラメータ（js/editor-cases.js の created で反映済み）で描く
     this.drawCube()
+    // 上に残した画像の高さを CSS に渡す（入力欄までスクロールしたときに画像の下に隠れないように。css/common.css の scroll-padding-top）
+    const preview = document.getElementById('editorPreview')
+    if (preview && typeof ResizeObserver === 'function') {
+      new ResizeObserver(() => {
+        document.documentElement.style.setProperty('--editor-preview-height', Math.ceil(preview.getBoundingClientRect().height) + 'px')
+      }).observe(preview)
+    }
   },
   updated() {
     this.drawFlag = true

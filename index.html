@@ -84,7 +84,8 @@
       <div class="d-flex justify-content-end text-muted small">presented by&nbsp;<a href="https://roudai.net" style="text-decoration: none">roudai.net</a></div>
 
       <div id="app" v-cloak>
-        <div class="text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: imageHeight + 30 + 'px' }">
+        <!-- 画像：下にスクロールしても画面の上に残す。表示は画面の高さの 35% まで（css/common.css の .editor-preview。描く大きさ・PNG は画像サイズのまま） -->
+        <div id="editorPreview" class="editor-preview text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: 'calc(min(' + imageHeight + 'px, 35vh) + 30px)' }">
           <div id="visualcube"></div>
           {{ algorithm }}
         </div>
@@ -118,8 +119,11 @@
         <!-- Size of generated image -->
         <div class="mb-2">
           <label class="form-label" for="imageSize">{{ t('editor.imageSize') }}</label>
-          <!-- Megaminx Image Editor と同じ数値の入力欄。確定（Enter・欄を離れる・↑↓）で反映する（js/main.js の onImageSizeChange） -->
-          <input type="number" class="form-control" id="imageSize" :min="imageMin" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
+          <!-- Megaminx Image Editor と同じ数値の入力欄。確定（Enter・欄を離れる・↑↓）で反映する（js/main.js の onImageSizeChange）。「リセット」で 128 に戻す -->
+          <div class="input-group">
+            <input type="number" class="form-control" id="imageSize" :min="imageMin" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
+            <button class="btn btn-outline-secondary" type="button" id="imageSizeReset" @click="resetSize">{{ t('common.reset') }}</button>
+          </div>
         </div>
 
         <!-- Algorithm -->

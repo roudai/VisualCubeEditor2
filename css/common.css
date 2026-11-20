@@ -405,3 +405,17 @@
 .scramble-line {
   padding: 0 .5rem;
 }
+
+/* エディタの画像（index.html の #editorPreview）：下にスクロールしても画面の上に残す（sticky-top）。
+   表示は画面の高さの 35% まで（大きい画像サイズで画面をふさがないように）。描く大きさ・ダウンロードする PNG は画像サイズのまま */
+.editor-preview #visualcube img {
+  display: block;
+  max-height: 35vh;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+}
+/* 入力欄にフォーカスしたときなどのスクロールで、上に残した画像の下に隠れないように（高さは js/main.js の mounted が入れる） */
+html {
+  scroll-padding-top: calc(var(--editor-preview-height, 0px) + .5rem); /* 画像のすぐ下にくっつかないよう少し空ける */
+}
