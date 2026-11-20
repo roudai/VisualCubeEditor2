@@ -380,6 +380,32 @@
   color: #6c757d;
   font-size: .78rem;
 }
+/* 操作の説明（Tips）：頭に小さな札、右に ×（一度スタートするまでだけ出す） */
+.practice-tip-label {
+  display: inline-block;
+  margin-right: .4rem;
+  padding: 0 .4rem;
+  border-radius: .3rem;
+  background: #fff3cd;
+  color: #7a5600;
+  font-size: .7rem;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+.practice-tip-close {
+  margin-left: .3rem;
+  padding: 0 .3rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #adb5bd;
+  font-size: .95rem;
+  line-height: 1;
+}
+.practice-tip-close:hover {
+  background: #f1f3f5;
+  color: #6c757d;
+}
 .practice-stage.running .practice-timer {
   color: #0d6efd;
 }

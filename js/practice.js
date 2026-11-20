@@ -188,10 +188,7 @@
     box.classList.toggle('open', prefs.settingsOpen === true);
     box.append(settingsSummary());
     document.body.classList.toggle('practice-full', isFull());
-    // 操作の説明：通しでインスペクションがオンのときはその手順
-    // タッチの画面（マウスが無い）ではタップの説明にする
-    const touch = TOUCH.matches ? 'Touch' : '';
-    I.set($('timerHint'), (isFull() ? (fullPrefs().inspection ? 'practice.hintInspection' : 'practice.hintFull') : 'practice.hint') + touch);
+    renderTip();
     if (isFull()) {
       // 通し：インスペクションのオン・オフだけ
       box.append(
@@ -600,8 +597,43 @@
   }
   const format = (sec) => P.formatTime(sec); // 60 秒以上は分表記（1:05.23）
 
+  // 操作の説明（Tips）：PLL・OLL・COLL・ZBLL / ソルブ / ソルブのインスペクションありで説明が違うので、それぞれ一度スタートするまでだけ出す
+  // （prefs.tipsSeen = { case, full, inspection }）。× で先に消すこともできる
+  const tipKey = () => (isFull() ? (fullPrefs().inspection ? 'inspection' : 'full') : 'case');
+  const tipSeen = () => !!(prefs.tipsSeen && prefs.tipsSeen[tipKey()]);
+  function markTipSeen() {
+    if (tipSeen()) return;
+    savePrefs({ tipsSeen: Object.assign({}, prefs.tipsSeen, { [tipKey()]: true }) });
+  }
+  function renderTip() {
+    const box = $('timerHint');
+    box.hidden = tipSeen();
+    if (box.hidden) {
+      box.replaceChildren();
+      return;
+    }
+    // 通しでインスペクションがオンのときはその手順。タッチの画面（マウスが無い）ではタップの説明にする
+    const touch = TOUCH.matches ? 'Touch' : '';
+    const label = el('span', 'practice-tip-label');
+    I.set(label, 'practice.tipsLabel');
+    const text = el('span');
+    I.set(text, (isFull() ? (fullPrefs().inspection ? 'practice.hintInspection' : 'practice.hintFull') : 'practice.hint') + touch);
+    const close = el('button', 'practice-tip-close', '×');
+    close.type = 'button';
+    I.set(close, 'practice.tipClose', null, 'aria-label');
+    close.addEventListener('click', () => {
+      markTipSeen();
+      close.blur(); // スペースキーが消えた × を押さないように
+      renderTip();
+    });
+    box.replaceChildren(label, text, close);
+  }
+
   function setState(next) {
     state = next;
+    // 一度スタートしたら、その種類の説明は見たことにする。計測中は隠すだけ（場所は残す）にして、止めたら行ごと消す
+    if (next === 'running' || next === 'inspecting') markTipSeen();
+    else renderTip();
     $('practiceStage').classList.toggle('running', next === 'running');
     $('practiceStage').classList.toggle('inspecting', next === 'inspecting');
     if (next !== 'inspecting') timerEl.classList.remove('warn8', 'warn12', 'over');
