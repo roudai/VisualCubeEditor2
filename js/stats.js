@@ -102,6 +102,8 @@
         (v) => change({ set: v })
       )
     );
+    // スマホ（幅 576px 未満）：種類は見出しの横、期間は次の 1 行（css/stats.css で出し分け）
+    box.append(el('div', 'stats-controls-break'));
     box.append(
       segment(
         [

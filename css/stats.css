@@ -680,3 +680,28 @@
     height: 32px;
   }
 }
+
+/* 種類・期間の切り替え。広い画面は見出しの横に 1 つの箱。
+   スマホ（幅 576px 未満）は「記録 [PLL OLL COLL ZBLL ソルブ]」の 1 行と、期間の 1 行の 2 行にまとめる
+   （1 行目が 360px の英語でも収まるよう、見出しとの間隔と種類のボタンの左右の余白を詰める） */
+.stats-controls-break {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  .stats-head {
+    column-gap: .5rem !important;
+    row-gap: .5rem !important;
+  }
+  .stats-head .stats-controls {
+    display: contents !important;
+  }
+  .stats-controls-break {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
+  }
+  .stats-head .stats-segment button {
+    padding-left: .55rem;
+    padding-right: .55rem;
+  }
+}
