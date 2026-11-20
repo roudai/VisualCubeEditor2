@@ -219,6 +219,24 @@
   opacity: .65;
   font-variant-numeric: tabular-nums;
 }
+.filter-chips .legend-dot {
+  margin-right: .25rem;
+}
+/* スマホ（幅 576px 未満）：4 つのボタンが 1 行に収まるよう、余白・文字・点を少し小さくする（色の点を足した分） */
+@media (max-width: 575.98px) {
+  .filter-chips .btn {
+    padding: .15rem .35rem;
+    font-size: .72rem;
+  }
+  .filter-chips .legend-dot {
+    width: 6px;
+    height: 6px;
+    margin-right: .2rem;
+  }
+  .filter-chips .chip-count {
+    margin-left: .2rem;
+  }
+}
 
 /* すべて未習得に戻す（目立たせない。押すと確認のバーを出す） */
 .reset-progress {

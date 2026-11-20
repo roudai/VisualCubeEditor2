@@ -193,7 +193,7 @@
       });
       box.append(' ', sw);
     }
-    const bar = el('div', 'progress-stacked mb-1');
+    const bar = el('div', 'progress-stacked mb-2');
     I.set(bar, 'list.progressAria', null, 'aria-label');
     ['learned', 'learning'].forEach((s) => {
       const seg = el('div', 'progress');
@@ -202,17 +202,19 @@
       seg.append(el('div', `progress-bar bar-${s}`));
       bar.append(seg);
     });
-    const legend = el('div', 'small text-muted mb-2');
-    legend.id = 'progressLegend';
+    // バーの色の凡例は、下の絞り込みのボタン（未習得・練習中・習得済み）の色の点で兼ねる
+    // （件数もボタンに出ているので、バーの下に同じ数を並べない）
     const chips = el('div', 'filter-chips d-flex flex-wrap gap-1');
     chips.setAttribute('role', 'group');
     I.set(chips, 'list.filterAria', null, 'aria-label');
-    ['all'].concat(STATUSES).forEach((f) => {
+    // 並びはバーの色と同じ順（左から習得済み・練習中・未習得）
+    ['all', 'learned', 'learning', 'new'].forEach((f) => {
       const b = el('button', 'btn btn-sm btn-outline-secondary');
       b.type = 'button';
       b.dataset.filter = f;
       const label = el('span');
       I.set(label, f === 'all' ? 'list.filterAll' : 'status.' + f);
+      if (f !== 'all') b.append(el('span', `legend-dot ${f}`));
       b.append(label, el('span', 'chip-count'));
       b.addEventListener('click', () => {
         filter = f;
@@ -236,7 +238,7 @@
     const resetBar = el('div', 'reset-bar');
     resetBar.id = 'resetBar';
     resetBar.setAttribute('role', 'status');
-    box.append(bar, legend, row, resetBar);
+    box.append(bar, row, resetBar);
   }
 
   // ---- すべて未習得に戻す ----
@@ -330,12 +332,6 @@
       seg.setAttribute('aria-valuemin', '0');
       seg.setAttribute('aria-valuemax', String(n.all));
       seg.setAttribute('aria-label', `${statusLabel(s)}: ${n[s]}`);
-    });
-    const legend = $('progressLegend');
-    legend.innerHTML = '';
-    STATUSES.slice().reverse().forEach((s, i) => {
-      if (i) legend.append(document.createTextNode('  ·  '));
-      legend.append(el('span', `legend-dot ${s}`), document.createTextNode(I.t('status.legend.' + s, { n: n[s] })));
     });
     document.querySelectorAll('#progressBox [data-filter]').forEach((b) => {
       b.querySelector('.chip-count').textContent = n[b.dataset.filter];
