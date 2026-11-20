@@ -683,15 +683,38 @@
           recentTd.classList.add('stats-few');
           I.set(recentTd, 'stats.fewTitle', { n: rc.attempts }, 'title');
         }
+        const count = r.dnf ? `${r.count} (${r.dnf} DNF)` : String(r.count);
+        const date = `${last.getMonth() + 1}/${last.getDate()}`;
         const cells = [
           el('td', 'text-muted stats-col-group', r.group),
           statusTd,
           recentTd,
-          el('td', 'text-end stats-col-count', r.dnf ? `${r.count} (${r.dnf} DNF)` : String(r.count)),
-          el('td', 'text-end', fmt(r.best)),
-          el('td', 'text-end', fmt(r.avg)),
-          el('td', 'text-end text-muted', `${last.getMonth() + 1}/${last.getDate()}`),
+          el('td', 'text-end stats-col-count cell-wide', count),
+          el('td', 'text-end cell-wide', fmt(r.best)),
+          el('td', 'text-end cell-wide', fmt(r.avg)),
+          el('td', 'text-end text-muted cell-wide', date),
         ];
+        // スマホ：回数・ベスト・平均は 2 段目に 1 行の小さい字でまとめ、最後に練習した日はその右端に置く
+        // （上の 4 つの列は隠す。css/stats.css）。解けなかった回数は 1 段目の「最近」の DNF に任せる（1 行に収めるため）
+        const meta = el('td', 'cell-meta');
+        const countItem = el('span', 'stats-meta-item');
+        I.set(countItem, 'stats.countShort', { n: r.count });
+        meta.append(countItem);
+        [
+          ['stats.col.best', fmt(r.best)],
+          ['stats.avgShort', fmt(r.avg)],
+        ].forEach(([key, value]) => {
+          const item = el('span', 'stats-meta-item');
+          const label = el('span', 'stats-meta-label');
+          I.set(label, key);
+          item.append(label, document.createTextNode(' ' + value));
+          meta.append(item);
+        });
+        meta.append(el('span', 'stats-meta-date', date));
+        cells.push(meta);
+        nameTd.className = 'cell-name';
+        statusTd.className = 'cell-status';
+        recentTd.classList.add('cell-recent');
         tr.append(imgTd, nameTd, ...cells);
         return tr;
       })
@@ -1155,6 +1178,7 @@
     }
     $('statsTable').classList.toggle('stats-full-table', full); // スマホでは通しの一覧を2段のカード風にする
     $('statsTable').classList.toggle('stats-caselog-table', !full && solves); // PLL・OLL の記録の一覧も同じく 2 段にする
+    $('statsTable').classList.toggle('stats-case-table', !solves); // ケースごとの表もスマホでは 2 段にする（横にスクロールしない）
     $('statsCards').classList.toggle('full', full); // 通しはカードが 6 枚なので広い画面で 3 列
     if (full) {
       const all = fullLog(); // 読むたびに別のオブジェクトになるので1回だけ読む

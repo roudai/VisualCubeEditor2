@@ -343,6 +343,8 @@
       'stats.col.best': 'Best',
       'stats.col.avg': 'Average',
       'stats.col.last': 'Last practiced',
+      'stats.countShort': { one: '{n} solve', other: '{n} solves' },
+      'stats.avgShort': 'Avg',
       'stats.practiceThis': 'Practice {name}',
       // プライバシーポリシー（privacy.html・privacy.js）
       'title.privacy': 'Privacy Policy - VisualCube Editor 3.0',
@@ -670,6 +672,8 @@
       'stats.col.best': 'ベスト',
       'stats.col.avg': '平均',
       'stats.col.last': '最後に練習',
+      'stats.countShort': '{n} 回',
+      'stats.avgShort': '平均',
       'stats.practiceThis': '{name} を練習する',
       'title.privacy': 'プライバシーポリシー - VisualCube Editor 3.0',
       'privacy.deleteTitle': 'アカウントのデータを削除',
