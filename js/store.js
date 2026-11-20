@@ -20,6 +20,15 @@
  *                                  - 手元のデータが別のアカウントのもの：手元は使わず、アカウントの内容だけにする
  *                                    （別のアカウントの配色などを持ち込まない。アカウントが空なら初期状態）
  *
+ *   Store.toCloud(snapshot)      クラウドに書く形に分ける（DOM 非依存）→ { main, logs: { pll, oll, coll, zbll }, inline }
+ *                                  - main：練習の記録（practice.log）を抜いた snapshot に logsSplit: true を付けたもの（本体の文書）
+ *                                  - logs：PLL・OLL・COLL・ZBLL の記録を短い形（[日時, ケース, タイム, 判定, ヒント]）にしたもの（種類ごとの文書）。
+ *                                    1 文書の上限（LOG_LIMIT 文字）を超えるときは古い記録を捨てる
+ *                                  - inline：記録を本体に入れたままの以前の形（記録は合わせて最新 INLINE_MAX 件）。
+ *                                    種類ごとの文書に書けなかったとき（Firestore のルールが古いなど）に本体だけに書く
+ *   Store.fromCloud(main, logs)  クラウドから読んだ本体と種類ごとの記録を 1 つの snapshot に戻す（DOM 非依存）。
+ *                                  logsSplit の無い本体（以前の形・古いページが書いたもの）はそのまま使う
+ *
  * 名前（NAMES）と localStorage のキー：visualcube-editor:<name>（接頭辞は Store.PREFIX）。更新時刻は visualcube-editor:updated。
  * ブラウザでは window.Store、node では module.exports として公開する（node では global.localStorage があれば使う）。
  */
@@ -155,5 +164,87 @@
     return merge(local, remote, { union: owner !== uid });
   }
 
-  return { PREFIX: PREFIX, NAMES: NAMES, get: get, set: set, snapshot: snapshot, replace: replace, merge: merge, resolveLogin: resolveLogin };
+  // ---- クラウドに書く形（js/cloud-sync.js）----
+  // Firestore の 1 文書は firestore.rules で json 50 万文字未満。PLL・OLL・COLL・ZBLL の記録（各最大 5000 件）は本体に入らないので、
+  // 種類ごとの文書に短い形で分ける（1 件 約 30 文字 → 5000 件で約 16 万文字）
+  const LOG_SETS = ['pll', 'oll', 'coll', 'zbll'];
+  const LOG_LIMIT = 480000;
+  const INLINE_MAX = 2000;
+  const STATUS = ['new', 'learning', 'learned'];
+  const LOG_KEYS = ['at', 'set', 'name', 'sec', 'status', 'hint'];
+  // { at, set, name, sec, status, hint } → [at, name, sec, 判定の番号, 1（ヒントを見たときだけ）]。
+  // 知らない項目がある記録は失わないよう、そのままのオブジェクトで残す
+  function packEntry(e) {
+    if (!isObject(e) || Object.keys(e).some((k) => !LOG_KEYS.includes(k))) return e;
+    const code = STATUS.indexOf(e.status);
+    const row = [e.at, e.name, e.sec === undefined ? null : e.sec, code >= 0 ? code : e.status];
+    if (e.hint) row.push(1);
+    return row;
+  }
+  function unpackEntry(row, set) {
+    if (!Array.isArray(row)) return isObject(row) ? Object.assign({ set: set }, row) : null;
+    const e = { at: row[0], set: set, name: row[1], sec: row[2], status: typeof row[3] === 'number' ? STATUS[row[3]] : row[3] };
+    e.hint = row[4] === 1;
+    return e;
+  }
+
+  function toCloud(snap) {
+    const s = snap || EMPTY();
+    const practice = s.data && isObject(s.data.practice) ? s.data.practice : null;
+    const log = practice && Array.isArray(practice.log) ? practice.log : [];
+    const logs = {};
+    LOG_SETS.forEach((set) => {
+      let rows = log.filter((e) => e && e.set === set).map(packEntry);
+      // 上限を超えるときは古い記録から捨てる（ふつうは 5000 件でも収まる）
+      while (rows.length && JSON.stringify({ rows: rows }).length >= LOG_LIMIT) rows = rows.slice(0, Math.floor(rows.length * 0.95));
+      logs[set] = rows;
+    });
+    const data = Object.assign({}, s.data);
+    if (practice) {
+      const rest = Object.assign({}, practice);
+      const others = log.filter((e) => !(e && LOG_SETS.includes(e.set)));
+      if (others.length) rest.log = others;
+      else delete rest.log;
+      data.practice = rest;
+    }
+    const main = { data: data, updated: Object.assign({}, s.updated), logsSplit: true };
+    const inlineData = Object.assign({}, s.data);
+    if (practice && log.length > INLINE_MAX) inlineData.practice = Object.assign({}, practice, { log: log.slice(0, INLINE_MAX) });
+    const inline = { data: inlineData, updated: Object.assign({}, s.updated) };
+    return { main: main, logs: logs, inline: inline };
+  }
+
+  function fromCloud(main, logs) {
+    if (!main || !isObject(main.data)) return null;
+    const out = { data: Object.assign({}, main.data), updated: Object.assign({}, main.updated) };
+    if (!main.logsSplit) return out;
+    const practice = isObject(out.data.practice) ? out.data.practice : null;
+    const log = [];
+    LOG_SETS.forEach((set) => {
+      const rows = logs && Array.isArray(logs[set]) ? logs[set] : [];
+      rows.forEach((row) => {
+        const e = unpackEntry(row, set);
+        if (e) log.push(e);
+      });
+    });
+    if (practice && Array.isArray(practice.log)) log.push(...practice.log);
+    if (!practice && !log.length) return out;
+    log.sort((a, b) => (Number(b && b.at) || 0) - (Number(a && a.at) || 0));
+    out.data.practice = Object.assign({}, practice, { log: log });
+    return out;
+  }
+
+  return {
+    PREFIX: PREFIX,
+    NAMES: NAMES,
+    get: get,
+    set: set,
+    snapshot: snapshot,
+    replace: replace,
+    merge: merge,
+    resolveLogin: resolveLogin,
+    toCloud: toCloud,
+    fromCloud: fromCloud,
+    LOG_SETS: LOG_SETS,
+  };
 });

@@ -1,7 +1,9 @@
 // ログイン（Google / GitHub / Facebook）とクラウド保存（Firebase Authentication + Firestore）。
 // 全ページ共通。<script type="module"> で、ほかのスクリプトのあとに読み込む。仕様: reference/CLOUD_SYNC_SPEC.md
 //   - js/firebase-config.js の window.FIREBASE_CONFIG が null なら何もしない（ログインのボタンも出さない）
-//   - Firestore の users/{uid}/apps/visualcube-editor の1文書に、store.js の snapshot を JSON 文字列で保存する（{ json, savedAt }）
+//   - Firestore の users/{uid}/apps/visualcube-editor の1文書に、store.js の snapshot を JSON 文字列で保存する（{ json, savedAt }）。
+//     PLL・OLL・COLL・ZBLL の練習の記録（各最大 5000 件）は 1 文書に入らないので、短い形にして種類ごとの文書
+//     users/{uid}/apps/visualcube-editor-log-pll・-log-oll・-log-coll・-log-zbll に分ける（Store.toCloud・fromCloud）。中身が変わった文書だけ書く
 //     同じ Firebase プロジェクトのほかのアプリ（Megaminx Image Editor など）は users/{uid}/apps/<アプリ名> に保存し、ログインは共通
 //   - ログインしたとき（ページを開いたときも）：クラウドを読み → Store.merge で手元と合わせ → 両方に書く。
 //     この端末で初めてそのアカウントと合わせるときは、習得状況・自分の手順をケースごとに合わせる（union）。
@@ -97,15 +99,65 @@ async function main() {
   let timer = null;
 
   const docRef = () => dbSdk.doc(db, 'users', user.uid, 'apps', APP_ID);
-  const write = (snap) => dbSdk.setDoc(docRef(), { json: JSON.stringify(snap), savedAt: dbSdk.serverTimestamp() });
+  const logRef = (set) => dbSdk.doc(db, 'users', user.uid, 'apps', APP_ID + '-log-' + set);
+  const saveDoc = (ref, json) => dbSdk.setDoc(ref, { json: json, savedAt: dbSdk.serverTimestamp() });
+  // 種類ごとの記録の文書に最後に書いた（読んだ）中身。変わっていなければ書かない（1 文書 十数万文字あるため）
+  const lastLog = {};
+  // 記録を種類ごとの文書に書いてから本体を書く（本体の logsSplit を見て、読むときに種類ごとの文書を使う）。
+  // 種類ごとの文書に書けなかったら（Firestore のルールが古いなど）、記録を本体に入れた以前の形（最新 2000 件）で本体だけ書き、
+  // そのエラーを返す（本体の保存はできているので、ほかの変更は失わない）
+  async function write(snap) {
+    const cloud = Store.toCloud(snap);
+    try {
+      for (const set of Store.LOG_SETS) {
+        const json = JSON.stringify({ rows: cloud.logs[set] });
+        if (lastLog[set] === json) continue;
+        await saveDoc(logRef(set), json);
+        lastLog[set] = json;
+      }
+    } catch (e) {
+      await saveDoc(docRef(), JSON.stringify(cloud.inline));
+      return e;
+    }
+    await saveDoc(docRef(), JSON.stringify(cloud.main));
+    return null;
+  }
+  // 本体を読み、記録を分けた形なら種類ごとの文書も読んで 1 つの snapshot に戻す（無ければ null）
+  async function read() {
+    Object.keys(lastLog).forEach((set) => delete lastLog[set]); // 別のアカウントで入り直したときに前の中身で比べない
+    const got = await dbSdk.getDoc(docRef());
+    if (!got.exists()) return null;
+    let main;
+    try {
+      main = JSON.parse(got.data().json);
+    } catch (e) {
+      return null; // 壊れていれば手元の内容で上書きする
+    }
+    const logs = {};
+    if (main && main.logsSplit) {
+      for (const set of Store.LOG_SETS) {
+        const doc = await dbSdk.getDoc(logRef(set));
+        if (!doc.exists()) continue;
+        try {
+          const json = doc.data().json;
+          logs[set] = JSON.parse(json).rows;
+          lastLog[set] = json;
+        } catch (e) {
+          // 壊れていればその種類の記録は無いものとして、次に書くときに書き直す
+        }
+      }
+    }
+    return Store.fromCloud(main, logs);
+  }
 
   async function push() {
     timer = null;
     if (!user || !ready) return;
     setStatus('syncing');
     try {
-      await write(Store.snapshot());
-      setStatus('synced');
+      const partial = await write(Store.snapshot());
+      if (partial) fail(partial);
+      else setStatus('synced');
     } catch (e) {
       fail(e);
     }
@@ -126,24 +178,17 @@ async function main() {
   async function syncOnLogin() {
     setStatus('syncing');
     try {
-      const got = await dbSdk.getDoc(docRef());
-      let remote = null;
-      if (got.exists()) {
-        try {
-          remote = JSON.parse(got.data().json);
-        } catch (e) {
-          remote = null; // 壊れていれば手元の内容で上書きする
-        }
-      }
+      const remote = await read();
       const local = Store.snapshot();
       // 手元のデータが別のアカウントのものなら持ち込まない（store.js の resolveLogin）
       const merged = Store.resolveLogin(local, remote, { owner: readLocal(SYNCED_KEY), uid: user.uid });
       const localChanged = JSON.stringify(merged.data) !== JSON.stringify(local.data);
       if (localChanged) Store.replace(merged);
-      if (JSON.stringify(merged) !== JSON.stringify(remote)) await write(merged);
+      const partial = JSON.stringify(merged) !== JSON.stringify(remote) ? await write(merged) : null;
       writeLocal(SYNCED_KEY, user.uid);
       ready = true;
-      setStatus('synced');
+      if (partial) fail(partial);
+      else setStatus('synced');
       if (localChanged) {
         if (signInDone) await signInDone; // ログインの処理（Facebook の写真の保存）が終わってから
         location.reload(); // クラウドの内容を画面に反映する

@@ -65,7 +65,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
   - `groups` は一覧で選んだグループ。空ならすべて。練習ページはその選択で保存し直す（一覧で何も選んでいなければ、練習ページの選択も外れる）
 
 ## 記録（`stats.html`・`js/stats.js`・`css/stats.css`）
-- 判定のたびに `practice.log` に `{ at: 日時(ms), set, name, sec(null=解けなかった), status, hint }` を足す（新しい順、PLL と OLL を合わせて最大 2000 件。「取り消す」でその1件も消す）。集計は `js/progress.js` の `addLog`・`summarize`・`daily`・`perCase`
+- 判定のたびに `practice.log` に `{ at: 日時(ms), set, name, sec(null=解けなかった), status, hint }` を足す（新しい順、PLL・OLL・COLL・ZBLL それぞれ最大 5000 件（ある種類をたくさん練習しても、ほかの種類の記録は押し出されない）。「取り消す」でその1件も消す）。集計は `js/progress.js` の `addLog`・`summarize`・`daily`・`perCase`
 - ナビバーの「記録 / Stats」、練習ページの「すべての記録を見る」（`/stats?set=oll` のように今の種類を渡す）から開く
 - 種類（PLL / OLL / COLL / ZBLL / ソルブ）・期間（7日 / 30日 / すべて）で絞る（`practice.stats` に保存）。種類は練習ページと共通（`practice.set`）で、練習と記録を行き来しても選んでいた種類のまま開く（どちらのページで変えても、もう一方に引き継ぐ）
   - 置き場所：広い画面は見出し「記録」の横に種類・期間の切り替えを並べる。スマホ（幅 576px 未満）は「記録 [PLL OLL COLL ZBLL ソルブ]」の 1 行と、期間の 1 行の 2 行にまとめる。`#statsControls` をスマホでは `display: contents` にして、種類のあとで改行する（`.stats-controls-break`）。1 行目が 360px の英語でも収まるよう、見出しとの間隔と種類のボタンの左右の余白を詰める。範囲の切り替えが無いので、期間はボタンのまま（移植元はプルダウン）
@@ -108,7 +108,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 - 平均（`js/progress.js`）：`average(recs, n)` は直近 n 回から速い方・遅い方を ceil(n × 5%) 回ずつ除いた平均（ao5・ao12 は 1 回ずつ、ao100 は 5 回ずつ。csTimer と同じ）。DNF は最遅とみなし、除く回数より多ければ DNF。足りなければ「–」。`meanTime` は DNF を除いたタイムの平均。`bestAverage`・`bestSingle`・`effectiveTime`（+2 込みのタイム）
 - 保存：`practice.full = { inspection, log: [{ at, sec, penalty: '' | '+2' | 'DNF', s }] }`（新しい順、最大 2000 件。ログイン中はアカウントにも）。習得状況は変えない
   - `s` はスクランブルの短い形：1 手 = 1 文字（`U U2 U' R R2 R' F F2 F' D D2 D' L L2 L' B B2 B'` の順に `A`〜`R`。`WcaScramble.encode`・`decode`）。
-    1件 約 75 文字で、2000 件でも約 15 万文字（アカウントの保存の上限 50 万文字に、PLL・OLL・COLL・ZBLL の記録 合わせて 2000 件（約 18 万文字）と合わせて収まる）
+    1件 約 75 文字で、2000 件でも約 15 万文字（アカウントの本体の文書の上限 50 万文字に収まる。PLL・OLL・COLL・ZBLL の記録は種類ごとの文書に分ける。`reference/CLOUD_SYNC_SPEC.md`）
   - 18 通り以外の記号を含むスクランブルは全文（`scramble`）で保存する逃げ道がある（今の生成では起きない）。表示は `WcaScramble.textOf`（どちらの形も読める）
 - 記録の一覧のスマホ表示（幅 576px 未満）：横にスクロールしないよう、1件を2段にまとめる（1段目：チェック・タイム・見る・×、2段目：日時・ao5・ao12。ao12 は「見る」の下まで使い、切れないようにする）。見出しの行は隠し、「すべて選ぶ」は削除のバーに出す
 - 記録の削除（記録のページの記録の一覧。ソルブのほか、PLL・OLL・COLL・ZBLL も同じ操作）

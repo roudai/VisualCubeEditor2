@@ -19,7 +19,7 @@
  *   caseColors(c, scheme, set)      solve case（alg の逆手順を適用、持ち替えは打ち消す）の状態の画像の色
  *                                     set が 'coll' なら、側面のエッジのステッカー（scolor の 3i+1）を OLL_GRAY にする
  *                                     （sr-visualizer の coll マスクと同じ見た目。COLL はエッジの位置を揃えないため）
- *   addLog(log, entry, max)         練習の記録（日時付き）の配列に足した新しい配列（新しい順、最大 max 件。既定 2000）
+ *   addLog(log, entry, max)         練習の記録（日時付き）の配列に足した新しい配列（新しい順、種類（PLL・OLL・COLL・ZBLL）ごとに最大 max 件。既定 5000）
  *                                     entry = { at: 日時(ms), set, name, sec(null=解けなかった), status, hint }
  *   summarize(log, { set, from })   期間（from 以降。無ければすべて）の集計 { count, solved, dnf, avg, best }
  *   daily(log, { set, days, now })  直近 days 日の日ごとの { day: 'YYYY-MM-DD', count, avg }（古い順。練習していない日も 0 で入る）
@@ -136,9 +136,18 @@
   }
 
   // ---- 練習の記録（日時付き） ----
+  // 最大件数は種類（PLL・OLL・COLL・ZBLL）ごと（ある種類をたくさん練習しても、ほかの種類の記録が押し出されないように）。
+  // 4 種類 × 5000 件で、ブラウザの保存（localStorage）に約 190 万文字
+  const LOG_MAX = 5000;
   function addLog(log, entry, max) {
     const prev = Array.isArray(log) ? log : [];
-    return [entry].concat(prev).slice(0, max || 2000);
+    const limit = max || LOG_MAX;
+    const count = {};
+    return [entry].concat(prev).filter((e) => {
+      const set = e && e.set;
+      count[set] = (count[set] || 0) + 1;
+      return count[set] <= limit;
+    });
   }
 
   // 記録を種類・期間で絞る（壊れた記録は除く）

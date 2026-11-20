@@ -11,6 +11,11 @@ MegaminxImageEditor の `reference/CLOUD_SYNC_SPEC.md` を VisualCube Editor 用
 - サイトは静的ページ（`visualcube.roudai.net`）のまま。Firebase（Authentication + Firestore）をブラウザの JS から直接使う（SDK は gstatic の CDN から ES モジュールで読み込む。バージョン固定）
 - ログイン：Google / Facebook / GitHub（ポップアップ。メニューもこの順）
 - 保存先：Firestore の `users/{uid}/apps/visualcube-editor` の1文書 `{ json, savedAt }`。`json` は下の snapshot を JSON にした文字列
+  - PLL・OLL・COLL・ZBLL の練習の記録（`practice.log`。各最大 5000 件）は 1 文書（50 万文字未満）に入らないので、種類ごとの文書 `users/{uid}/apps/visualcube-editor-log-pll`・`-log-oll`・`-log-coll`・`-log-zbll`（同じ `{ json, savedAt }`）に分ける（`Store.toCloud`・`fromCloud`。Megaminx Image Editor 865ec44 と同じ仕組み）
+    - 種類ごとの文書の `json` は `{ rows: [[日時, ケース, タイム（null＝解けなかった）, 判定（0 未習得・1 練習中・2 習得済み）, 1（ヒントを見たときだけ）], …] }`（新しい順。1 件 約 30 文字で 5000 件 約 16 万文字。48 万文字を超えるときは古い記録を捨てる）
+    - 本体の `json` は記録を抜いた snapshot に `logsSplit: true` を付けたもの（ソルブの記録 `practice.full.log` は本体のまま）。読むときは `logsSplit` があれば種類ごとの文書の記録を戻し、無ければ（以前の形・古いページが書いた本体）本体の記録をそのまま使う
+    - 書くときは、中身が変わった種類ごとの文書を先に書いてから本体を書く（1 回の練習で書くのは本体とその種類の文書だけ）
+    - 種類ごとの文書に書けなかったとき（Firebase コンソールのルールが古いなど）は、記録を本体に入れた以前の形（4 種類 合わせて最新 2000 件）で本体だけ書き、保存の状態はエラーにする（ほかの変更は失わない）
 - Firebase プロジェクト（`roudainet-cube-tools`）とアカウントは Megaminx Image Editor と共通。各アプリは `users/{uid}/apps/<アプリ名>` に保存し、互いの保存先はぶつからない
   - ほかのアプリも同じ形（`{ json, savedAt }`）で保存すれば、`firestore.rules` は変えなくてよい
   - localStorage のキーの頭は `visualcube-editor:`（`Store.PREFIX`）。Megaminx Image Editor（`megaminx-image-editor:`）と同じドメインに置いても混ざらない
@@ -68,7 +73,7 @@ MegaminxImageEditor の `reference/CLOUD_SYNC_SPEC.md` を VisualCube Editor 用
 
 ## 利用規約（`terms.html`）
 - 本文は日本語・英語（言語の切り替えは `js/legal.js`。プライバシーポリシーと共通）。制定日・運営（roudai.net）・問い合わせ（GitHub の Issues）はプライバシーポリシーと同じ
-- 内容：適用、無料、アカウント（各サービスの規約にも従う）、禁止事項、作った画像は自由に使える、保存できる記録の量（PLL・OLL・COLL・ZBLL の練習の記録は合わせて最新 2000 件、ケースごとの最近のタイムは各 10 件、ソルブは最新 2000 件。超えると古い順に自動で削除・元に戻せない・上限は予告なく変わることがある）、無保証・免責（故意・重大な過失を除く）、予告なしの変更・停止・終了、規約の変更、準拠法（日本法）、個人情報はプライバシーポリシー
+- 内容：適用、無料、アカウント（各サービスの規約にも従う）、禁止事項、作った画像は自由に使える、保存できる記録の量（PLL・OLL・COLL・ZBLL の練習の記録はそれぞれ最新 5000 件、ケースごとの最近のタイムは各 10 件、ソルブは最新 2000 件。超えると古い順に自動で削除・元に戻せない・上限は予告なく変わることがある）、無保証・免責（故意・重大な過失を除く）、予告なしの変更・停止・終了、規約の変更、準拠法（日本法）、個人情報はプライバシーポリシー
 - ログインのメニュー（ログイン前・ログイン中とも）の「プライバシーポリシー」の下に「利用規約」。プライバシーポリシーの本文の最後からもリンク
 
 ## Firebase の設定（サイトの管理者がやる）
