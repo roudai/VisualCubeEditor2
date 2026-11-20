@@ -91,12 +91,29 @@
     D.draw(image, colors.ucolor, colors.scolor, { size: IMAGE_SIZE, border: settings.border });
 
     const body = el('div', 'card-body p-2 text-center');
-    const name = el('div', 'fw-bold', c.name);
+    // 名前の行：ケース名をカードの左右の真ん中に置き、カスタムの札は左、逆手順は右に寄せる（3 列のグリッド。css/cases.css）
+    const name = el('div', 'fw-bold case-name');
+    const left = el('span', 'case-name-side left');
+    const right = el('span', 'case-name-side right');
+    name.append(left, el('span', 'case-name-text', c.name), right);
     if (c.custom) {
       const tag = el('span', 'custom-tag');
       I.set(tag, 'list.customTag');
       I.set(tag, 'list.customTitle', null, 'title');
-      name.append(tag);
+      left.append(tag);
+    }
+    // 逆手順のケース（PLL。pll-data.js の inverse。自分の手順にしても組は変わらない）：名前の右に小さく「⇄ Ub」。
+    // 自分自身が逆手順のケースは出さない
+    if (c.inverse && c.inverse !== c.name) {
+      const inv = el('span', 'case-inverse');
+      const shown = el('span');
+      shown.setAttribute('aria-hidden', 'true');
+      I.set(shown, 'list.inverse', { name: c.inverse });
+      const spoken = el('span', 'visually-hidden'); // 読み上げは「逆手順：Ub」（⇄ を読ませない）
+      I.set(spoken, 'list.inverseTitle', { name: c.inverse });
+      I.set(inv, 'list.inverseTitle', { name: c.inverse }, 'title');
+      inv.append(shown, spoken);
+      right.append(inv);
     }
     body.append(name, el('div', 'small font-monospace text-break', c.alg));
     link.append(image, body);

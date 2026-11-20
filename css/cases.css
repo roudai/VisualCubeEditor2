@@ -28,6 +28,31 @@
   text-decoration: none;
 }
 
+/* 名前の行：ケース名をカードの左右の真ん中に（左右の列は同じ幅。左にカスタムの札、右に逆手順） */
+.case-name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: baseline;
+}
+.case-name-side {
+  white-space: nowrap;
+}
+.case-name-side.left {
+  text-align: right;
+}
+.case-name-side.left .custom-tag {
+  margin: 0 .35rem 0 0;
+}
+.case-name-side.right {
+  text-align: left;
+}
+/* 逆手順のケース（PLL）：名前の右に薄い字で「⇄ Ub」 */
+.case-inverse {
+  margin-left: .3rem;
+  color: #868e96;
+  font-size: .75rem;
+  font-weight: 400;
+}
 /* 自分の手順のケースの印 */
 .custom-tag {
   margin-left: .35rem;
@@ -122,6 +147,10 @@
   .case-card .card-body .fw-bold {
     font-size: .85rem;
   }
+  .case-inverse {
+    margin-left: .2rem;
+    font-size: .68rem;
+  }
   .case-card .card-body .font-monospace {
     font-size: .66rem;
     line-height: 1.35;
@@ -142,6 +171,16 @@
   .status-badge svg {
     width: 11px;
     height: 11px;
+  }
+}
+/* とても狭い画面（幅 340px 未満）：名前の右に入らないので、逆手順は名前の下の行の真ん中に */
+@media (max-width: 339.98px) {
+  .case-name-side.right {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+  .case-name-side.right .case-inverse {
+    margin-left: 0;
   }
 }
 
