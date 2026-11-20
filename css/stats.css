@@ -232,6 +232,76 @@
 .stats-tip-value {
   font-weight: 600;
 }
+/* 推移のグラフの窓（記録が多いとき。js/stats.js の renderChart）：横にドラッグ・スワイプで動かす。縦のスクロールは邪魔しない */
+.stats-svg.paged {
+  touch-action: pan-y;
+  cursor: grab;
+}
+.stats-svg.paged.dragging {
+  cursor: grabbing;
+}
+/* ‹ 1701–2000 回目 / 2000 › と、全体のうち今の位置を示す細い帯、最新 */
+.stats-trend-nav {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .3rem;
+  color: #6c757d;
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+}
+.stats-trend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0 .1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 50%;
+  background: #fff;
+  color: #495057;
+  font-size: 1rem;
+  line-height: 1;
+}
+.stats-trend-btn:hover:not(:disabled) {
+  background: #f1f3f5;
+}
+.stats-trend-btn:disabled {
+  opacity: .35;
+}
+.stats-trend-range {
+  white-space: nowrap;
+}
+.stats-trend-track {
+  position: relative;
+  flex: 1 1 4rem;
+  min-width: 2rem;
+  height: 4px;
+  margin: 0 .25rem;
+  border-radius: 999px;
+  background: #e9ecef;
+}
+.stats-trend-thumb {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 4px;
+  border-radius: 999px;
+  background: #adb5bd;
+}
+.stats-trend-latest {
+  padding: .1rem .5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 999px;
+  background: #fff;
+  color: #495057;
+  font-size: .75rem;
+  white-space: nowrap;
+}
+.stats-trend-latest:hover {
+  background: #f1f3f5;
+}
 .stats-legend {
   display: flex;
   flex-wrap: wrap;

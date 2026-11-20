@@ -129,6 +129,7 @@
     }
     // 種類・範囲・期間・表を変えたら 1 ページ目に戻す
     if (['set', 'scope', 'period', 'tab'].some((k) => k in next && next[k] !== view[k])) page = 1;
+    if (['set', 'period'].some((k) => k in next && next[k] !== view[k])) trendEnd = 0; // 推移のグラフは最新に戻す
     Object.assign(view, next);
     saveView();
     render();
@@ -213,6 +214,10 @@
     );
   }
 
+  // 推移のグラフに一度に描く回数（これより多いときは直近から描き、左右に動かす）と、今の右端が最新から何回前か
+  // （種類・期間を変えたら最新に戻す。保存しない）
+  const TREND_WIN = { wide: 300, phone: 150 };
+  let trendEnd = 0;
   function renderChart(recs) {
     const box = $('statsChart');
     box.replaceChildren();
@@ -231,8 +236,8 @@
       if (recs[i].at < f) continue;
       pts.push({ r: recs[i], t: P.effectiveTime(recs[i]), ao5: ao5All[i], ao12: ao12All[i] });
     }
-    const n = pts.length;
-    if (!n) {
+    const total = pts.length;
+    if (!total) {
       const empty = el('p', 'stats-chart-empty text-muted small');
       I.set(empty, 'stats.empty');
       box.append(empty);
@@ -247,7 +252,7 @@
     const iw = W - pad.l - pad.r;
     const ih = H - pad.t - pad.b;
     // 縦軸：1回のタイムの外れ値で平均の線がつぶれないよう、上は平均の最大と 1 回のタイムの 95% 点の大きい方まで
-    // （それより遅い点は上の端に △ で出す）
+    // （それより遅い点は上の端に △ で出す）。期間全体から決める（窓を動かしても目盛りが変わらないように）
     const singles = pts.map((p) => p.t).filter((t) => typeof t === 'number').sort((a, b) => a - b);
     const avgs = pts.flatMap((p) => [p.ao5, p.ao12]).filter((a) => typeof a === 'number');
     const p95 = singles.length ? singles[Math.min(singles.length - 1, Math.floor(singles.length * 0.95))] : 0;
@@ -260,10 +265,15 @@
     const step = niceStep(hi - lo, 4);
     lo = Math.max(0, Math.floor((lo - (hi - lo) * 0.05) / step) * step);
     hi = Math.ceil((hi + (hi - lo) * 0.04) / step) * step;
-    const x = (i) => pad.l + (n === 1 ? iw / 2 : (iw * i) / (n - 1));
+    // 窓：多いときは一度に TREND_WIN 回だけ描き、ドラッグ・スワイプ・ボタンで前の記録へ動かす
+    const n = Math.min(total, W < 500 ? TREND_WIN.phone : TREND_WIN.wide);
+    const paged = total > n;
+    trendEnd = Math.max(0, Math.min(trendEnd, total - n));
+    let start = total - n - trendEnd; // 窓の左端（期間内の何番目か。0 から）
+    const x = (j) => pad.l + (n === 1 ? iw / 2 : (iw * j) / (n - 1));
     const y = (v) => pad.t + ih * (1 - (Math.min(v, hi) - lo) / (hi - lo));
 
-    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'stats-svg', role: 'img' });
+    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'stats-svg' + (paged ? ' paged' : ''), role: 'img' });
     svg.setAttribute('aria-label', I.t('stats.trend'));
     // 横の目盛り（タイム）
     for (let v = lo; v <= hi + step / 1000; v += step) {
@@ -272,83 +282,142 @@
       t.textContent = axisTime(v, step);
       svg.append(t);
     }
-    // 縦の目盛り（何回目か。期間内で 1 から数える）
-    const maxTicks = W < 500 ? 5 : 8;
-    const xStep = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((st) => n / st <= maxTicks) || 1000;
-    for (let k = xStep; k <= n; k += xStep) {
-      const t = svgEl('text', { x: x(k - 1), y: H - 6, class: 'stats-axis', 'text-anchor': 'middle' });
-      t.textContent = String(k);
-      svg.append(t);
-    }
-    const first = svgEl('text', { x: x(0), y: H - 6, class: 'stats-axis', 'text-anchor': n === 1 ? 'middle' : 'start' });
-    first.textContent = '1';
-    if (xStep > 1 || n === 1) svg.append(first);
     // 習得の目安（PLL・OLL）
     if (typeof target === 'number' && target >= lo && target <= hi) {
       svg.append(svgEl('line', { x1: pad.l, x2: W - pad.r, y1: y(target), y2: y(target), class: 'stats-target' }));
     }
-    // 線。gaps：値が無い（DNF・平均が出ない）ところで途切れさせるか（false なら前後の値を結ぶ）
-    const line = (key, cls, gaps) => {
-      let d = '';
-      let pen = false;
-      pts.forEach((p, i) => {
-        const v = p[key];
-        if (typeof v !== 'number') {
-          if (gaps) pen = false;
-          return;
-        }
-        d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(v).toFixed(1);
-        pen = true;
-      });
-      if (d) svg.append(svgEl('path', { d: d, class: cls }));
-    };
-    // PLL・OLL：1回ごとのタイムを結ぶ線（解けなかったところは飛ばして結ぶ）。点はその上に描く
-    if (cases) line('t', 'stats-time-line', false);
-    // 1回のタイム（点）。多いときは小さく
-    const r = n > 600 ? 1.4 : n > 200 ? 1.9 : n > 60 ? 2.4 : 3;
-    const dots = svgEl('g');
-    pts.forEach((p, i) => {
-      const cx = x(i);
-      if (p.t === null) {
-        // DNF：上の端に ×
-        const s = r + 1;
-        const cy = pad.t + 2;
-        dots.append(svgEl('path', { d: `M${cx - s},${cy - s}L${cx + s},${cy + s}M${cx - s},${cy + s}L${cx + s},${cy - s}`, class: 'stats-dnf' }));
-        return;
-      }
-      const cls = 'stats-single' + (cases ? ' ' + (p.r.status === 'learned' ? 'learned' : 'learning') : '');
-      if (p.t > hi) {
-        // 縦軸の上より遅い：上の端に △
-        const cy = pad.t + 1;
-        dots.append(svgEl('path', { d: `M${cx},${cy - r}L${cx + r + 0.5},${cy + r + 1}L${cx - r - 0.5},${cy + r + 1}Z`, class: cls }));
-        return;
-      }
-      dots.append(svgEl('circle', { cx: cx, cy: y(p.t), r: r, class: cls }));
-    });
-    svg.append(dots);
-    // 通し：ao5・ao12（平均が出ない（DNF・足りない）ところは途切れる）
-    if (!cases) {
-      line('ao12', 'stats-avg-line ao12', true);
-      line('ao5', 'stats-avg-line ao5', true);
-    }
-    // マウス・タッチで、いちばん近い記録の縦線と詳しい値を出す
+    // 窓の中身（縦の目盛りの数字・線・点）。動かすたびにこの <g> だけ作り直す
+    let plot = svgEl('g');
     const cursor = svgEl('line', { y1: pad.t, y2: pad.t + ih, class: 'stats-cursor', visibility: 'hidden' });
     const hit = svgEl('rect', { x: pad.l - 6, y: 0, width: iw + 12, height: H, fill: 'transparent' });
-    svg.append(cursor, hit);
+    svg.append(plot, cursor, hit);
     box.append(svg);
-
     const tip = el('div', 'stats-tip');
     tip.hidden = true;
     box.append(tip);
-    const show = (ev) => {
+
+    // 窓の位置の行（多いときだけ）：‹ 1701–2000 回目 / 2000 › 最新、と全体のうち今の位置を示す細い帯
+    let nav = null;
+    if (paged) {
+      nav = { row: el('div', 'stats-trend-nav') };
+      const btn = (cls, text, key) => {
+        const b = el('button', 'stats-trend-btn ' + cls, text);
+        b.type = 'button';
+        I.set(b, key, null, 'aria-label');
+        b.title = I.t(key);
+        return b;
+      };
+      nav.older = btn('older', '‹', 'stats.trendOlder');
+      nav.newer = btn('newer', '›', 'stats.trendNewer');
+      nav.label = el('span', 'stats-trend-range');
+      nav.latest = el('button', 'stats-trend-latest', I.t('stats.trendLatest'));
+      nav.latest.type = 'button';
+      nav.track = el('div', 'stats-trend-track');
+      nav.thumb = el('div', 'stats-trend-thumb');
+      nav.track.append(nav.thumb);
+      nav.row.append(nav.older, nav.label, nav.newer, nav.track, nav.latest);
+      const half = Math.round(n / 2);
+      nav.older.addEventListener('click', () => moveTo(trendEnd + half));
+      nav.newer.addEventListener('click', () => moveTo(trendEnd - half));
+      nav.latest.addEventListener('click', () => moveTo(0));
+      box.append(nav.row);
+    }
+
+    function drawWindow() {
+      start = total - n - trendEnd;
+      const vis = pts.slice(start, start + n);
+      const g = svgEl('g');
+      // 縦の目盛り（何回目か。期間内で 1 から数える）
+      const maxTicks = W < 500 ? 5 : 8;
+      const xStep = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((st) => n / st <= maxTicks) || 1000;
+      for (let k = Math.ceil((start + 1) / xStep) * xStep; k <= start + n; k += xStep) {
+        const t = svgEl('text', { x: x(k - 1 - start), y: H - 6, class: 'stats-axis', 'text-anchor': 'middle' });
+        t.textContent = String(k);
+        g.append(t);
+      }
+      if (!paged && (xStep > 1 || n === 1)) {
+        const first = svgEl('text', { x: x(0), y: H - 6, class: 'stats-axis', 'text-anchor': n === 1 ? 'middle' : 'start' });
+        first.textContent = '1';
+        g.append(first);
+      }
+      // 線。gaps：値が無い（DNF・平均が出ない）ところで途切れさせるか（false なら前後の値を結ぶ）
+      const line = (key, cls, gaps) => {
+        let d = '';
+        let pen = false;
+        vis.forEach((p, j) => {
+          const v = p[key];
+          if (typeof v !== 'number') {
+            if (gaps) pen = false;
+            return;
+          }
+          d += (pen ? 'L' : 'M') + x(j).toFixed(1) + ',' + y(v).toFixed(1);
+          pen = true;
+        });
+        if (d) g.append(svgEl('path', { d: d, class: cls }));
+      };
+      // PLL・OLL：1回ごとのタイムを結ぶ線（解けなかったところは飛ばして結ぶ）。点はその上に描く
+      if (cases) line('t', 'stats-time-line', false);
+      // 1回のタイム（点）。多いときは小さく
+      const r = n > 600 ? 1.4 : n > 200 ? 1.9 : n > 60 ? 2.4 : 3;
+      const dots = svgEl('g');
+      vis.forEach((p, j) => {
+        const cx = x(j);
+        if (p.t === null) {
+          // DNF：上の端に ×
+          const s = r + 1;
+          const cy = pad.t + 2;
+          dots.append(svgEl('path', { d: `M${cx - s},${cy - s}L${cx + s},${cy + s}M${cx - s},${cy + s}L${cx + s},${cy - s}`, class: 'stats-dnf' }));
+          return;
+        }
+        const cls = 'stats-single' + (cases ? ' ' + (p.r.status === 'learned' ? 'learned' : 'learning') : '');
+        if (p.t > hi) {
+          // 縦軸の上より遅い：上の端に △
+          const cy = pad.t + 1;
+          dots.append(svgEl('path', { d: `M${cx},${cy - r}L${cx + r + 0.5},${cy + r + 1}L${cx - r - 0.5},${cy + r + 1}Z`, class: cls }));
+          return;
+        }
+        dots.append(svgEl('circle', { cx: cx, cy: y(p.t), r: r, class: cls }));
+      });
+      g.append(dots);
+      // 通し：ao5・ao12（平均が出ない（DNF・足りない）ところは途切れる）
+      if (!cases) {
+        line('ao12', 'stats-avg-line ao12', true);
+        line('ao5', 'stats-avg-line ao5', true);
+      }
+      plot.replaceWith(g);
+      plot = g;
+      if (nav) {
+        nav.label.textContent = I.t('stats.trendRange', { from: start + 1, to: start + n, n: total });
+        nav.older.disabled = start === 0;
+        nav.newer.disabled = trendEnd === 0;
+        nav.latest.hidden = trendEnd === 0;
+        nav.thumb.style.left = (start / total) * 100 + '%';
+        nav.thumb.style.width = (n / total) * 100 + '%';
+      }
+    }
+    function moveTo(end) {
+      const next = Math.max(0, Math.min(total - n, end));
+      if (next === trendEnd) return;
+      trendEnd = next;
+      hide();
+      drawWindow();
+    }
+    drawWindow();
+
+    // マウス・タッチで、いちばん近い記録の縦線と詳しい値を出す
+    const indexAt = (ev) => {
       const rect = svg.getBoundingClientRect();
       const px = ((ev.clientX - rect.left) / rect.width) * W;
-      const i = n === 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round(((px - pad.l) / iw) * (n - 1))));
-      const p = pts[i];
-      cursor.setAttribute('x1', x(i));
-      cursor.setAttribute('x2', x(i));
+      return n === 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round(((px - pad.l) / iw) * (n - 1))));
+    };
+    const show = (ev) => {
+      const j = indexAt(ev);
+      const p = pts[start + j];
+      const rect = svg.getBoundingClientRect();
+      cursor.setAttribute('x1', x(j));
+      cursor.setAttribute('x2', x(j));
       cursor.setAttribute('visibility', 'visible');
-      const head = el('div', 'stats-tip-head', `#${i + 1} · ${dateTime(p.r.at)}`);
+      const head = el('div', 'stats-tip-head', `#${start + j + 1} · ${dateTime(p.r.at)}`);
       const rows = [head];
       if (cases) rows.push(el('div', 'stats-tip-case', `${view.set.toUpperCase()} ${p.r.name}`));
       const row = (label, value, cls) => {
@@ -360,15 +429,69 @@
       if (!cases) rows.push(row('ao5', showAvg(p.ao5), 'ao5'), row('ao12', showAvg(p.ao12), 'ao12'));
       tip.replaceChildren(...rows);
       tip.hidden = false;
-      placeTip(tip, box, (x(i) / W) * rect.width);
+      placeTip(tip, box, (x(j) / W) * rect.width);
     };
-    const hide = () => {
+    function hide() {
       tip.hidden = true;
       cursor.setAttribute('visibility', 'hidden');
+    }
+    // 多いとき：横にドラッグ・スワイプで動かす（数 px 動くまでは詳しい値を出すだけ）。縦のスクロールはそのまま（touch-action: pan-y）
+    let drag = null;
+    hit.addEventListener('pointerdown', (ev) => {
+      show(ev);
+      if (!paged) return;
+      drag = { x: ev.clientX, end: trendEnd, moving: false, id: ev.pointerId };
+      hit.setPointerCapture(ev.pointerId);
+    });
+    hit.addEventListener('pointermove', (ev) => {
+      if (!drag || drag.id !== ev.pointerId) {
+        if (ev.pointerType === 'mouse' || !drag) show(ev);
+        return;
+      }
+      const dx = ev.clientX - drag.x;
+      if (!drag.moving && Math.abs(dx) < 6) return;
+      if (!drag.moving) {
+        drag.moving = true;
+        svg.classList.add('dragging');
+      }
+      const perRecord = (svg.getBoundingClientRect().width * (iw / W)) / Math.max(1, n - 1); // 1 回分の画面の px
+      moveTo(drag.end + Math.round(dx / perRecord)); // 右へ動かす＝前の記録が見える
+    });
+    const endDrag = (ev) => {
+      if (!drag || drag.id !== ev.pointerId) return;
+      const moved = drag.moving;
+      drag = null;
+      svg.classList.remove('dragging');
+      if (moved) hide();
     };
-    hit.addEventListener('pointermove', show);
-    hit.addEventListener('pointerdown', show);
-    hit.addEventListener('pointerleave', hide);
+    hit.addEventListener('pointerup', endDrag);
+    hit.addEventListener('pointercancel', (ev) => {
+      endDrag(ev);
+      hide();
+    });
+    // マウスが外に出たら消す（タッチは指を離すと pointerleave が来るので、タップで出した詳しい値は残す）
+    hit.addEventListener('pointerleave', (ev) => {
+      if (!drag && ev.pointerType === 'mouse') hide();
+    });
+    // トラックパッドの横スクロール・Shift + ホイールでも動かす（縦のホイールはページのスクロールのまま）
+    if (paged) {
+      let wheelAcc = 0;
+      svg.addEventListener(
+        'wheel',
+        (ev) => {
+          const d = Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ? ev.deltaX : ev.shiftKey ? ev.deltaY : 0;
+          if (!d) return;
+          ev.preventDefault();
+          const perRecord = (svg.getBoundingClientRect().width * (iw / W)) / Math.max(1, n - 1);
+          wheelAcc += d;
+          const steps = Math.trunc(wheelAcc / perRecord);
+          if (!steps) return;
+          wheelAcc -= steps * perRecord;
+          moveTo(trendEnd - steps); // 右へスクロール＝新しい記録へ
+        },
+        { passive: false }
+      );
+    }
 
     // 凡例
     const legend = el('div', 'stats-legend');
