@@ -473,10 +473,69 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   color: #6c757d;
   font-size: min(.75rem, 2.7vw);
 }
-.practice-full-stats {
+/* ソルブの ao5・ao12 など：広い画面はチップを 1 行に、スマホは 1 枚の表（js/practice.js の renderFullStats） */
+.practice-stat-chips {
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
+}
+.practice-full-card {
+  display: none;
+  padding: .5rem .75rem;
+  border: 1px solid #e9ecef;
+  border-radius: .6rem;
+  background: #fff;
+}
+@media (max-width: 575.98px) {
+  .practice-stat-chips {
+    display: none;
+  }
+  .practice-full-card {
+    display: block;
+  }
+}
+.practice-full-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.practice-full-table th {
+  color: #6c757d;
+  font-size: .72rem;
+  font-weight: 500;
+}
+.practice-full-table thead th {
+  padding-bottom: .1rem;
+  text-align: right;
+}
+.practice-full-table th[scope="row"] {
+  width: 3.75rem; /* 行の見出し（今・ベスト / Current・Best）。残りを 3 列で均等に分ける */
+  text-align: left;
+}
+.practice-full-table td {
+  padding: .1rem 0;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.practice-full-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .25rem .5rem;
+  margin-top: .4rem;
+  padding-top: .4rem;
+  border-top: 1px solid #f1f3f5;
+  font-size: .85rem;
+}
+.practice-full-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .35rem;
+}
+.practice-full-dot {
+  color: #ced4da;
 }
 .practice-stat {
   display: inline-flex;

@@ -911,6 +911,14 @@
     }
     const log = fullLog();
     box.hidden = false;
+    // 値は 1 回だけ計算して、チップ（広い画面）と表（スマホ）の両方で使う
+    const SIZES = [5, 12, 100];
+    const now = SIZES.map((n) => showAvg(P.average(log, n)));
+    const best = SIZES.map((n) => showAvg(P.bestAverage(log, n)));
+    const mean = P.meanTime(log) == null ? '–' : format(P.meanTime(log));
+    const single = P.bestSingle(log) == null ? '–' : format(P.bestSingle(log));
+
+    // 広い画面：8 つのチップを 1 行に
     const item = (key, value) => {
       const d = el('div', 'practice-stat');
       const label = el('span', 'practice-stat-label');
@@ -918,16 +926,51 @@
       d.append(label, el('span', 'practice-stat-value', value));
       return d;
     };
-    box.replaceChildren(
-      item('practice.ao5', showAvg(P.average(log, 5))),
-      item('practice.ao12', showAvg(P.average(log, 12))),
-      item('practice.ao100', showAvg(P.average(log, 100))),
-      item('practice.mean', P.meanTime(log) == null ? '–' : format(P.meanTime(log))),
-      item('practice.bestSingle', P.bestSingle(log) == null ? '–' : format(P.bestSingle(log))),
-      item('practice.bestAo5', showAvg(P.bestAverage(log, 5))),
-      item('practice.bestAo12', showAvg(P.bestAverage(log, 12))),
-      item('practice.bestAo100', showAvg(P.bestAverage(log, 100)))
+    const chips = el('div', 'practice-stat-chips');
+    chips.append(
+      item('practice.ao5', now[0]),
+      item('practice.ao12', now[1]),
+      item('practice.ao100', now[2]),
+      item('practice.mean', mean),
+      item('practice.bestSingle', single),
+      item('practice.bestAo5', best[0]),
+      item('practice.bestAo12', best[1]),
+      item('practice.bestAo100', best[2])
     );
+
+    // スマホ：チップだと幅がばらばらに折り返すので、1 枚の表（列 ao5・ao12・ao100、行 今・ベスト）と、その下に平均・単発ベスト
+    const th = (key, scope) => {
+      const c = el('th');
+      c.scope = scope;
+      if (key) I.set(c, key);
+      return c;
+    };
+    const headRow = el('tr');
+    headRow.append(th(null, 'col'), th('practice.ao5', 'col'), th('practice.ao12', 'col'), th('practice.ao100', 'col'));
+    const row = (key, values) => {
+      const tr = el('tr');
+      tr.append(th(key, 'row'), ...values.map((v) => el('td', '', v)));
+      return tr;
+    };
+    const thead = el('thead');
+    thead.append(headRow);
+    const tbody = el('tbody');
+    tbody.append(row('practice.statNow', now), row('practice.statBest', best));
+    const table = el('table', 'practice-full-table');
+    table.append(thead, tbody);
+    const pair = (key, value) => {
+      const s = el('span', 'practice-full-pair');
+      const label = el('span', 'practice-stat-label');
+      I.set(label, key);
+      s.append(label, el('span', 'practice-stat-value', value));
+      return s;
+    };
+    const summary = el('div', 'practice-full-summary');
+    summary.append(pair('practice.mean', mean), el('span', 'practice-full-dot', '·'), pair('practice.bestSingleShort', single));
+    const card = el('div', 'practice-full-card');
+    card.append(table, summary);
+
+    box.replaceChildren(chips, card);
   }
 
   function renderHistory() {
