@@ -854,7 +854,7 @@
 
 /* 種類・期間の切り替え。広い画面は見出しの横に 1 つの箱。
    スマホ（幅 576px 未満）は「練習 記録 [PLL OLL COLL ZBLL ソルブ]」の 1 行と、期間の 1 行の 2 行にまとめる
-   （日本語は 360px でも 1 行目に収まる。英語は入らないので種類が次の行に回る。見出しとの間隔は css/common.css の .page-head） */
+   （日本語は 360px でも 1 行目に収まる。英語は 390px なら 1 行、360px では種類が次の行に回る。見出しとの間隔は css/common.css の .page-head） */
 .stats-controls-break {
   display: none;
 }

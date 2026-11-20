@@ -210,7 +210,7 @@
       'practice.dnf': "Couldn't solve",
       'practice.skip': 'Skip',
       'practice.cancel': 'Cancel',
-      'practice.full': 'Full solve',
+      'practice.full': 'Solve',
       'practice.inspection': 'Inspection (15s)',
       'practice.on': 'On',
       'practice.off': 'Off',
