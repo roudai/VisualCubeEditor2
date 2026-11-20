@@ -659,7 +659,9 @@
     };
     hit.addEventListener('pointermove', show);
     hit.addEventListener('pointerdown', show);
-    hit.addEventListener('pointerleave', hide);
+    hit.addEventListener('pointerleave', (ev) => {
+      if (ev.pointerType === 'mouse') hide(); // タッチは指を離すと来るので、タップで出した値は残す
+    });
 
     // 凡例：棒の色（PLL・OLL は目安以内・目安より遅い。通しは青＝DNF を除いた回数）、PLL・OLL は「解けた n 回」、DNF・解けなかった回数、目安（と目安以内の割合）
     const legend = el('div', 'stats-legend');
