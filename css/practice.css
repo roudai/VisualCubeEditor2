@@ -666,6 +666,11 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   color: #6c757d;
   font-size: .78rem;
 }
+.practice-result-actions {
+  display: inline-flex;
+  gap: .75rem;
+  white-space: nowrap;
+}
 .practice-undo {
   padding: 0;
   border: 0;

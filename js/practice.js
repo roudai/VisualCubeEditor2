@@ -798,21 +798,39 @@
     const entry = { set, c, sec, status, threshold: threshold(set), hinted };
     sessionHistory.unshift(entry);
     sessionHistory.length = Math.min(sessionHistory.length, HISTORY);
-    showResult(entry, () => {
-      if (state === 'idle' && shownRecAt === logEntry.at) resetTimer();
-      P.setStatus(set, c.name, beforeStatus);
+    // 最近のタイムを記録する前に戻した times
+    const timesBefore = () => {
       const allTimes = Object.assign({}, S.get('practice') && S.get('practice').times);
       allTimes[set] = Object.assign({}, allTimes[set]);
       if (beforeTimes) allTimes[set][c.name] = beforeTimes;
       else delete allTimes[set][c.name];
-      const log = ((S.get('practice') || {}).log || []).filter((e) => e.at !== logEntry.at || e.name !== logEntry.name);
-      savePrefs({ times: allTimes, log: log });
+      return allTimes;
+    };
+    const isThis = (e) => e.at === logEntry.at && e.name === logEntry.name;
+    const undo = () => {
+      if (state === 'idle' && shownRecAt === logEntry.at) resetTimer();
+      P.setStatus(set, c.name, beforeStatus);
+      const log = ((S.get('practice') || {}).log || []).filter((e) => !isThis(e));
+      savePrefs({ times: timesBefore(), log: log });
       sessionHistory.splice(sessionHistory.indexOf(entry), 1);
       renderHistory();
       renderSettings();
       const result = $('practiceResult');
       result.replaceChildren(note('practice.undone'));
-    });
+    };
+    // 「練習中にする」：習得済みと判定されたけれど、練習中にしておきたいとき（揃っていなかった・まだ自信が無いなど）。
+    // ケースとこの回の判定だけを練習中にし、タイムはそのまま残す。そのあとも「取り消す」はできる
+    const toLearning = () => {
+      P.setStatus(set, c.name, 'learning');
+      const log = ((S.get('practice') || {}).log || []).map((e) => (isThis(e) ? Object.assign({}, e, { status: 'learning' }) : e));
+      savePrefs({ log: log });
+      entry.status = 'learning';
+      entry.manual = true;
+      renderHistory();
+      renderSettings();
+      showResult(entry, undo, null);
+    };
+    showResult(entry, undo, toLearning);
     renderHistory();
     renderSettings(); // 対象の件数を更新
     next(true);
@@ -829,8 +847,9 @@
     return d;
   }
 
-  function showResult(entry, undo) {
-    const { set, c, sec, status, threshold, hinted } = entry;
+  // toLearning：「練習中にする」を押したとき（習得済みと判定された回だけ出す。null なら出さない）
+  function showResult(entry, undo, toLearning) {
+    const { set, c, sec, status, threshold, hinted, manual } = entry;
     const result = $('practiceResult');
     result.hidden = false;
     result.replaceChildren();
@@ -846,12 +865,25 @@
     const verdict = el('span', 'practice-verdict ' + status);
     if (sec === null) I.set(verdict, 'practice.verdict.dnf');
     else if (hinted) I.set(verdict, 'practice.verdict.hint');
+    else if (manual) I.set(verdict, 'practice.verdict.manual');
     else I.set(verdict, 'practice.verdict.' + status, { t: threshold });
     const undoButton = el('button', 'btn btn-link practice-undo');
     undoButton.type = 'button';
     I.set(undoButton, 'practice.undo');
     undoButton.addEventListener('click', undo);
-    head.append(verdict, undoButton);
+    head.append(verdict);
+    // 「練習中にする」「取り消す」は 1 つの塊にして、入らなければ一緒に次の行へ
+    const actions = el('span', 'practice-result-actions');
+    if (toLearning && status === 'learned') {
+      const learningButton = el('button', 'btn btn-link practice-undo');
+      learningButton.type = 'button';
+      I.set(learningButton, 'practice.toLearning');
+      I.set(learningButton, 'practice.toLearningTitle', null, 'title');
+      learningButton.addEventListener('click', toLearning);
+      actions.append(learningButton);
+    }
+    actions.append(undoButton);
+    head.append(actions);
 
     const name = el('div', 'practice-case-name mt-1', `${set.toUpperCase()} ${c.name}`);
     const alg = el('div', 'practice-case-alg', c.alg);
