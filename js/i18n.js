@@ -296,7 +296,7 @@
       'stats.distSlow': 'Over target',
       'stats.distTotal': 'Solved {n}',
       'stats.distFullTotal': '{n} solves (excl. DNF)',
-      'stats.distDnf': "Couldn't solve {n}",
+      'stats.distDnf': 'Unsolved {n}',
       'stats.legendTargetShare': 'Target {t}s ({p}% within)',
       'stats.legendSingle': 'Single',
       'stats.legendTarget': 'Target {t}s',
