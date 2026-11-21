@@ -912,7 +912,7 @@
     const rec = code
       ? { at: Date.now(), sec: sec, penalty: pen || '', s: code }
       : { at: Date.now(), sec: sec, penalty: pen || '', scramble: current.scramble };
-    saveFull({ log: P.addLog(fullLog(), rec) });
+    saveFull({ log: P.addLog(fullLog(), rec, P.FULL_LOG_MAX) }); // 最新 2000 件（利用規約と同じ）
     showFullResult(rec);
     renderHistory();
     next(true);

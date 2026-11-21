@@ -20,6 +20,7 @@
  *                                     set が 'coll' なら、側面のエッジのステッカー（scolor の 3i+1）を OLL_GRAY にする
  *                                     （sr-visualizer の coll マスクと同じ見た目。COLL はエッジの位置を揃えないため）
  *   addLog(log, entry, max)         練習の記録（日時付き）の配列に足した新しい配列（新しい順、種類（PLL・OLL・COLL・ZBLL）ごとに最大 max 件。既定 5000）
+ *   FULL_LOG_MAX                    ソルブの記録の上限（2000。practice.js が addLog の max に渡す）
  *                                     entry = { at: 日時(ms), set, name, sec(null=解けなかった), status, hint }
  *   summarize(log, { set, from })   期間（from 以降。無ければすべて）の集計 { count, solved, dnf, avg, best }
  *   daily(log, { set, days, now })  直近 days 日の日ごとの { day: 'YYYY-MM-DD', count, avg }（古い順。練習していない日も 0 で入る）
@@ -139,6 +140,7 @@
   // 最大件数は種類（PLL・OLL・COLL・ZBLL）ごと（ある種類をたくさん練習しても、ほかの種類の記録が押し出されないように）。
   // 4 種類 × 5000 件で、ブラウザの保存（localStorage）に約 190 万文字
   const LOG_MAX = 5000;
+  const FULL_LOG_MAX = 2000; // ソルブの記録（practice.full.log）の上限（利用規約と同じ。クラウドの本体の文書に入れるので小さめ）
   function addLog(log, entry, max) {
     const prev = Array.isArray(log) ? log : [];
     const limit = max || LOG_MAX;
@@ -367,6 +369,7 @@
     bestSingle: bestSingle,
     meanTime: meanTime,
     addLog: addLog,
+    FULL_LOG_MAX: FULL_LOG_MAX,
     summarize: summarize,
     daily: daily,
     perCase: perCase,
