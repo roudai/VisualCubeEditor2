@@ -623,7 +623,7 @@
       'practice.verdict.manual': '練習中（自分で変更）',
       'practice.undone': '取り消しました。',
       'practice.caseStats': '最近：ベスト {best} / 平均 {avg}（{n} 回）',
-      'practice.history': '直近の記録',
+      'practice.history': '最近の記録',
       'practice.listButton': '練習する',
       'practice.listButtonTitle': 'ここに表示しているケースをタイマーで練習する',
       'nav.stats': '記録',

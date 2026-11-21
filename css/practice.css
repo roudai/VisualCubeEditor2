@@ -680,7 +680,7 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   text-decoration: none;
 }
 
-/* ---- 直近の記録 ---- */
+/* ---- 最近の記録 ---- */
 .practice-history {
   display: flex;
   flex-wrap: wrap;

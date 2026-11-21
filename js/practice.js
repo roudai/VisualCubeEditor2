@@ -977,7 +977,7 @@
     result.append(body);
   }
 
-  // 通しの ao5・ao12・ao100・平均（DNF を除く）・ベスト（直近の記録の上）
+  // 通しの ao5・ao12・ao100・平均（DNF を除く）・ベスト（最近の記録の上）
   function renderFullStats() {
     const box = $('practiceFullStats');
     if (!isFull()) {
@@ -1063,7 +1063,7 @@
   function renderHistory() {
     renderFullStats();
     $('practiceHistory').classList.toggle('full', isFull()); // ソルブはタイムだけなので、丸を同じ幅でそろえる（css/practice.css）
-    // 直近の記録：保存してある、今の種類の最新 HISTORY 件（ページを開き直しても出る。記録のページで消せばここからも消える）
+    // 最近の記録：保存してある、今の種類の最新 HISTORY 件（ページを開き直しても出る。記録のページで消せばここからも消える）
     if (isFull()) {
       $('practiceHistory').replaceChildren(...fullLog().slice(0, HISTORY).map((r) => el('li', P.effectiveTime(r) === null ? 'learning' : '', showTime(r))));
       return;
