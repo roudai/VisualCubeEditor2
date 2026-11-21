@@ -175,8 +175,8 @@ test('fromCloud：以前の形（logsSplit の無い本体）はそのまま。�
   assert.deepEqual(Store.fromCloud(after, { full: [[9, 1, 'AB']] }).data.practice.full, { inspection: false, log: [{ at: 9, sec: 1, penalty: '', s: 'AB' }] });
 });
 
-test('toCloud：4 種類とソルブ × 5000 件でも各文書が上限に収まる。本体だけに書く以前の形（inline）は最新 2000 件', () => {
-  assert.deepEqual(Store.LOG_SETS, ['pll', 'oll', 'coll', 'zbll', 'full']);
+test('toCloud：4 種類とソルブ・LL × 5000 件でも各文書が上限に収まる。本体だけに書く以前の形（inline）は最新 2000 件', () => {
+  assert.deepEqual(Store.LOG_SETS, ['pll', 'oll', 'coll', 'zbll', 'full', 'll']);
   const sets = ['pll', 'oll', 'coll', 'zbll'];
   const log = [];
   for (let i = 0; i < 20000; i++) {
@@ -185,8 +185,10 @@ test('toCloud：4 種類とソルブ × 5000 件でも各文書が上限に収�
   const full = [];
   // s は短い形（1 手 1 文字）。ソルブのスクランブルはふつう 20 手前後なので、多めに 25 文字
   for (let i = 0; i < 5000; i++) full.push({ at: 1795158456787 - i * 1000, sec: 65.43, penalty: i % 9 ? '' : '+2', s: 'ABCDEFGHIJKLMNOPQRABCDEFG' });
-  const cloud = Store.toCloud({ data: { practice: { log: log, full: { log: full } } }, updated: {} });
-  sets.concat('full').forEach((set) => {
+  const ll = [];
+  for (let i = 0; i < 5000; i++) ll.push({ at: 1795158456787 - i * 1000, sec: 15.67, o: '57', p: i % 5 ? 'Gd' : 'Ga/Gb' });
+  const cloud = Store.toCloud({ data: { practice: { log: log, full: { log: full }, ll: { log: ll } } }, updated: {} });
+  sets.concat('full', 'll').forEach((set) => {
     assert.equal(cloud.logs[set].length, 5000);
     assert.ok(JSON.stringify({ rows: cloud.logs[set] }).length < 500000);
   });
@@ -196,6 +198,8 @@ test('toCloud：4 種類とソルブ × 5000 件でも各文書が上限に収�
   // ソルブも inline では最新 2000 件
   assert.equal(cloud.inline.data.practice.full.log.length, 2000);
   assert.equal(cloud.inline.data.practice.full.log[0].at, full[0].at);
+  // LL も inline では最新 2000 件
+  assert.equal(cloud.inline.data.practice.ll.log.length, 2000);
   // ソルブだけが多いときは、PLL などの記録の無い inline に空の log を足さない
   const c2 = Store.toCloud({ data: { practice: { full: { log: full } } }, updated: {} });
   assert.equal(c2.inline.data.practice.full.log.length, 2000);
@@ -342,4 +346,39 @@ test('discardsLocal：練習の記録は日時ごとに比べる（キーの順�
   assert.equal(Store.discardsLocal(zb, remote, who), true);
   const full = { data: { practice: { full: { log: [{ at: 8, sec: 30, penalty: '' }] } } }, updated: { practice: 1 } };
   assert.equal(Store.discardsLocal(full, remote, who), true);
+});
+
+test('LL の記録：クラウドでは -log-ll の文書に短い形で分け、読むときに戻す。合わせる・消した印も種類ごと', () => {
+  const ll = [
+    { at: 2, sec: 12.3, o: '21', p: 'Ua' },
+    { at: 1, sec: null, o: '1', p: 'Ga/Gb' },
+  ];
+  const snap = { data: { practice: { set: 'll', ll: { oll: 'all', log: ll } } }, updated: { practice: 9 } };
+  const cloud = Store.toCloud(snap);
+  assert.equal(cloud.main.llSplit, true);
+  assert.deepEqual(cloud.main.data.practice.ll, { oll: 'all' });
+  assert.deepEqual(cloud.logs.ll, [
+    [2, 12.3, '21', 'Ua'],
+    [1, null, '1', 'Ga/Gb'],
+  ]);
+  const back = Store.fromCloud(cloud.main, cloud.logs);
+  assert.deepEqual(back.data.practice.ll, { oll: 'all', log: ll });
+  // llSplit の無い本体（LL を分ける前のページが書いたもの）は、本体の記録のまま
+  const before = { data: { practice: { ll: { log: [{ at: 3, sec: 9, o: '2', p: 'H' }] } } }, updated: {}, logsSplit: true, fullSplit: true };
+  assert.deepEqual(Store.fromCloud(before, { ll: [[9, 1, 'x', 'y']] }).data.practice.ll.log, [{ at: 3, sec: 9, o: '2', p: 'H' }]);
+  // 消した印
+  const next = Store.withTombstones({ ll: { log: ll } }, { ll: { log: [ll[0]] } });
+  assert.deepEqual(next.removed, { ll: [1] });
+  // 2 つの端末の記録を合わせる（設定は新しい方）
+  const m = Store.merge(
+    { data: { practice: { ll: { pll: 'all', log: [ll[0]] } } }, updated: { practice: 5 } },
+    { data: { practice: { ll: { pll: 'learned', log: [ll[1]] } } }, updated: { practice: 6 } }
+  ).data.practice;
+  assert.deepEqual(
+    m.ll.log.map((x) => x.at),
+    [2, 1]
+  );
+  assert.equal(m.ll.pll, 'learned');
+  // LL の記録は PLL などの記録（practice.log）に混ざらない
+  assert.equal(m.log, undefined);
 });

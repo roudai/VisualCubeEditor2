@@ -1,5 +1,6 @@
 // 記録のページ（stats.html）：練習の記録（store.js の practice.log）を、期間の集計・タイムの推移・ケースごとの表で見る。
-// 通し（practice.full.log）は、回数・ベスト・ベスト ao5/ao12（今の ao5/ao12）、タイムの推移、記録の一覧で見る。
+// 通し（practice.full.log）・LL（practice.ll.log）は、回数・ベスト・ベスト ao5/ao12（今の ao5/ao12）、タイムの推移、記録の一覧で見る
+// （LL の一覧はスクランブルの代わりにケース「OLL → PLL」）。
 // PLL・OLL・COLL は「ケースごと」の表と「記録の一覧」を切り替えられる（記録の一覧は日時・ケース・タイム・判定）。
 // 記録の一覧（通し・PLL・OLL・COLL）は、行ごとの × で1件、チェックで選んで「選択した記録を削除」でまとめて、
 // 「すべての記録を削除」でその種類の記録を期間に関係なくすべて削除できる（どれも元に戻せる）。
@@ -30,7 +31,9 @@
     coll: CA ? CA.merged('coll', window.COLL_DATA || []) : window.COLL_DATA || [],
     zbll: window.ZBLL_DATA || [],
   };
-  const SETS = ['pll', 'oll', 'coll', 'zbll', 'full'];
+  const SETS = ['pll', 'oll', 'coll', 'zbll', 'll', 'full'];
+  // 自分の記録の配列を持つ種類（タイムだけを見る。ケースごとの表は無い）
+  const own = () => view.set === 'full' || view.set === 'll';
   const PERIODS = { 7: 7, 30: 30, all: null };
   const DAY = 24 * 60 * 60 * 1000;
 
@@ -39,7 +42,7 @@
     return p && typeof p === 'object' ? p : {};
   };
   const saved = practice().stats || {};
-  // 種類（PLL / OLL / COLL / ZBLL / 通し）は練習ページと共通（practice.set）。
+  // 種類（PLL / OLL / COLL / ZBLL / LL / 通し）は練習ページと共通（practice.set）。
   // 練習と記録を行き来しても、選んでいた種類のまま開く（無ければ以前の記録のページだけの値）
   const shared = practice();
   const view = {
@@ -98,6 +101,7 @@
           { value: 'oll', text: 'OLL' },
           { value: 'coll', text: 'COLL' },
           { value: 'zbll', text: 'ZBLL' },
+          { value: 'll', text: 'LL', title: 'practice.llTitle' },
           { value: 'full', key: 'practice.full' },
         ],
         view.set,
@@ -227,7 +231,7 @@
       return;
     }
     const f = from();
-    const cases = view.set !== 'full';
+    const cases = !own();
     const ao5All = cases ? [] : P.rollingAverages(recs, 5);
     const ao12All = cases ? [] : P.rollingAverages(recs, 12);
     // 期間内を古い順に
@@ -571,7 +575,7 @@
   function renderDist(recs) {
     const box = $('statsChart');
     const f = from();
-    const cases = view.set !== 'full';
+    const cases = !own();
     const inPeriod = recs.filter((r) => r.at >= f);
     const times = inPeriod
       .map((r) => P.effectiveTime(r))
@@ -791,7 +795,7 @@
   // 表の上の並びの切り替え：苦手順 / グループ順（OLL は番号順）/ 覚える順（覚える順のデータがあるとき）
   function renderSortBar() {
     const box = $('statsSort');
-    const show = view.set !== 'full' && view.tab !== 'solves';
+    const show = !own() && view.tab !== 'solves';
     box.hidden = !show;
     if (!show) return;
     const items = [
@@ -901,6 +905,12 @@
     const f = practice().full;
     return f && Array.isArray(f.log) ? f.log.filter((r) => r && typeof r.at === 'number') : [];
   };
+  // LL の記録（practice.ll.log、新しい順）
+  const llLog = () => {
+    const f = practice().ll;
+    return f && Array.isArray(f.log) ? f.log.filter((r) => r && typeof r.at === 'number') : [];
+  };
+  const ownLog = () => (view.set === 'll' ? llLog() : fullLog());
   const showTime = (r) => {
     const t = P.effectiveTime(r);
     return t === null ? 'DNF' : fmt(t) + (r.penalty === '+2' ? '+' : '');
@@ -1000,6 +1010,10 @@
     const full = Object.assign({ inspection: true }, p.full, { log: log });
     S.set('practice', Object.assign({}, p, { full: full }));
   }
+  function saveLlLog(log) {
+    const p = practice();
+    S.set('practice', Object.assign({}, p, { ll: Object.assign({}, p.ll, { log: log }) }));
+  }
 
   // 種類ごとの記録の読み書き（PLL・OLL の記録は1つの配列 practice.log に混ざっている）
   const caseLog = () => (Array.isArray(practice().log) ? practice().log.filter(Boolean) : []);
@@ -1007,6 +1021,8 @@
   const logStore = (kind) =>
     kind === 'full'
       ? { read: fullLog, write: saveFullLog, mine: () => true, id: (r) => String(r.at) }
+      : kind === 'll'
+      ? { read: llLog, write: saveLlLog, mine: () => true, id: (r) => String(r.at) }
       : { read: caseLog, write: saveCaseLog, mine: (r) => r.set === kind, id: (r) => r.set + '|' + r.at };
 
   // 「すべての記録を削除」の文：通しは「通しの…」（「PLL の…」と空白の入れ方が違うので別の文）
@@ -1172,7 +1188,8 @@
     checkTh.append(all1);
     head.append(checkTh);
     // 列の幅：日時・タイム・ao5・ao12・削除は中身の幅だけにし（stats-shrink）、残りはスクランブルの列にまわす
-    ['stats.col.date', 'stats.col.time', 'practice.ao5', 'practice.ao12', 'practice.scramble'].forEach((key, i) => {
+    const ll = view.set === 'll';
+    ['stats.col.date', 'stats.col.time', 'practice.ao5', 'practice.ao12', ll ? 'stats.col.case' : 'practice.scramble'].forEach((key, i) => {
       const th = el('th', (i >= 1 && i <= 3 ? 'text-end ' : '') + (i <= 3 ? 'stats-shrink' : ''));
       I.set(th, key);
       head.append(th);
@@ -1213,8 +1230,9 @@
           else openScrambles.add(r.at);
           render();
         });
-        const scrambleTd = el('td', 'cell-toggle');
-        scrambleTd.append(toggle);
+        // LL はスクランブルの代わりにケース（OLL → PLL）
+        const scrambleTd = ll ? el('td', 'cell-toggle text-nowrap', r.p ? `${r.o || '?'} → ${r.p}` : r.o || '?') : el('td', 'cell-toggle');
+        if (!ll) scrambleTd.append(toggle);
         // 個別の削除（すぐに削除し、元に戻すを出す）
         const delTd = el('td', 'text-end stats-shrink cell-del');
         const del = el('button', 'stats-row-delete');
@@ -1233,7 +1251,7 @@
           scrambleTd,
           delTd
         );
-        if (!open) return [tr];
+        if (!open || ll) return [tr];
         const detail = el('tr', 'stats-scramble-row');
         const cell = el('td');
         cell.colSpan = 7;
@@ -1322,7 +1340,7 @@
   // 表の見出しの右：PLL・OLL では「ケースごと / 記録の一覧」の切り替え
   function renderTableTabs() {
     const box = $('statsTableTabs');
-    if (view.set === 'full') {
+    if (own()) {
       box.replaceChildren();
       return;
     }
@@ -1343,7 +1361,7 @@
     renderChartTabs();
     renderTableTabs();
     renderSortBar();
-    const full = view.set === 'full';
+    const full = own(); // 通し・LL（タイムだけ）
     const solves = full || view.tab === 'solves';
     I.set($('statsTableTitle'), solves ? 'stats.solves' : 'stats.byCase');
     if (!solves) {
@@ -1355,7 +1373,7 @@
     $('statsTable').classList.toggle('stats-case-table', !solves); // ケースごとの表もスマホでは 2 段にする（横にスクロールしない）
     $('statsCards').classList.toggle('full', full); // 通しはカードが 6 枚なので広い画面で 3 列
     if (full) {
-      const all = fullLog(); // 読むたびに別のオブジェクトになるので1回だけ読む
+      const all = ownLog(); // 読むたびに別のオブジェクトになるので1回だけ読む
       const recs = all.filter((r) => r.at >= from());
       renderFullCards(recs);
       renderChart(all);

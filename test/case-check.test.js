@@ -227,3 +227,47 @@ test('COLL：findCase は AUF とエッジの位置の違いを除いて同じ�
   assert.equal(C.findCase('coll', "y' R' U2 R U R' U R", COLL).name, '27-1');
   assert.equal(C.findCase('coll', "R U2 R' U' R U' R'", COLL), null);
 });
+
+test('pllAfter：PLL のスクランブルに OLL のスクランブルをつなぎ、OLL の手順を当てたあとの PLL が分かる', () => {
+  const PLL_ALL = require('../js/pll-data.js');
+  const OLL_ALL = require('../js/oll-data.js');
+  const P_SCR = require('../js/pll-scrambles.js');
+  const O_SCR = require('../js/oll-scrambles.js');
+  const P = require('../js/progress.js');
+  const SOLVED = M.solved();
+  const isSolved = (st) => st.every((x, i) => x === SOLVED[i]);
+  const upDone = (st) => st.slice(0, 9).every((x) => x === 'U');
+  // 出てきた PLL を、上面が揃う AUF と順に組にして、その PLL の手順（前後の AUF は自由）で本当に揃うかを確かめる
+  function verify(scramble, ollAlg, result, label) {
+    let k = 0;
+    M.AUFS.forEach((u) => {
+      const pre = `${scramble} ${u} ${ollAlg}`;
+      if (!upDone(M.applyAlg(pre, { cancelRotation: true }))) return;
+      const x = result[k++];
+      assert.ok(x, label); // どれでもない（null）は出ない
+      const solve = x === 'skip' ? [''] : M.AUFS.map((u2) => `${u2} ${x.alg}`);
+      assert.ok(
+        solve.some((alg) => M.AUFS.some((u3) => isSolved(M.applyAlg(`${pre} ${alg} ${u3}`, { cancelRotation: true })))),
+        `${label} → ${x === 'skip' ? 'skip' : x.name}`
+      );
+    });
+    assert.equal(k, result.length, label);
+  }
+  const o = OLL_ALL.find((c) => c.name === '21');
+  const scr = O_SCR['21'][0];
+  const alone = C.pllAfter(scr, o.alg, PLL_ALL);
+  assert.ok(alone.length >= 1);
+  verify(scr, o.alg, alone, '21');
+  // OLL の手順の逆（setup）から始めると、OLL のあとは PLL スキップ
+  assert.ok(C.pllAfter(o.setup, o.alg, PLL_ALL).includes('skip'));
+  // OLL の手順が違えば上面が揃わない
+  assert.deepEqual(C.pllAfter(scr, 'R', PLL_ALL), []);
+  // すべての OLL で、PLL のスクランブルをつないでも PLL が決まり、その PLL の手順で揃う
+  const pllNames = Object.keys(P_SCR);
+  OLL_ALL.forEach((c, i) => {
+    const s = P.joinMoves(P.wrapAuf(P_SCR[pllNames[i % pllNames.length]][i % 20], i % 4, (i >> 2) % 4), P.wrapAuf(O_SCR[c.name][i % 20], 0, i % 4));
+    const r = C.pllAfter(s, c.alg, PLL_ALL);
+    assert.ok(r.length >= 1, c.name);
+    verify(s, c.alg, r, c.name);
+  });
+});

@@ -19,6 +19,10 @@
  *   findCase(set, a, data)  a で揃うケース（data の要素）を探す（無ければ null）
  *   caseKey(set, alg, opts) alg を揃った状態に回した状態のキー（PLL は前後の AUF の違いを、OLL は上面の向き以外を無視）。
  *                             opts は CubeState.applyAlg のオプション（inverse・cancelRotation）
+ *   pllAfter(scramble, ollAlg, pllData)
+ *                           scramble で崩した状態に、前の AUF（4 通り）を付けて OLL の手順 ollAlg を当てたとき、上面が揃うものについて
+ *                             出てくる PLL（pllData の要素。PLL スキップは 'skip'、どれでもないときは null）の配列を返す
+ *                             （練習ページの LL の出題用）
  *
  * a・s は読み替え済み（convert 後）の手順。set は 'pll' / 'oll' / 'coll' / 'zbll'（ZBLL は PLL と同じ確認）。
  * 手順中の持ち替え・2層回し・中層回しで完成後の向きが変わっても揃ったとみなす（cancelRotation）。
@@ -198,7 +202,37 @@
     return data.find((c, i) => keys[i] === target && fitSetup(set, a, c.setup)) || null;
   }
 
+  // LL の出題：スクランブルのあとに自分の OLL の手順を当てたときに出てくる PLL
+  const AUF_TURNS = TURNS.map((n) => turn('U', n));
+  let solvedPllKey = null;
+  function pllAfter(scramble, ollAlg, pllData) {
+    let keys = keyCache.get(pllData);
+    if (!keys) {
+      keys = pllData.map((c) => caseKey('pll', convert(c.setup)));
+      keyCache.set(pllData, keys);
+    }
+    if (solvedPllKey === null) solvedPllKey = caseKey('pll', '');
+    const s = convert(scramble);
+    const a = stripEnd('oll', convert(ollAlg));
+    const out = [];
+    AUF_TURNS.forEach((u) => {
+      const alg = join(s, u, a);
+      let end;
+      try {
+        end = M.applyAlg(alg, { cancelRotation: true });
+      } catch (e) {
+        return;
+      }
+      if (!f2lSolved(end) || !oriented(end)) return;
+      const key = caseKey('pll', alg, { cancelRotation: true });
+      if (key === solvedPllKey) out.push('skip');
+      else out.push(pllData[keys.indexOf(key)] || null);
+    });
+    return out;
+  }
+
   return {
+    pllAfter: pllAfter,
     convert: convert,
     check: check,
     fitSetup: fitSetup,

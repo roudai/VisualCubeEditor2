@@ -37,6 +37,8 @@ URL: https://visualcube.roudai.net/
 - **PLL / OLL / COLL / ZBLL**: a scramble for a random case is shown. Solve it with your cube and stop the timer.
   A case solved within the target time (2 / 3 / 5 / 8 s or any value, set separately for PLL, OLL, COLL and ZBLL)
   is marked as learned automatically. Hints (the first moves), "couldn't solve", skip and undo are available
+- **LL**: solve the last layer from OLL through PLL. The scramble joins a PLL scramble and an OLL scramble, and only
+  shows cases where your OLL algorithm leads to a PLL you have learned (or all OLL / PLL cases, if you choose)
 - **Full solve**: WCA-style random-state scrambles generated in the browser, 15-second inspection with automatic +2 / DNF,
   ao5 / ao12, penalties and deletion
 - Press Space to start and stop on a computer; tap on a phone

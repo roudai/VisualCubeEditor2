@@ -290,3 +290,18 @@ test('pickWeighted：重みに比例して選ぶ。重みがすべて 0 なら�
   assert.equal(counts.b, 0);
   assert.ok(Math.abs(counts.c / counts.a - 3) < 0.1);
 });
+
+test('joinMoves：手順をつなぎ、となり合う同じ面の回転をまとめる（90° 単位）', () => {
+  assert.equal(P.joinMoves('F R2', 'R U'), "F R' U");
+  assert.equal(P.joinMoves('F R U2', "U2 R' F'"), '');
+  assert.equal(P.joinMoves('R U', "U' R'"), '');
+  assert.equal(P.joinMoves('R U', 'U F'), 'R U2 F');
+  assert.equal(P.joinMoves("R2 U'", "U2 R"), "R2 U R");
+  assert.equal(P.joinMoves("R U2'", 'U'), "R U'");
+  assert.equal(P.joinMoves('R U', 'F'), 'R U F');
+  assert.equal(P.joinMoves('', "U' R", ''), "U' R");
+  // 合わせても同じ状態
+  const a = "R U R' U'";
+  const b = "U R U2 R'";
+  assert.deepEqual(M.applyAlg(P.joinMoves(a, b)), M.applyAlg(`${a} ${b}`));
+});

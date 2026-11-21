@@ -495,6 +495,41 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
 .practice-full #practiceHintText {
   display: none;
 }
+/* ---- LL ---- */
+/* LL ではヒントを出さない（OLL と PLL の 2 つを解くので、ヒントの形が合わない） */
+.practice-ll #hintButton,
+.practice-ll #practiceHintText {
+  display: none;
+}
+/* スクランブルが長い（35 手くらい）ので、広い画面でも 3 行分の高さを取る */
+.practice-scramble.ll {
+  min-height: 4.5em;
+}
+/* 結果の OLL → PLL（入らなければ折り返す） */
+.practice-ll-cases {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem .75rem;
+}
+.practice-ll-case {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+  text-align: left;
+}
+.practice-ll-case .case-image {
+  flex: none;
+}
+.practice-ll-case-text {
+  min-width: 0;
+}
+.practice-ll-arrow {
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
 /* 結果のスクランブル（1 行約 41 文字・折り返さない）。スマホの幅にも収まるよう画面の幅に合わせて小さくする。
    .practice-case-alg（.85rem）より後に書かれていても負けないよう、2 つのクラスで指定する */
 .practice-case-alg.practice-full-scramble {
@@ -765,6 +800,14 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   .practice-result {
     flex-direction: column;
     text-align: center;
+  }
+  /* LL のスクランブルは 4 行になることがある（3x3 は 31〜41 手で、360px 幅では 5 行になることがあったので、字を少し小さくして 4 行に収める） */
+  .practice-scramble.ll {
+    min-height: 6em;
+    font-size: clamp(.95rem, 2.6vw, 1.5rem);
+  }
+  .practice-ll-cases {
+    justify-content: center;
   }
 }
 

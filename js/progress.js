@@ -21,6 +21,7 @@
  *                                     （sr-visualizer の coll マスクと同じ見た目。COLL はエッジの位置を揃えないため）
  *   addLog(log, entry, max)         練習の記録（日時付き）の配列に足した新しい配列（新しい順、種類（PLL・OLL・COLL・ZBLL）ごとに最大 max 件。既定 5000）
  *   FULL_LOG_MAX                    ソルブの記録の上限（5000。practice.js が addLog の max に渡す）
+ *   LL_LOG_MAX                      LL の記録の上限（5000。同じ）
  *                                     entry = { at: 日時(ms), set, name, sec(null=解けなかった), status, hint }
  *   summarize(log, { set, from })   期間（from 以降。無ければすべて）の集計 { count, solved, dnf, avg, best }
  *   daily(log, { set, days, now })  直近 days 日の日ごとの { day: 'YYYY-MM-DD', count, avg }（古い順。練習していない日も 0 で入る）
@@ -45,6 +46,8 @@
  *   formatTime(sec, digits)         タイムの表示。60 秒以上は分表記（例：65.234 → "1:05.23"、5.2 → "5.20"）。digits は小数の桁数（既定 2）
  *   wrapAuf(scramble, pre, post)    スクランブルの前後に U を pre・post 回（90°単位 0〜3）足す。もともと前後にある U とはまとめる
  *                                     （例：wrapAuf("U R U'", 1, 1) → "U2 R"）。前後の AUF を足しても同じケースのまま（練習の出題用）
+ *   joinMoves(...algs)              手順をつなぎ、となり合う同じ面の回転をまとめる（例："R2 R" → "R'"、"R R'" → 消す）。
+ *                                     まとめて消えたら、その前後もまたまとめる（練習の LL のスクランブルのつなぎ目用）
  *
  * ブラウザでは window.Progress、node では module.exports として公開する。
  */
@@ -141,6 +144,7 @@
   // 4 種類 × 5000 件で、ブラウザの保存（localStorage）に約 190 万文字
   const LOG_MAX = 5000;
   const FULL_LOG_MAX = 5000; // ソルブの記録（practice.full.log）の上限（利用規約と同じ。クラウドでは種類ごとの文書 -log-full に入れる）
+  const LL_LOG_MAX = 5000; // LL の記録（practice.ll.log）の上限（利用規約と同じ。クラウドでは種類ごとの文書 -log-ll に入れる）
   function addLog(log, entry, max) {
     const prev = Array.isArray(log) ? log : [];
     const limit = max || LOG_MAX;
@@ -342,6 +346,30 @@
   // ---- 練習の出題 ----
   const U_AMOUNT = { U: 1, U2: 2, "U2'": 2, "U'2": 2, "U'": 3 };
   const U_TEXT = M.AUFS; // ['', 'U', 'U2', "U'"]
+  // 1 手（面・ワイド・持ち替えの名前と、2・'）。回す量は 90° 単位（0〜3）
+  const MOVE = /^([A-Za-z]+)(2'|'2|2|')?$/;
+  const MOVE_AMOUNT = { '': 1, '2': 2, "2'": 2, "'2": 2, "'": 3 };
+  const MOVE_TEXT = ['', '', '2', "'"];
+  function joinMoves(...algs) {
+    const out = [];
+    algs
+      .join(' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .forEach((token) => {
+        const m = MOVE.exec(token);
+        const last = out.length ? MOVE.exec(out[out.length - 1]) : null;
+        if (!m || !last || last[1] !== m[1]) {
+          out.push(token);
+          return;
+        }
+        out.pop();
+        const n = (MOVE_AMOUNT[last[2] || ''] + MOVE_AMOUNT[m[2] || '']) % 4;
+        if (n) out.push(m[1] + MOVE_TEXT[n]);
+      });
+    return out.join(' ');
+  }
+
   function wrapAuf(scramble, pre, post) {
     const tokens = String(scramble).trim().split(/\s+/).filter(Boolean);
     let head = pre % 4;
@@ -361,6 +389,7 @@
     weakScores: weakScores,
     pickWeighted: pickWeighted,
     wrapAuf: wrapAuf,
+    joinMoves: joinMoves,
     formatTime: formatTime,
     effectiveTime: effectiveTime,
     average: average,
@@ -370,6 +399,7 @@
     meanTime: meanTime,
     addLog: addLog,
     FULL_LOG_MAX: FULL_LOG_MAX,
+    LL_LOG_MAX: LL_LOG_MAX,
     summarize: summarize,
     daily: daily,
     perCase: perCase,
