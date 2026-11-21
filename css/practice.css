@@ -35,11 +35,12 @@
   line-height: 0;
   color: #6c757d;
 }
+/* 1 行に入らないときは項目の切れ目で折り返す（「…」で切ると、英語では出題などの設定が見えなくなるため） */
 .practice-settings-text {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+.practice-settings-part {
   white-space: nowrap;
 }
 .practice-settings-caret {

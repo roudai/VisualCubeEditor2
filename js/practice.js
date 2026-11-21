@@ -263,7 +263,13 @@
     icon.innerHTML =
       '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">' +
       '<path d="M2 4h12M2 8h12M2 12h12"/><circle cx="5" cy="4" r="1.7" fill="#fbfbfc"/><circle cx="10.5" cy="8" r="1.7" fill="#fbfbfc"/><circle cx="6.5" cy="12" r="1.7" fill="#fbfbfc"/></svg>';
-    button.append(icon, el('span', 'practice-settings-text', parts.join(' · ')), el('span', 'practice-settings-caret', open ? '▴' : '▾'));
+    // 項目ごとに折り返さない（1 行に入らないときは項目の切れ目で折り返す）
+    const text = el('span', 'practice-settings-text');
+    parts.forEach((part, i) => {
+      if (i) text.append(' · ');
+      text.append(el('span', 'practice-settings-part', part));
+    });
+    button.append(icon, text, el('span', 'practice-settings-caret', open ? '▴' : '▾'));
     button.addEventListener('click', () => {
       savePrefs({ settingsOpen: !open });
       renderSettings();
