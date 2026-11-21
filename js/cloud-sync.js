@@ -8,11 +8,12 @@
 //   - 新しくログインしたとき：アカウントにデータがあれば、その内容で手元を上書きする（ログイン前にこのブラウザで使った分は捨てる。
 //     合算はしない）。アカウントが空なら、手元の内容をアカウントに入れる（Store.resolveLogin）。
 //     捨てた内容があれば、読み直したあとに画面の下に知らせる（NOTICE_KEY・toast）
-//   - ログインしたままページを開いたとき：クラウドを読み → Store.merge で手元と合わせ（名前ごとに新しい方）→ 両方に書く
+//   - ログインしたままページを開いたとき：クラウドを読み → Store.merge で手元と合わせ（名前ごとに新しい方。練習の記録は両方）→ 両方に書く
 //     （まだクラウドに書けていなかった手元の変更を失わないため）
 //   - 「ログインしたまま」かは SESSION_KEY（ログイン中 'in'、ログアウトの状態が分かったら 'out'）と、
 //     手元のデータがどのアカウントのものかを覚えた SYNCED_KEY で決める。手元の内容が変わったら、画面に反映するためにページを1回読み直す
-//   - ログイン中は store-change を受けて、少しまとめてからクラウドに書く。ページを離れるときはすぐ書く
+//   - ログイン中は store-change を受けて、少しまとめてからクラウドに書く。ページを離れるときはすぐ書く。
+//     書く前に本体を読み、同じアカウントの別の端末が書いていたら Store.merge で合わせてから書く（sync。練習の記録は両方を残す）
 //   - ログアウトのボタンでは、まだクラウドに書いていない変更を書いてからログアウトし、このブラウザのデータを消す（言語だけ残す）。
 //     書けなかったとき（オフライン・ログインの同期が済んでいない）はログアウトせずにメニューで知らせる（消すと失うため）。
 //     同じブラウザのほかのタブには LOGOUT_KEY の storage イベントで伝え、読み直して空にする（古いデータを書き戻さないように）。
@@ -113,6 +114,8 @@ async function main() {
   const saveDoc = (ref, json) => dbSdk.setDoc(ref, { json: json, savedAt: dbSdk.serverTimestamp() });
   // 種類ごとの記録の文書に最後に書いた（読んだ）中身。変わっていなければ書かない（1 文書 十数万文字あるため）
   const lastLog = {};
+  // 本体の文書に最後に書いた（読んだ）中身。書く前に読んで違っていたら、同じアカウントの別の端末が書いたので、合わせてから書く
+  let lastMain = null;
   // 記録を種類ごとの文書に書いてから本体を書く（本体の logsSplit を見て、読むときに種類ごとの文書を使う）。
   // 種類ごとの文書に書けなかったら（Firestore のルールが古いなど）、記録を本体に入れた以前の形（最新 2000 件）で本体だけ書き、
   // そのエラーを返す（本体の保存はできているので、ほかの変更は失わない）
@@ -126,16 +129,21 @@ async function main() {
         lastLog[set] = json;
       }
     } catch (e) {
-      await saveDoc(docRef(), JSON.stringify(cloud.inline));
+      const inline = JSON.stringify(cloud.inline);
+      await saveDoc(docRef(), inline);
+      lastMain = inline;
       return e;
     }
-    await saveDoc(docRef(), JSON.stringify(cloud.main));
+    const main = JSON.stringify(cloud.main);
+    await saveDoc(docRef(), main);
+    lastMain = main;
     return null;
   }
   // 本体を読み、記録を分けた形なら種類ごとの文書も読んで 1 つの snapshot に戻す（無ければ null）
   async function read() {
     Object.keys(lastLog).forEach((set) => delete lastLog[set]); // 別のアカウントで入り直したときに前の中身で比べない
     const got = await dbSdk.getDoc(docRef());
+    lastMain = got.exists() ? got.data().json : null;
     if (!got.exists()) return null;
     let main;
     try {
@@ -162,14 +170,35 @@ async function main() {
 
   // 手元にデータが無い（言語だけ。ほかのタブのログアウトで消した直後など）か。そのときはクラウドに書かない（アカウントを空で上書きしないように）
   const blank = (snap) => !Object.keys(snap.data).some((name) => name !== 'lang');
+  // 手元をクラウドに書く。書く前に本体を読み、最後に書いた（読んだ）ものと違えば、同じアカウントの別の端末が書いているので、
+  // クラウドを読んで手元と合わせてから（Store.merge。練習の記録は両方、設定などは新しい方）書く（別の端末の記録を上書きしないように）
+  // 同時に 2 つ走らないように順番に（ページを離れるときの書き込みと、まとめて書く書き込みが重なったときなど）
+  let queue = Promise.resolve();
+  function sync() {
+    const run = queue.then(syncOnce, syncOnce);
+    queue = run.catch(() => {});
+    return run;
+  }
+  async function syncOnce() {
+    if (blank(Store.snapshot())) return null;
+    const got = await dbSdk.getDoc(docRef());
+    const now = got.exists() ? got.data().json : null;
+    let snap = Store.snapshot();
+    if (now !== lastMain) {
+      const remote = await read();
+      // 読んでいるあいだの手元の変更も入れるため、読み終えてから手元を取り直して合わせる（ここから書き換えまで await しない）
+      snap = Store.merge(Store.snapshot(), remote);
+      if (JSON.stringify(snap.data) !== JSON.stringify(Store.snapshot().data)) Store.replace(snap);
+    }
+    return write(snap);
+  }
+
   async function push() {
     timer = null;
     if (!user || !ready) return;
-    const snap = Store.snapshot();
-    if (blank(snap)) return;
     setStatus('syncing');
     try {
-      const partial = await write(snap);
+      const partial = await sync();
       if (partial) fail(partial);
       else setStatus('synced');
     } catch (e) {
@@ -309,7 +338,7 @@ async function main() {
       // 記録を分けて書けないとき（ルールが古い）は本体だけに書けていれば続ける。
       // オフラインだと Firestore の書き込みは返ってこないので、15 秒で書けなかったことにする
       await Promise.race([
-        write(Store.snapshot()),
+        sync(),
         new Promise((resolve, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
       ]);
     } catch (e) {

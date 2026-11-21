@@ -102,8 +102,11 @@ test('resolveLogin：新しいログインはアカウントの内容で上書�
     updated: { settings: 10, progress: 10, practice: 10, lang: 1 },
   };
   const fromRemote = { data: Object.assign({}, remote.data, { lang: 'en' }), updated: Object.assign({}, remote.updated, { lang: 5 }) };
-  // ログインしたままページを開き直した：名前ごとに新しい方（まだ書けていなかった手元の変更を残す）
-  assert.deepEqual(Store.resolveLogin(local, remote, { owner: 'A', uid: 'A' }).data, local.data);
+  // ログインしたままページを開き直した：設定などは新しい方、練習の記録は両方（同じアカウントの別の端末の記録を消さない）
+  const cont = Store.resolveLogin(local, remote, { owner: 'A', uid: 'A' }).data;
+  assert.deepEqual(cont.settings, local.data.settings);
+  assert.deepEqual(cont.progress, local.data.progress);
+  assert.deepEqual(cont.practice.log.map((e) => e.name), ['A1+', 'B1+', 'B2+']);
   assert.equal(Store.discardsLocal(local, remote, { owner: 'A', uid: 'A' }), false);
   // 新しいログイン（ログインせずに使っていた・同じアカウントに戻った・別のアカウント）：アカウントの内容で上書き。言語だけ手元
   [{ owner: null, uid: 'A', fresh: true }, { owner: 'A', uid: 'A', fresh: true }, { owner: 'B', uid: 'A', fresh: true }, { owner: 'B', uid: 'A' }].forEach((who) => {
@@ -178,4 +181,101 @@ test('toCloud：4 種類 × 5000 件でも各文書が上限に収まる。本�
   // 知らない項目のある記録はそのまま残す
   const odd = { at: 1, set: 'pll', name: 'Aa', sec: 1, status: 'learned', extra: 1 };
   assert.deepEqual(Store.toCloud({ data: { practice: { log: [odd] } }, updated: {} }).logs.pll, [odd]);
+});
+
+test('withTombstones：消した記録に印を付ける（上限で押し出したものには付けない。戻したら外す。入りきらないすべて削除は日時 1 つ）', () => {
+  const e = (set, at) => ({ at: at, set: set, name: 'A1+', sec: 5, status: 'learned' });
+  const prev = { log: [e('pll', 5), e('pll', 4), e('oll', 3)], full: { log: [{ at: 9, sec: 60, penalty: '' }, { at: 8, sec: 61, penalty: '' }] } };
+  // 1 件消す
+  let next = Store.withTombstones(prev, Object.assign({}, prev, { log: [e('pll', 5), e('oll', 3)] }));
+  assert.deepEqual(next.removed, { pll: [4] });
+  // 戻す（元に戻す）と印を外す
+  next = Store.withTombstones(next, Object.assign({}, next, { log: prev.log }));
+  assert.equal(next.removed, undefined);
+  // ソルブをすべて削除（2 件）：1 件ずつの印に入りきるので、消えた記録にだけ印を付ける（移植元は日時 1 つの cleared）。戻せば外す
+  next = Store.withTombstones(prev, Object.assign({}, prev, { full: { log: [] } }));
+  assert.deepEqual(next.removed, { full: [9, 8] });
+  assert.equal(next.cleared, undefined);
+  next = Store.withTombstones(next, Object.assign({}, next, { full: prev.full }));
+  assert.equal(next.removed, undefined);
+  // 1 件ずつの印（1000 件）に入りきらないすべて削除：日時 1 つ（cleared）。戻せば外す
+  const lots = { log: [], full: { log: Array.from({ length: 1500 }, (_, i) => ({ at: 5000 - i, sec: 60, penalty: '' })) } };
+  next = Store.withTombstones(lots, { log: [], full: { log: [] } });
+  assert.deepEqual(next.cleared, { full: 5000 });
+  assert.equal(next.removed, undefined);
+  next = Store.withTombstones(next, Object.assign({}, next, { full: lots.full }));
+  assert.equal(next.cleared, undefined);
+  // 上限（5000 件）で押し出された古い記録には付けない
+  const many = Array.from({ length: 5000 }, (_, i) => e('pll', 20000 - i));
+  const pushed = [e('pll', 30000)].concat(many.slice(0, 4999));
+  next = Store.withTombstones({ log: many }, { log: pushed });
+  assert.equal(next.removed, undefined);
+});
+
+test('withTombstones・merge：その種類の記録が 1 件だけのときに「取り消す」しても、別の端末のそれより前の記録は消さない', () => {
+  const e = (set, at) => ({ at: at, set: set, name: '1', sec: 3, status: 'learned', hint: false });
+  // 端末 B：OLL・ソルブを練習してクラウドに書いた（端末 A はまだ読んでいない）
+  const remote = { data: { practice: { log: [e('oll', 1003), e('oll', 1002), e('zbll', 1001)], full: { log: [{ at: 1000, sec: 30, penalty: '' }] } } }, updated: { practice: 50 } };
+  // 端末 A：OLL・ZBLL・ソルブを 1 回ずつ練習して、それぞれすぐ「取り消す」
+  const prev = { log: [e('oll', 2000), e('zbll', 2001)], full: { log: [{ at: 2002, sec: 40, penalty: '' }] } };
+  const next = Store.withTombstones(prev, { log: [], full: { log: [] } });
+  assert.deepEqual(next.removed, { oll: [2000], zbll: [2001], full: [2002] });
+  assert.equal(next.cleared, undefined);
+  const m = Store.merge({ data: { practice: next }, updated: { practice: 60 } }, remote).data.practice;
+  assert.deepEqual(m.log.map((x) => x.at), [1003, 1002, 1001]); // B の記録は残る
+  assert.deepEqual(m.full.log.map((x) => x.at), [1000]);
+});
+
+test('merge：COLL・ZBLL の記録と最近のタイムも合わせる', () => {
+  const e = (set, name, at, sec) => ({ at: at, set: set, name: name, sec: sec, status: 'learned', hint: false });
+  const a = { log: [e('coll', 'H1', 30, 2), e('pll', 'Aa', 20, 3)], times: { coll: { H1: [2] }, pll: { Aa: [3] } } };
+  const b = { log: [e('zbll', 'T-1', 25, 4), e('coll', 'H1', 10, 5)], times: { zbll: { 'T-1': [4] }, coll: { H1: [5] } } };
+  const m = Store.merge({ data: { practice: a }, updated: { practice: 2 } }, { data: { practice: b }, updated: { practice: 1 } }).data.practice;
+  assert.deepEqual(m.log.map((x) => x.at), [30, 25, 20, 10]);
+  assert.deepEqual(m.times.coll.H1, [2, 5]);
+  assert.deepEqual(m.times.zbll['T-1'], [4]);
+  assert.deepEqual(m.times.pll.Aa, [3]);
+});
+
+test('merge：同じアカウントの 2 つの端末の練習の記録を合わせる（消した記録は戻らない。最近のタイムは作り直す。設定は新しい方）', () => {
+  const e = (set, name, at, sec, extra) => Object.assign({ at: at, set: set, name: name, sec: sec, status: 'learned' }, extra);
+  // パソコン（クラウド）：PLL を 3 回、そのうち 1 回（at 2）をスマホが前に見ていた
+  const pc = {
+    set: 'pll',
+    thresholds: { pll: 8 },
+    log: [e('pll', 'A1+', 30, 3), e('pll', 'A1+', 20, 4), e('pll', 'H+', 2, 9)],
+    times: { pll: { 'A1+': [3, 4], 'H+': [9] } },
+    full: { inspection: true, log: [{ at: 50, sec: 70, penalty: '' }] },
+  };
+  // スマホ：あとから OLL を 1 回と PLL を 1 回。at 2 の記録は消した（印）。設定も変えた
+  const phone = Store.withTombstones(
+    { log: [e('pll', 'H+', 2, 9)] },
+    {
+      set: 'oll',
+      thresholds: { pll: 6 },
+      log: [e('oll', '1A', 40, 5), e('pll', 'A1+', 35, 2, { hint: true })],
+      times: { oll: { '1A': [5] }, pll: {} },
+      full: { inspection: false, log: [{ at: 45, sec: 80, penalty: 'DNF' }] },
+    }
+  );
+  const local = { data: { practice: phone }, updated: { practice: 200 } };
+  const remote = { data: { practice: pc }, updated: { practice: 100 } };
+  const m = Store.merge(local, remote).data.practice;
+  assert.deepEqual(m.log.map((x) => x.at), [40, 35, 30, 20]); // at 2 は消した印があるので戻らない
+  assert.deepEqual(m.full.log.map((x) => x.at), [50, 45]);
+  assert.equal(m.set, 'oll'); // 設定は新しい方
+  assert.deepEqual(m.thresholds, { pll: 6 });
+  assert.equal(m.full.inspection, false);
+  // 最近のタイム：合わせた記録から（ヒントを見た回は入れない）
+  assert.deepEqual(m.times.pll['A1+'], [3, 4]);
+  assert.deepEqual(m.times.oll['1A'], [5]);
+  assert.deepEqual(m.removed, { pll: [2] });
+  // 逆向き（クラウドの方が新しい）でも記録は同じ
+  const m2 = Store.merge({ data: { practice: phone }, updated: { practice: 100 } }, { data: { practice: pc }, updated: { practice: 200 } }).data.practice;
+  assert.deepEqual(m2.log.map((x) => x.at), [40, 35, 30, 20]);
+  assert.equal(m2.set, 'pll');
+  // すべて削除（cleared）した種類は、その日時以前の記録を戻さない
+  const cleared = Object.assign({}, phone, { cleared: { full: 60 }, full: { inspection: false, log: [] } });
+  const m3 = Store.merge({ data: { practice: cleared }, updated: { practice: 200 } }, remote).data.practice;
+  assert.deepEqual(m3.full.log, []);
 });

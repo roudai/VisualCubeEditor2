@@ -784,11 +784,13 @@
     // ヒントを見たときは、目安以内でも習得済みにはしない（練習中）。タイムも最近の記録に入れない
     const status = hinted ? 'learning' : P.judge(sec, threshold(set));
     const beforeStatus = P.statusOf(set, c.name);
-    const times = (prefs.times && prefs.times[set]) || {};
+    // 最近のタイムは保存したものを読み直してから足す（ログイン中に別の端末の記録と合わせた分を、開いたときの古い値で上書きしないように）
+    const savedTimes = (S.get('practice') || {}).times || prefs.times || {};
+    const times = savedTimes[set] || {};
     const beforeTimes = times[c.name];
     P.setStatus(set, c.name, status);
     if (sec !== null && !hinted) {
-      const allTimes = Object.assign({}, prefs.times);
+      const allTimes = Object.assign({}, savedTimes);
       allTimes[set] = Object.assign({}, allTimes[set], { [c.name]: P.addTime(beforeTimes, sec, MAX_TIMES) });
       savePrefs({ times: allTimes });
     }
