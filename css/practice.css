@@ -664,6 +664,18 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
   font-size: .85rem;
   word-break: break-word;
 }
+.practice-case-scramble {
+  color: #6c757d;
+  word-break: break-word;
+}
+/* スクランブルは解法の手順（.practice-case-alg の .85rem）より少しだけ小さく */
+.practice-case-scramble .practice-case-alg {
+  font-size: .8rem;
+}
+.practice-case-scramble-label {
+  color: #6c757d;
+  font-size: .78rem;
+}
 .practice-case-stats {
   color: #6c757d;
   font-size: .78rem;

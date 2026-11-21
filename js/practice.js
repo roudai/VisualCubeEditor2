@@ -783,7 +783,7 @@
 
   // ---- 記録と判定 ----
   function record(sec) {
-    const { set, c } = current;
+    const { set, c, scramble } = current; // scramble は結果に出す（次の問題に変わる前に取っておく）
     const hinted = hintUsed;
     // ヒントを見たときは、目安以内でも習得済みにはしない（練習中）。タイムも最近の記録に入れない
     const status = hinted ? 'learning' : P.judge(sec, threshold(set));
@@ -801,7 +801,7 @@
     // 日時付きの記録（記録のページ stats.html で使う）。ヒントを見たものも残す（hint: true）
     const logEntry = { at: Date.now(), set: set, name: c.name, sec: sec, status: status, hint: hinted };
     savePrefs({ log: P.addLog((S.get('practice') || {}).log, logEntry) });
-    const entry = { set, c, sec, status, threshold: threshold(set), hinted };
+    const entry = { set, c, sec, status, threshold: threshold(set), hinted, scramble };
     // 最近のタイムを記録する前に戻した times
     const timesBefore = () => {
       const allTimes = Object.assign({}, S.get('practice') && S.get('practice').times);
@@ -852,7 +852,7 @@
 
   // toLearning：「練習中にする」を押したとき（習得済みと判定された回だけ出す。null なら出さない）
   function showResult(entry, undo, toLearning) {
-    const { set, c, sec, status, threshold, hinted, manual } = entry;
+    const { set, c, sec, status, threshold, hinted, manual, scramble } = entry;
     const result = $('practiceResult');
     result.hidden = false;
     result.replaceChildren();
@@ -897,7 +897,16 @@
       const avg = times.reduce((a, b) => a + b, 0) / times.length;
       I.set(stats, 'practice.caseStats', { best: format(best), avg: format(avg), n: times.length });
     }
-    body.append(head, name, alg, stats);
+    body.append(head, name, alg);
+    // 解いたスクランブル（次の問題がすぐ出るので、前の問題のスクランブルはここで見られるようにする）
+    if (scramble) {
+      const line = el('div', 'practice-case-scramble mt-1');
+      const label = el('span', 'practice-case-scramble-label');
+      I.set(label, 'practice.resultScramble');
+      line.append(label, el('span', 'practice-case-alg', scramble));
+      body.append(line);
+    }
+    body.append(stats);
     result.append(image, body);
   }
 
