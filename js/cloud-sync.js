@@ -15,7 +15,9 @@
 //   - ログイン中はアイコンの右上に、ログインに使ったサービス（Google / GitHub）のロゴを小さく出す
 //   - window.CloudSync：ほかのページ（privacy.html のデータ削除）から使う
 //       CloudSync.state()        { available, known, signedIn, name }
-//       CloudSync.deleteAccount() アカウントのデータ（users/{uid}/apps の全アプリの文書）とログインのアカウントを削除する
+//       CloudSync.deleteAccount({ clearLocal }) アカウントのデータ（users/{uid}/apps の全アプリの文書）とログインのアカウントを削除する。
+//         clearLocal が true なら、このブラウザの保存（store.js の全データ。言語だけは残す）も消して最初の状態にする
+//         （消さないと、もう一度ログインしたときに新しいアカウントとして手元のデータが入り、元に戻ったように見える）
 //       ログイン状態が変わると window に 'cloud-sync-change' を通知する
 const CONFIG = window.FIREBASE_CONFIG;
 const Store = window.Store;
@@ -523,7 +525,8 @@ async function main() {
 
   // ---- アカウントのデータの削除（privacy.html から使う）----
   const PROVIDER_KEYS = { 'google.com': 'google', 'github.com': 'github', 'facebook.com': 'facebook' };
-  async function deleteAccount() {
+  async function deleteAccount(options) {
+    const clearLocal = !!(options && options.clearLocal);
     const current = auth && auth.currentUser;
     if (!current) throw new Error('not signed in');
     ready = false; // 削除中・削除後にクラウドへ書き戻さない
@@ -547,6 +550,11 @@ async function main() {
       // 消せなくても続ける
     }
     saveHint(null);
+    // このブラウザのデータも消す（言語の選択だけは残す。表示が急に変わらないように）
+    if (clearLocal) {
+      const lang = Store.get('lang');
+      Store.replace(lang === null ? { data: {}, updated: {} } : { data: { lang: lang }, updated: { lang: Date.now() } });
+    }
   }
   window.CloudSync = {
     state: () => ({

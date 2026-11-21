@@ -8,6 +8,7 @@
 
   let confirming = false;
   let busy = false;
+  let clearLocal = true; // このブラウザのデータも消すか（確認のチェック。既定はオン）
 
   const button = (key, className, onClick) => {
     const b = document.createElement('button');
@@ -56,6 +57,26 @@
       return;
     }
     I.set(status, 'privacy.confirm');
+    // このブラウザのデータも消すか。消さなければ、ログインせずに使い続けられる（もう一度ログインすると、それがアカウントに入る）
+    const label = document.createElement('label');
+    label.className = 'form-check delete-local w-100 mb-1';
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.className = 'form-check-input';
+    check.id = 'deleteLocal';
+    check.checked = clearLocal;
+    check.disabled = busy;
+    check.addEventListener('change', () => {
+      clearLocal = check.checked;
+    });
+    const text = document.createElement('span');
+    text.className = 'form-check-label';
+    I.set(text, 'privacy.deleteLocal');
+    const note = document.createElement('span');
+    note.className = 'd-block small text-muted';
+    I.set(note, 'privacy.deleteLocalNote');
+    label.append(check, text, note);
+    actions.append(label);
     actions.append(
       button('privacy.deleteConfirm', 'btn-danger', deleteNow),
       button('privacy.cancel', 'btn-outline-secondary', () => {
@@ -70,9 +91,9 @@
     renderDelete();
     setMessage('privacy.deleting');
     try {
-      await window.CloudSync.deleteAccount();
+      await window.CloudSync.deleteAccount({ clearLocal: clearLocal });
       confirming = false;
-      setMessage('privacy.deleted');
+      setMessage(clearLocal ? 'privacy.deletedAll' : 'privacy.deletedKeepLocal');
     } catch (e) {
       const code = (e && (e.code || e.message)) || 'unknown';
       setMessage(code === 'auth/popup-closed-by-user' ? 'privacy.reauthCancelled' : 'privacy.failed', 'error', { code: code });
