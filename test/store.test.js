@@ -91,16 +91,38 @@ test('merge：初めてのログイン（クラウドが空）は手元のまま
   );
 });
 
-test('resolveLogin：手元のデータの持ち主によって合わせ方を変える', () => {
-  const local = { data: { settings: { preset: 'custom' }, progress: { pll: { 'A1+': 'learned' } } }, updated: { settings: 50, progress: 50 } };
-  const remote = { data: { settings: { preset: 'standard' }, progress: { pll: { 'B1+': 'learned' } } }, updated: { settings: 10, progress: 10 } };
-  // 同じアカウント：新しい方
+test('resolveLogin：新しいログインはアカウントの内容で上書き（合算しない）。アカウントが空なら手元を入れる。ログインしたままなら新しい方', () => {
+  const log = (name, at) => ({ at: at, set: 'pll', name: name, sec: 5, status: 'learned' });
+  const local = {
+    data: { settings: { preset: 'custom' }, progress: { pll: { 'A1+': 'learned' } }, practice: { log: [log('A1+', 300)] }, lang: 'en' },
+    updated: { settings: 50, progress: 300, practice: 300, lang: 5 },
+  };
+  const remote = {
+    data: { settings: { preset: 'standard' }, progress: { pll: { 'B1+': 'learned' } }, practice: { log: [log('B1+', 2), log('B2+', 1)] }, lang: 'ja' },
+    updated: { settings: 10, progress: 10, practice: 10, lang: 1 },
+  };
+  const fromRemote = { data: Object.assign({}, remote.data, { lang: 'en' }), updated: Object.assign({}, remote.updated, { lang: 5 }) };
+  // ログインしたままページを開き直した：名前ごとに新しい方（まだ書けていなかった手元の変更を残す）
   assert.deepEqual(Store.resolveLogin(local, remote, { owner: 'A', uid: 'A' }).data, local.data);
-  // まだどのアカウントとも合わせていない：ケースごとに合わせて持ち込む
-  assert.deepEqual(Store.resolveLogin(local, remote, { owner: null, uid: 'A' }).data.progress, { pll: { 'B1+': 'learned', 'A1+': 'learned' } });
-  // 別のアカウントのデータ：持ち込まず、アカウントの内容だけ（アカウントが空なら初期状態）
-  assert.deepEqual(Store.resolveLogin(local, remote, { owner: 'A', uid: 'B' }), remote);
-  assert.deepEqual(Store.resolveLogin(local, null, { owner: 'A', uid: 'B' }), { data: {}, updated: {} });
+  assert.equal(Store.discardsLocal(local, remote, { owner: 'A', uid: 'A' }), false);
+  // 新しいログイン（ログインせずに使っていた・同じアカウントに戻った・別のアカウント）：アカウントの内容で上書き。言語だけ手元
+  [{ owner: null, uid: 'A', fresh: true }, { owner: 'A', uid: 'A', fresh: true }, { owner: 'B', uid: 'A', fresh: true }, { owner: 'B', uid: 'A' }].forEach((who) => {
+    assert.deepEqual(Store.resolveLogin(local, remote, who), fromRemote);
+    assert.equal(Store.discardsLocal(local, remote, who), true); // ログイン前の記録・習得状況を捨てる
+  });
+  // アカウントの記録が手元より多くても、手元で数件練習しただけで消えない（以前の合わせ方の不具合）
+  assert.equal(Store.resolveLogin(local, remote, { owner: 'A', uid: 'A', fresh: true }).data.practice.log.length, 2);
+  // アカウントが空（初めてのログイン・アカウントを削除して作り直した）：手元の内容をそのまま入れる
+  assert.deepEqual(Store.resolveLogin(local, null, { owner: null, uid: 'A', fresh: true }), local);
+  assert.deepEqual(Store.resolveLogin(local, { data: { lang: 'ja' }, updated: { lang: 1 } }, { owner: null, uid: 'A', fresh: true }), local);
+  assert.equal(Store.discardsLocal(local, null, { owner: null, uid: 'A', fresh: true }), false);
+  // アカウントが空でも、手元が別のアカウントのものなら持ち込まない（言語だけ残す）
+  assert.deepEqual(Store.resolveLogin(local, null, { owner: 'B', uid: 'A', fresh: true }), { data: { lang: 'en' }, updated: { lang: 5 } });
+  assert.equal(Store.discardsLocal(local, null, { owner: 'B', uid: 'A', fresh: true }), true);
+  // 手元に使った跡が無い（設定・言語だけ）、または手元がアカウントと同じなら、捨てたことにしない
+  const blank = { data: { settings: { preset: 'custom' }, lang: 'en' }, updated: { settings: 50, lang: 5 } };
+  assert.equal(Store.discardsLocal(blank, remote, { owner: null, uid: 'A', fresh: true }), false);
+  assert.equal(Store.discardsLocal(remote, remote, { owner: 'A', uid: 'A', fresh: true }), false);
 });
 
 test('toCloud / fromCloud：PLL・OLL・COLL・ZBLL の記録を種類ごとの短い形に分け、読んだら元に戻す', () => {

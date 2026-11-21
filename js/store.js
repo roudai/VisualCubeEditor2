@@ -9,16 +9,20 @@
  *   Store.merge(local, remote, { union })
  *                                手元とクラウドの snapshot を合わせた snapshot を返す（DOM 非依存）
  *                                  - 名前ごとに更新時刻の新しい方を使う
- *                                  - union: true（この端末で初めてそのアカウントと合わせるとき）は、習得状況（progress）と
+ *                                  - union: true（今はログインのときに使っていない。resolveLogin は合算しない）は、習得状況（progress）と
  *                                    自分の手順（custom-algs）をケースごとに合わせる（両方にあれば新しい方、片方だけなら残す）
  *
- *   Store.resolveLogin(local, remote, { owner, uid })
- *                                ログインしたときに手元へ反映する snapshot を決める（DOM 非依存）
- *                                  - 手元のデータがそのアカウントのもの（owner === uid）：merge（名前ごとに新しい方）
- *                                  - 手元のデータがまだどのアカウントとも合わせていない（owner が空）：merge（union。
- *                                    ログインする前に使っていた内容をアカウントに持ち込む）
- *                                  - 手元のデータが別のアカウントのもの：手元は使わず、アカウントの内容だけにする
- *                                    （別のアカウントの配色などを持ち込まない。アカウントが空なら初期状態）
+ *   Store.resolveLogin(local, remote, { owner, uid, fresh })
+ *                                ログインしたときに手元へ反映する snapshot を決める（DOM 非依存）。合算はしない
+ *                                  - ログインしたままページを開き直した（fresh でなく owner === uid）：merge（名前ごとに新しい方。
+ *                                    まだクラウドに書けていなかった手元の変更を失わない）
+ *                                  - 新しくログインした：アカウントにデータがあれば、アカウントの内容で上書きする（ログイン前の手元の内容は捨てる）
+ *                                  - 新しくログインしてアカウントが空：手元の内容をそのまま使う（アカウントに入れる）。
+ *                                    ただし手元が別のアカウントのもの（owner が別）なら持ち込まず初期状態
+ *                                  どれも言語（lang）は手元のものを残す（ログインで表示の言語が急に変わらないように）
+ *   Store.discardsLocal(local, remote, who)
+ *                                resolveLogin で、ログイン前の手元の内容（習得状況・自分の手順・練習の記録）を
+ *                                捨てることになるか（ログインのあとに知らせるため）
  *
  *   Store.toCloud(snapshot)      クラウドに書く形に分ける（DOM 非依存）→ { main, logs: { pll, oll, coll, zbll }, inline }
  *                                  - main：練習の記録（practice.log）を抜いた snapshot に logsSplit: true を付けたもの（本体の文書）
@@ -157,13 +161,6 @@
 
   const EMPTY = () => ({ data: {}, updated: {} });
 
-  function resolveLogin(local, remote, who) {
-    const owner = (who && who.owner) || '';
-    const uid = who && who.uid;
-    if (owner && owner !== uid) return remote && remote.data ? remote : EMPTY();
-    return merge(local, remote, { union: owner !== uid });
-  }
-
   // ---- クラウドに書く形（js/cloud-sync.js）----
   // Firestore の 1 文書は firestore.rules で json 50 万文字未満。PLL・OLL・COLL・ZBLL の記録（各最大 5000 件）は本体に入らないので、
   // 種類ごとの文書に短い形で分ける（1 件 約 30 文字 → 5000 件で約 16 万文字）
@@ -234,6 +231,39 @@
     return out;
   }
 
+  // アカウントにデータがあるか（言語だけなら無いのと同じ）
+  const hasData = (snap) => !!(snap && isObject(snap.data) && Object.keys(snap.data).some((name) => name !== 'lang'));
+  // 言語は手元のものを残す
+  function keepLang(snap, local) {
+    const out = { data: Object.assign({}, snap.data), updated: Object.assign({}, snap.updated) };
+    if (local && local.data && Object.prototype.hasOwnProperty.call(local.data, 'lang')) {
+      out.data.lang = local.data.lang;
+      out.updated.lang = (local.updated && local.updated.lang) || 0;
+    }
+    return out;
+  }
+  const continuing = (who) => !(who && who.fresh) && !!(who && who.owner) && who.owner === who.uid;
+
+  function resolveLogin(local, remote, who) {
+    if (continuing(who)) return merge(local, remote);
+    if (hasData(remote)) return keepLang(remote, local);
+    if (who && who.owner && who.owner !== who.uid) return keepLang(EMPTY(), local);
+    return local ? keepLang(local, local) : EMPTY();
+  }
+
+  // 捨てるのは、手元にだけある「使った跡」（習得状況・自分の手順・練習の記録）が、アカウントの内容と違うとき
+  function discardsLocal(local, remote, who) {
+    if (continuing(who) || !local || !isObject(local.data)) return false;
+    if (!hasData(remote) && !(who && who.owner && who.owner !== who.uid)) return false; // 手元をアカウントに入れる
+    const r = (remote && remote.data) || {};
+    const l = local.data;
+    const filled = (v) => isObject(v) && Object.keys(v).some((k) => (isObject(v[k]) ? Object.keys(v[k]).length > 0 : v[k] != null));
+    const logs = (p) => (isObject(p) ? JSON.stringify([p.log || [], (isObject(p.full) && p.full.log) || []]) : '[[],[]]');
+    if (filled(l.progress) && JSON.stringify(l.progress) !== JSON.stringify(r.progress)) return true;
+    if (filled(l['custom-algs']) && JSON.stringify(l['custom-algs']) !== JSON.stringify(r['custom-algs'])) return true;
+    return logs(l.practice) !== '[[],[]]' && logs(l.practice) !== logs(r.practice);
+  }
+
   return {
     PREFIX: PREFIX,
     NAMES: NAMES,
@@ -243,6 +273,7 @@
     replace: replace,
     merge: merge,
     resolveLogin: resolveLogin,
+    discardsLocal: discardsLocal,
     toCloud: toCloud,
     fromCloud: fromCloud,
     LOG_SETS: LOG_SETS,
