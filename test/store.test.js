@@ -77,7 +77,7 @@ test('merge：union なら習得状況・自分の手順をケースごとに合
   assert.deepEqual(merged.data.progress, { pll: { 'A1+': 'learned', 'A1-': 'learning' }, oll: { '2A': 'learned' } });
   assert.deepEqual(merged.data['custom-algs'], { oll: { '1A': { alg: 'x', setup: 'y' } }, pll: { 'J3+': { alg: 'a', setup: 's' } } });
   assert.equal(merged.updated.progress, 20);
-  // union でなければ新しい方をそのまま使う（片方で消したケースが戻らない）
+  // union でなく、ケースごとの時刻も無ければ（この仕組みより前のデータ）新しい方をそのまま使う（片方で消したケースが戻らない）
   assert.deepEqual(Store.merge(local, remote).data.progress, local.data.progress);
 });
 
@@ -278,4 +278,32 @@ test('merge：同じアカウントの 2 つの端末の練習の記録を合わ
   const cleared = Object.assign({}, phone, { cleared: { full: 60 }, full: { inspection: false, log: [] } });
   const m3 = Store.merge({ data: { practice: cleared }, updated: { practice: 200 } }, remote).data.practice;
   assert.deepEqual(m3.full.log, []);
+});
+
+test('習得状況・自分の手順：変えたケースに時刻を付け、端末どうしではケースごとにあとで変えた方を使う（未習得に戻したケースも戻らない）', () => {
+  // 時刻を付ける（未着手に戻した＝値を消したケースにも付ける。変えていないケースはそのまま）
+  let pc = Store.withCaseStamps({ pll: { 'A1+': 'learning' } }, { pll: { 'A1+': 'learned', 'B1+': 'learning' } }, 100);
+  assert.deepEqual(pc._at, { pll: { 'A1+': 100, 'B1+': 100 } });
+  pc = Store.withCaseStamps(pc, Object.assign({}, pc, { pll: { 'A1+': 'learned' } }), 150); // B1+ を未着手に
+  assert.deepEqual(pc._at, { pll: { 'A1+': 100, 'B1+': 150 } });
+  // _at を付けずに書いても前の時刻を引き継ぐ（cases.js の「すべて未習得に戻す」など）
+  const reset = Store.withCaseStamps(pc, { pll: {} }, 300);
+  assert.deepEqual(reset._at, { pll: { 'A1+': 300, 'B1+': 150 } });
+  // スマホ：前のデータ（A1+ 習得済み、B1+ 練習中）のまま、OLL の 1A と PLL の H+ を変えた
+  const phone = Store.withCaseStamps(
+    { pll: { 'A1+': 'learned', 'B1+': 'learning' }, _at: { pll: { 'A1+': 100, 'B1+': 100 } } },
+    { pll: { 'A1+': 'learned', 'B1+': 'learning', 'H+': 'learned' }, oll: { '1A': 'learning' }, _at: { pll: { 'A1+': 100, 'B1+': 100 } } },
+    200
+  );
+  // パソコンで「すべて未習得に戻す」（300）をしたあと、スマホのデータと合わせる（スマホの方が新しく更新されていても）
+  const m = Store.merge({ data: { progress: phone }, updated: { progress: 400 } }, { data: { progress: reset }, updated: { progress: 300 } }).data.progress;
+  // A1+・B1+ はパソコンで戻した方があと → 戻ったまま。H+・1A はスマホで変えた → 残る
+  assert.deepEqual(m.pll, { 'H+': 'learned' });
+  assert.deepEqual(m.oll, { '1A': 'learning' });
+  assert.deepEqual(m._at, { pll: { 'A1+': 300, 'B1+': 150, 'H+': 200 }, oll: { '1A': 200 } });
+  // 自分の手順も同じ
+  const a = Store.withCaseStamps({}, { pll: { 'J3+': { alg: 'a', setup: 's' } } }, 10);
+  const b = Store.withCaseStamps({}, { oll: { '1A': { alg: 'x', setup: 'y' } } }, 20);
+  const algs = Store.merge({ data: { 'custom-algs': a }, updated: { 'custom-algs': 1 } }, { data: { 'custom-algs': b }, updated: { 'custom-algs': 2 } }).data['custom-algs'];
+  assert.deepEqual([algs.pll, algs.oll], [{ 'J3+': { alg: 'a', setup: 's' } }, { '1A': { alg: 'x', setup: 'y' } }]);
 });

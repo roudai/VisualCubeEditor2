@@ -5,6 +5,7 @@
  *   Store.get(name)              値を読む（JSON として読めなければ文字列のまま。無ければ null）
  *   Store.set(name, value)       値を書く（前と同じなら何もしない）。更新時刻を記録し、window に 'store-change' を通知する。
  *                                  practice では、消した記録の印（practice.removed・practice.cleared）を前の値との違いから付ける（withTombstones）
+ *                                  progress・custom-algs では、値が変わったケースに変えた時刻（_at）を付ける（withCaseStamps）
  *   Store.withTombstones(prev, next)
  *                                練習の記録（practice.log・practice.full.log）から消えた記録に印を付けた next を返す（DOM 非依存）。
  *                                  - removed：{ pll|oll|coll|zbll|full: [日時, …] }（新しい順、種類ごとに最大 REMOVED_MAX 件）
@@ -17,7 +18,8 @@
  *   Store.replace(snapshot)      snapshot の内容で書き換える（cloud-sync.js がクラウドの内容を反映するときに使う。通知しない）
  *   Store.merge(local, remote, { union })
  *                                手元とクラウドの snapshot を合わせた snapshot を返す（DOM 非依存）
- *                                  - 名前ごとに更新時刻の新しい方を使う
+ *                                  - 名前ごとに更新時刻の新しい方を使う。ただし両方にあれば：
+ *                                    practice は記録を両方合わせる（mergePractice）、progress・custom-algs はケースごとにあとで変えた方（mergeCases）
  *                                  - union: true（今はログインのときに使っていない。resolveLogin は合算しない）は、習得状況（progress）と
  *                                    自分の手順（custom-algs）をケースごとに合わせる（両方にあれば新しい方、片方だけなら残す）
  *
@@ -97,6 +99,7 @@
 
   function set(name, value) {
     if (name === 'practice' && isObject(value)) value = withTombstones(get('practice'), value);
+    if (PER_CASE.includes(name) && isObject(value)) value = withCaseStamps(get(name), value, Date.now());
     const raw = value === null || value === undefined ? null : encode(value);
     if (readRaw(PREFIX + name) === raw) return; // 変わっていなければ時刻も通知も変えない
     writeRaw(PREFIX + name, raw);
@@ -131,6 +134,60 @@
   }
 
   const isObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+
+  // ---- 習得状況（progress）・自分の手順（custom-algs）をケースごとに合わせるための時刻 ----
+  // { pll: { 'A1+': … }, oll: { … }, _at: { pll: { 'A1+': 変えた時刻 }, … } }。読む側は種類（pll・oll・coll・zbll）だけを見るので _at は気にしなくてよい。
+  // 未習得に戻した・既定の手順に戻した（値を消した）ケースも時刻を残す（別の端末の古い値で戻ってこないように）
+  const STAMPS = '_at';
+  const caseSets = (v) => (isObject(v) ? Object.keys(v).filter((k) => k !== STAMPS && isObject(v[k])) : []);
+  const stampsOf = (v) => (isObject(v) && isObject(v[STAMPS]) ? v[STAMPS] : {});
+  function withCaseStamps(prev, next, now) {
+    if (!isObject(next)) return next;
+    const base = isObject(next[STAMPS]) ? next[STAMPS] : stampsOf(prev);
+    const at = {};
+    Object.keys(base).forEach((set) => {
+      if (isObject(base[set])) at[set] = Object.assign({}, base[set]);
+    });
+    const p = isObject(prev) ? prev : {};
+    new Set(caseSets(p).concat(caseSets(next))).forEach((set) => {
+      const a = isObject(p[set]) ? p[set] : {};
+      const b = isObject(next[set]) ? next[set] : {};
+      new Set(Object.keys(a).concat(Object.keys(b))).forEach((name) => {
+        if (JSON.stringify(a[name]) === JSON.stringify(b[name])) return;
+        (at[set] || (at[set] = {}))[name] = now;
+      });
+    });
+    const out = Object.assign({}, next);
+    if (Object.keys(at).length) out[STAMPS] = at;
+    else delete out[STAMPS];
+    return out;
+  }
+  // ケースごとに、あとで変えた方の値を使う（時刻が無い（この仕組みより前の）ケースは newer の方）
+  function mergeCases(older, newer) {
+    const o = isObject(older) ? older : {};
+    const n = isObject(newer) ? newer : {};
+    const so = stampsOf(o);
+    const sn = stampsOf(n);
+    const out = {};
+    const at = {};
+    new Set(caseSets(o).concat(caseSets(n), Object.keys(so), Object.keys(sn))).forEach((set) => {
+      const vo = isObject(o[set]) ? o[set] : {};
+      const vn = isObject(n[set]) ? n[set] : {};
+      const to = isObject(so[set]) ? so[set] : {};
+      const tn = isObject(sn[set]) ? sn[set] : {};
+      const values = {};
+      new Set([vo, vn, to, tn].flatMap((x) => Object.keys(x))).forEach((name) => {
+        const a = typeof to[name] === 'number' ? to[name] : 0;
+        const b = typeof tn[name] === 'number' ? tn[name] : 0;
+        const src = b >= a ? vn : vo;
+        if (Object.prototype.hasOwnProperty.call(src, name)) values[name] = src[name];
+        if (Math.max(a, b) > 0) (at[set] || (at[set] = {}))[name] = Math.max(a, b);
+      });
+      if (Object.keys(values).length || isObject(n[set])) out[set] = values;
+    });
+    if (Object.keys(at).length) out[STAMPS] = at;
+    return out;
+  }
 
   // ---- 練習の記録（practice.log：PLL・OLL・COLL・ZBLL、practice.full.log：ソルブ）を端末どうしで合わせるための印 ----
   const LOG_MAX = { pll: 5000, oll: 5000, coll: 5000, zbll: 5000, full: 2000 }; // 種類ごとの記録の上限（js/progress.js の LOG_MAX・FULL_LOG_MAX と同じ）
@@ -263,7 +320,7 @@
     [older, newer].forEach((src) => {
       if (!isObject(src)) return;
       Object.keys(src).forEach((set) => {
-        if (!isObject(src[set])) return;
+        if (set === STAMPS || !isObject(src[set])) return;
         out[set] = Object.assign({}, out[set], src[set]);
       });
     });
@@ -284,6 +341,12 @@
       if (inL && inR && union && PER_CASE.includes(name)) {
         const localNewer = tl >= tr;
         out.data[name] = localNewer ? mergePerCase(r.data[name], l.data[name]) : mergePerCase(l.data[name], r.data[name]);
+        out.updated[name] = Math.max(tl, tr);
+        return;
+      }
+      if (inL && inR && !union && PER_CASE.includes(name)) {
+        const localNewer = tl >= tr;
+        out.data[name] = localNewer ? mergeCases(r.data[name], l.data[name]) : mergeCases(l.data[name], r.data[name]);
         out.updated[name] = Math.max(tl, tr);
         return;
       }
@@ -400,8 +463,15 @@
     const l = local.data;
     const filled = (v) => isObject(v) && Object.keys(v).some((k) => (isObject(v[k]) ? Object.keys(v[k]).length > 0 : v[k] != null));
     const logs = (p) => (isObject(p) ? JSON.stringify([p.log || [], (isObject(p.full) && p.full.log) || []]) : '[[],[]]');
-    if (filled(l.progress) && JSON.stringify(l.progress) !== JSON.stringify(r.progress)) return true;
-    if (filled(l['custom-algs']) && JSON.stringify(l['custom-algs']) !== JSON.stringify(r['custom-algs'])) return true;
+    // ケースごとの時刻（_at）は比べない（中身が同じなら捨てたことにならない）
+    const cases = (v) => {
+      if (!isObject(v)) return v;
+      const out = Object.assign({}, v);
+      delete out[STAMPS];
+      return out;
+    };
+    if (filled(cases(l.progress)) && JSON.stringify(cases(l.progress)) !== JSON.stringify(cases(r.progress))) return true;
+    if (filled(cases(l['custom-algs'])) && JSON.stringify(cases(l['custom-algs'])) !== JSON.stringify(cases(r['custom-algs']))) return true;
     return logs(l.practice) !== '[[],[]]' && logs(l.practice) !== logs(r.practice);
   }
 
@@ -416,6 +486,7 @@
     resolveLogin: resolveLogin,
     discardsLocal: discardsLocal,
     withTombstones: withTombstones,
+    withCaseStamps: withCaseStamps,
     toCloud: toCloud,
     fromCloud: fromCloud,
     LOG_SETS: LOG_SETS,

@@ -61,7 +61,10 @@ test('statusOf / setStatus：習得状況を読み書きし、未着手は保存
     P.setStatus('pll', 'Aa', 'learned');
     assert.equal(P.statusOf('pll', 'Aa'), 'learned');
     P.setStatus('pll', 'Aa', 'new');
-    assert.deepEqual(JSON.parse(map.get('visualcube-editor:progress')), { oll: { '27': 'learned' }, pll: {} });
+    const saved = JSON.parse(map.get('visualcube-editor:progress'));
+    assert.equal(typeof saved._at.pll.Aa, 'number'); // 変えたケースの時刻（端末どうしでケースごとに合わせるため。store.js）
+    delete saved._at;
+    assert.deepEqual(saved, { oll: { '27': 'learned' }, pll: {} });
   });
 });
 
