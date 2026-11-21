@@ -307,3 +307,17 @@ test('習得状況・自分の手順：変えたケースに時刻を付け、�
   const algs = Store.merge({ data: { 'custom-algs': a }, updated: { 'custom-algs': 1 } }, { data: { 'custom-algs': b }, updated: { 'custom-algs': 2 } }).data['custom-algs'];
   assert.deepEqual([algs.pll, algs.oll], [{ 'J3+': { alg: 'a', setup: 's' } }, { '1A': { alg: 'x', setup: 'y' } }]);
 });
+
+test('discardsLocal：練習の記録は日時ごとに比べる（キーの順の違い・hint の無い古い記録では捨てたことにしない）', () => {
+  const who = { owner: 'A', uid: 'A', fresh: true };
+  const local = { data: { practice: { log: [{ set: 'pll', at: 5, name: 'Aa', sec: 3, status: 'learned' }] } }, updated: { practice: 1 } };
+  const remote = { data: { practice: { log: [{ at: 5, set: 'pll', name: 'Aa', sec: 3, status: 'learned', hint: false }] } }, updated: { practice: 2 } };
+  assert.equal(Store.discardsLocal(local, remote, who), false);
+  const other = { data: { practice: { log: [{ at: 6, set: 'pll', name: 'Aa', sec: 3, status: 'learned', hint: false }] } }, updated: { practice: 2 } };
+  assert.equal(Store.discardsLocal(local, other, who), true);
+  // COLL・ZBLL・ソルブも比べる
+  const zb = { data: { practice: { log: [{ at: 7, set: 'zbll', name: 'T-1', sec: 4, status: 'learned', hint: false }] } }, updated: { practice: 1 } };
+  assert.equal(Store.discardsLocal(zb, remote, who), true);
+  const full = { data: { practice: { full: { log: [{ at: 8, sec: 30, penalty: '' }] } } }, updated: { practice: 1 } };
+  assert.equal(Store.discardsLocal(full, remote, who), true);
+});
