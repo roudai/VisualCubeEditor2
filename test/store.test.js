@@ -128,7 +128,7 @@ test('resolveLogin：新しいログインはアカウントの内容で上書�
   assert.equal(Store.discardsLocal(remote, remote, { owner: 'A', uid: 'A', fresh: true }), false);
 });
 
-test('toCloud / fromCloud：PLL・OLL・COLL・ZBLL の記録を種類ごとの短い形に分け、読んだら元に戻す', () => {
+test('toCloud / fromCloud：PLL・OLL・COLL・ZBLL・ソルブの記録を種類ごとの短い形に分け、読んだら元に戻す', () => {
   const log = [
     { at: 7, set: 'zbll', name: 'U-Diag5', sec: 5.79, status: 'learning', hint: false },
     { at: 6, set: 'coll', name: 'H1', sec: 3.1, status: 'learned', hint: false },
@@ -136,18 +136,26 @@ test('toCloud / fromCloud：PLL・OLL・COLL・ZBLL の記録を種類ごとの�
     { at: 4, set: 'pll', name: 'Aa', sec: null, status: 'learning', hint: true },
     { at: 3, set: 'pll', name: 'H', sec: 7.28, status: 'learned', hint: false },
   ];
-  const snap = { data: { practice: { set: 'pll', log: log, full: { log: [{ at: 1, sec: 50, penalty: '', s: 'x' }] } }, lang: 'ja' }, updated: { practice: 9, lang: 1 } };
+  const full = [
+    { at: 2, sec: 61.5, penalty: 'DNF', s: 'y' },
+    { at: 1, sec: 50, penalty: '', s: 'x' },
+    { at: 0, sec: 70, penalty: '+2' },
+  ];
+  const snap = { data: { practice: { set: 'pll', log: log, full: { inspection: true, log: full } }, lang: 'ja' }, updated: { practice: 9, lang: 1 } };
   const cloud = Store.toCloud(snap);
-  // 本体には記録を入れない（ソルブの記録は本体のまま）
+  // 本体には記録を入れない（ソルブの記録も、設定だけ残す）
   assert.equal(cloud.main.logsSplit, true);
+  assert.equal(cloud.main.fullSplit, true);
   assert.equal('log' in cloud.main.data.practice, false);
-  assert.deepEqual(cloud.main.data.practice.full, snap.data.practice.full);
+  assert.deepEqual(cloud.main.data.practice.full, { inspection: true });
+  assert.deepEqual(cloud.logs.full, [[2, 61.5, 'y', 'DNF'], [1, 50, 'x'], [0, 70, null, '+2']]);
   assert.deepEqual(cloud.logs.pll, [[4, 'Aa', null, 1, 1], [3, 'H', 7.28, 2]]);
   assert.deepEqual(cloud.logs.oll, [[5, '21', 12.34, 2]]);
   assert.deepEqual(cloud.logs.coll, [[6, 'H1', 3.1, 2]]);
   assert.deepEqual(cloud.logs.zbll, [[7, 'U-Diag5', 5.79, 1]]);
   // 手元の snapshot は変えない
   assert.equal(snap.data.practice.log.length, 5);
+  assert.equal(snap.data.practice.full.log.length, 3);
   // JSON を通して読み戻すと同じ
   const back = Store.fromCloud(JSON.parse(JSON.stringify(cloud.main)), JSON.parse(JSON.stringify(cloud.logs)));
   assert.deepEqual(back, snap);
@@ -159,25 +167,39 @@ test('fromCloud：以前の形（logsSplit の無い本体）はそのまま。�
   const split = { data: { practice: { set: 'oll' } }, updated: { practice: 2 }, logsSplit: true };
   assert.deepEqual(Store.fromCloud(split, {}).data.practice, { set: 'oll', log: [] });
   assert.equal(Store.fromCloud(null, {}), null);
+  // fullSplit の無い本体（ソルブを分ける前のページが書いたもの）は、ソルブの記録を本体のまま使う
+  const before = { data: { practice: { full: { log: [{ at: 3, sec: 40, penalty: '' }] } } }, updated: {}, logsSplit: true };
+  assert.deepEqual(Store.fromCloud(before, { full: [[9, 1, null]] }).data.practice.full.log, [{ at: 3, sec: 40, penalty: '' }]);
+  // fullSplit の本体は -log-full から戻す（本体のソルブの設定は残す）
+  const after = { data: { practice: { full: { inspection: false } } }, updated: {}, logsSplit: true, fullSplit: true };
+  assert.deepEqual(Store.fromCloud(after, { full: [[9, 1, 'AB']] }).data.practice.full, { inspection: false, log: [{ at: 9, sec: 1, penalty: '', s: 'AB' }] });
 });
 
-test('toCloud：4 種類 × 5000 件でも各文書が上限に収まる。本体だけに書く以前の形（inline）は最新 2000 件', () => {
-  const sets = Store.LOG_SETS;
-  assert.deepEqual(sets, ['pll', 'oll', 'coll', 'zbll']);
+test('toCloud：4 種類とソルブ × 5000 件でも各文書が上限に収まる。本体だけに書く以前の形（inline）は最新 2000 件', () => {
+  assert.deepEqual(Store.LOG_SETS, ['pll', 'oll', 'coll', 'zbll', 'full']);
+  const sets = ['pll', 'oll', 'coll', 'zbll'];
   const log = [];
   for (let i = 0; i < 20000; i++) {
     log.push({ at: 1795158456787 - i * 1000, set: sets[i % 4], name: 'U-Diag5', sec: 12.34, status: 'learned', hint: i % 7 === 0 });
   }
   const full = [];
-  for (let i = 0; i < 2000; i++) full.push({ at: 1795158456787 - i * 1000, sec: 12.34, penalty: '', s: "R U R' U' F2 L2 D B2 R2 F' U2 L D2 R' B U' F2 L' D R2" });
+  // s は短い形（1 手 1 文字）。ソルブのスクランブルはふつう 20 手前後なので、多めに 25 文字
+  for (let i = 0; i < 5000; i++) full.push({ at: 1795158456787 - i * 1000, sec: 65.43, penalty: i % 9 ? '' : '+2', s: 'ABCDEFGHIJKLMNOPQRABCDEFG' });
   const cloud = Store.toCloud({ data: { practice: { log: log, full: { log: full } } }, updated: {} });
-  sets.forEach((set) => {
+  sets.concat('full').forEach((set) => {
     assert.equal(cloud.logs[set].length, 5000);
     assert.ok(JSON.stringify({ rows: cloud.logs[set] }).length < 500000);
   });
   assert.ok(JSON.stringify(cloud.main).length < 500000);
   assert.equal(cloud.inline.data.practice.log.length, 2000);
   assert.equal(cloud.inline.data.practice.log[0].at, log[0].at);
+  // ソルブも inline では最新 2000 件
+  assert.equal(cloud.inline.data.practice.full.log.length, 2000);
+  assert.equal(cloud.inline.data.practice.full.log[0].at, full[0].at);
+  // ソルブだけが多いときは、PLL などの記録の無い inline に空の log を足さない
+  const c2 = Store.toCloud({ data: { practice: { full: { log: full } } }, updated: {} });
+  assert.equal(c2.inline.data.practice.full.log.length, 2000);
+  assert.equal('log' in c2.inline.data.practice, false);
   // 知らない項目のある記録はそのまま残す
   const odd = { at: 1, set: 'pll', name: 'Aa', sec: 1, status: 'learned', extra: 1 };
   assert.deepEqual(Store.toCloud({ data: { practice: { log: [odd] } }, updated: {} }).logs.pll, [odd]);

@@ -12,7 +12,7 @@
  *                                  - cleared：{ pll|oll|coll|zbll|full: 日時 }（種類の記録が空になり、消えた記録が removed に入りきらないとき。その日時以前の記録は消したもの）
  *                                    （移植元は種類の記録が空になれば必ず付けるので、その種類の記録が 1 件だけのときに「取り消す」と、
  *                                      まだ読んでいない別の端末のそれより前の記録まで消えてしまう。こちらは入りきるあいだは 1 件ずつの印にする）
- *                                  - 上限（LOG_MAX。PLL・OLL・COLL・ZBLL 各 5000 件、ソルブ 2000 件）で押し出された古い記録には付けない。消した記録を戻したら（元に戻す）印を外す
+ *                                  - 上限（LOG_MAX。PLL・OLL・COLL・ZBLL 各 5000 件、ソルブ 5000 件）で押し出された古い記録には付けない。消した記録を戻したら（元に戻す）印を外す
  *                                同じアカウントの別の端末の記録と合わせるとき（merge）に、消した記録が戻ってこないようにする
  *   Store.snapshot()             { data: { name: value }, updated: { name: 時刻(ms) } }（保存されているものだけ）
  *   Store.replace(snapshot)      snapshot の内容で書き換える（cloud-sync.js がクラウドの内容を反映するときに使う。通知しない）
@@ -35,14 +35,15 @@
  *                                resolveLogin で、ログイン前の手元の内容（習得状況・自分の手順・練習の記録）を
  *                                捨てることになるか（ログインのあとに知らせるため）
  *
- *   Store.toCloud(snapshot)      クラウドに書く形に分ける（DOM 非依存）→ { main, logs: { pll, oll, coll, zbll }, inline }
- *                                  - main：練習の記録（practice.log）を抜いた snapshot に logsSplit: true を付けたもの（本体の文書）
- *                                  - logs：PLL・OLL・COLL・ZBLL の記録を短い形（[日時, ケース, タイム, 判定, ヒント]）にしたもの（種類ごとの文書）。
+ *   Store.toCloud(snapshot)      クラウドに書く形に分ける（DOM 非依存）→ { main, logs: { pll, oll, coll, zbll, full }, inline }
+ *                                  - main：練習の記録（practice.log・practice.full.log）を抜いた snapshot に logsSplit: true・fullSplit: true を付けたもの（本体の文書）
+ *                                  - logs：PLL・OLL・COLL・ZBLL の記録を短い形（[日時, ケース, タイム, 判定, ヒント]）、ソルブの記録を短い形
+ *                                    （[日時, タイム, スクランブル, ペナルティ]）にしたもの（種類ごとの文書）。
  *                                    1 文書の上限（LOG_LIMIT 文字）を超えるときは古い記録を捨てる
- *                                  - inline：記録を本体に入れたままの以前の形（記録は合わせて最新 INLINE_MAX 件）。
+ *                                  - inline：記録を本体に入れたままの以前の形（PLL・OLL・COLL・ZBLL は合わせて、ソルブはそれぞれ最新 INLINE_MAX 件）。
  *                                    種類ごとの文書に書けなかったとき（Firestore のルールが古いなど）に本体だけに書く
  *   Store.fromCloud(main, logs)  クラウドから読んだ本体と種類ごとの記録を 1 つの snapshot に戻す（DOM 非依存）。
- *                                  logsSplit の無い本体（以前の形・古いページが書いたもの）はそのまま使う
+ *                                  logsSplit の無い本体（以前の形・古いページが書いたもの）はそのまま使う。fullSplit が無ければソルブの記録は本体のもの
  *
  * 名前（NAMES）と localStorage のキー：visualcube-editor:<name>（接頭辞は Store.PREFIX）。更新時刻は visualcube-editor:updated。
  * ブラウザでは window.Store、node では module.exports として公開する（node では global.localStorage があれば使う）。
@@ -190,7 +191,7 @@
   }
 
   // ---- 練習の記録（practice.log：PLL・OLL・COLL・ZBLL、practice.full.log：ソルブ）を端末どうしで合わせるための印 ----
-  const LOG_MAX = { pll: 5000, oll: 5000, coll: 5000, zbll: 5000, full: 2000 }; // 種類ごとの記録の上限（js/progress.js の LOG_MAX・FULL_LOG_MAX と同じ）
+  const LOG_MAX = { pll: 5000, oll: 5000, coll: 5000, zbll: 5000, full: 5000 }; // 種類ごとの記録の上限（js/progress.js の LOG_MAX・FULL_LOG_MAX と同じ）
   const REMOVED_MAX = 1000; // 消した記録の印を種類ごとに残す数
   const LOG_KINDS = ['pll', 'oll', 'coll', 'zbll', 'full'];
   // 種類ごとの記録の配列 { pll: [...], oll: [...], coll: [...], zbll: [...], full: [...] }
@@ -367,8 +368,10 @@
 
   // ---- クラウドに書く形（js/cloud-sync.js）----
   // Firestore の 1 文書は firestore.rules で json 50 万文字未満。PLL・OLL・COLL・ZBLL の記録（各最大 5000 件）は本体に入らないので、
-  // 種類ごとの文書に短い形で分ける（1 件 約 30 文字 → 5000 件で約 16 万文字）
-  const LOG_SETS = ['pll', 'oll', 'coll', 'zbll'];
+  // 種類ごとの文書に短い形で分ける（1 件 約 30 文字 → 5000 件で約 16 万文字）。
+  // ソルブの記録（practice.full.log。最大 5000 件、1 件 約 45 文字）も本体の余裕のために 'full' の文書に分ける（本体に fullSplit: true）
+  const CASE_SETS = ['pll', 'oll', 'coll', 'zbll'];
+  const LOG_SETS = ['pll', 'oll', 'coll', 'zbll', 'full'];
   const LOG_LIMIT = 480000;
   const INLINE_MAX = 2000;
   const STATUS = ['new', 'learning', 'learned'];
@@ -382,6 +385,20 @@
     if (e.hint) row.push(1);
     return row;
   }
+  // ソルブ { at, sec, penalty, s } → [at, sec, s（無ければ null）, ペナルティ（'' のときは付けない）]
+  const FULL_KEYS = ['at', 'sec', 'penalty', 's'];
+  function packFull(e) {
+    if (!isObject(e) || Object.keys(e).some((k) => !FULL_KEYS.includes(k))) return e;
+    const row = [e.at, e.sec === undefined ? null : e.sec, e.s === undefined ? null : e.s];
+    if (e.penalty) row.push(e.penalty);
+    return row;
+  }
+  function unpackFull(row) {
+    if (!Array.isArray(row)) return isObject(row) ? row : null;
+    const e = { at: row[0], sec: row[1], penalty: typeof row[3] === 'string' ? row[3] : '' };
+    if (row[2] !== null && row[2] !== undefined) e.s = row[2];
+    return e;
+  }
   function unpackEntry(row, set) {
     if (!Array.isArray(row)) return isObject(row) ? Object.assign({ set: set }, row) : null;
     const e = { at: row[0], set: set, name: row[1], sec: row[2], status: typeof row[3] === 'number' ? STATUS[row[3]] : row[3] };
@@ -393,9 +410,10 @@
     const s = snap || EMPTY();
     const practice = s.data && isObject(s.data.practice) ? s.data.practice : null;
     const log = practice && Array.isArray(practice.log) ? practice.log : [];
+    const full = practice && isObject(practice.full) && Array.isArray(practice.full.log) ? practice.full.log : [];
     const logs = {};
     LOG_SETS.forEach((set) => {
-      let rows = log.filter((e) => e && e.set === set).map(packEntry);
+      let rows = set === 'full' ? full.map(packFull) : log.filter((e) => e && e.set === set).map(packEntry);
       // 上限を超えるときは古い記録から捨てる（ふつうは 5000 件でも収まる）
       while (rows.length && JSON.stringify({ rows: rows }).length >= LOG_LIMIT) rows = rows.slice(0, Math.floor(rows.length * 0.95));
       logs[set] = rows;
@@ -403,14 +421,23 @@
     const data = Object.assign({}, s.data);
     if (practice) {
       const rest = Object.assign({}, practice);
-      const others = log.filter((e) => !(e && LOG_SETS.includes(e.set)));
+      const others = log.filter((e) => !(e && CASE_SETS.includes(e.set)));
       if (others.length) rest.log = others;
       else delete rest.log;
+      if (isObject(practice.full)) {
+        rest.full = Object.assign({}, practice.full);
+        delete rest.full.log;
+      }
       data.practice = rest;
     }
-    const main = { data: data, updated: Object.assign({}, s.updated), logsSplit: true };
+    const main = { data: data, updated: Object.assign({}, s.updated), logsSplit: true, fullSplit: true };
+    // 本体だけに書く以前の形：PLL・OLL・COLL・ZBLL（合わせて）とソルブの記録を、それぞれ最新 INLINE_MAX 件まで本体に入れる
     const inlineData = Object.assign({}, s.data);
-    if (practice && log.length > INLINE_MAX) inlineData.practice = Object.assign({}, practice, { log: log.slice(0, INLINE_MAX) });
+    if (practice && (log.length > INLINE_MAX || full.length > INLINE_MAX)) {
+      inlineData.practice = Object.assign({}, practice, { log: log.slice(0, INLINE_MAX) });
+      if (!Array.isArray(practice.log)) delete inlineData.practice.log;
+      if (full.length > INLINE_MAX) inlineData.practice.full = Object.assign({}, practice.full, { log: full.slice(0, INLINE_MAX) });
+    }
     const inline = { data: inlineData, updated: Object.assign({}, s.updated) };
     return { main: main, logs: logs, inline: inline };
   }
@@ -419,9 +446,19 @@
     if (!main || !isObject(main.data)) return null;
     const out = { data: Object.assign({}, main.data), updated: Object.assign({}, main.updated) };
     if (!main.logsSplit) return out;
-    const practice = isObject(out.data.practice) ? out.data.practice : null;
+    let practice = isObject(out.data.practice) ? out.data.practice : null;
+    // ソルブの記録：fullSplit があれば 'full' の文書から戻す（無ければ本体の記録のまま。以前の形・古いページが書いた本体）
+    if (main.fullSplit) {
+      const rows = logs && Array.isArray(logs.full) ? logs.full : [];
+      const fullLog = rows.map(unpackFull).filter((e) => e);
+      if (fullLog.length || (practice && isObject(practice.full))) {
+        practice = Object.assign({}, practice);
+        practice.full = Object.assign({}, practice.full, { log: fullLog });
+        out.data.practice = practice;
+      }
+    }
     const log = [];
-    LOG_SETS.forEach((set) => {
+    CASE_SETS.forEach((set) => {
       const rows = logs && Array.isArray(logs[set]) ? logs[set] : [];
       rows.forEach((row) => {
         const e = unpackEntry(row, set);

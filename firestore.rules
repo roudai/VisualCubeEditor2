@@ -8,7 +8,7 @@ rules_version = '2';
 // （名前を変えて文書をいくらでも作られないように）。アプリを増やしたら appIds() と logDoc() の両方に名前を足して貼り直す。
 // 読む・削除するのはどの名前でもよい（アカウントのデータ削除で全部消せるように）。
 // 練習の記録は 1 文書（json 50 万文字未満）に入らないので、種類ごとの文書 <アプリ名>-log-<種類> に分けて保存する
-// （例：megaminx-image-editor-log-pll・megaminx-image-editor-log-oll）。種類は英小文字・数字の 1〜12 文字で、
+// （例：megaminx-image-editor-log-pll・megaminx-image-editor-log-oll・megaminx-image-editor-log-full）。種類は英小文字・数字の 1〜12 文字で、
 // 種類を増やしてもルールは変えなくてよい。
 service cloud.firestore {
   match /databases/{database}/documents {
