@@ -188,6 +188,42 @@
   transform: translateY(0);
   box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
 }
+/* 幅 992px 未満（スマホ、ナビバーのリンクが横に並ぶタブレット）では、ログイン前のボタンの文字を隠して、
+   人のアイコンだけの四角いボタン（スマホのメニューのボタンと同じ大きさ）にする（「ログイン」の文字があるとタイトルが「…」で切れるため）。
+   文字は見た目だけ隠し、読み上げの名前は「ログイン」のまま。上の .account-signin より後に書いて上書きする */
+@media (max-width: 991.98px) {
+  .account-signin {
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: .5rem;
+  }
+  .account-signin > span:not(.account-icon) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .account-signin svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+/* タブレット（768〜991px）：リンクの間を少し詰める（タイトルが切れないように） */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .nav-link-item {
+    margin-right: .7rem;
+  }
+}
+/* 小さいスマホ（360px 未満）：タイトルを少し小さくして、ボタンの横に収める */
+@media (max-width: 359.98px) {
+  .site-nav .navbar-brand {
+    font-size: .88rem;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .account-signin,
   .account-signin:hover {
