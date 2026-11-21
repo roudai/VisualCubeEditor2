@@ -7,7 +7,7 @@
 //     同じ Firebase プロジェクトのほかのアプリ（Megaminx Image Editor など）は users/{uid}/apps/<アプリ名> に保存し、ログインは共通
 //   - 新しくログインしたとき：アカウントにデータがあれば、その内容で手元を上書きする（ログイン前にこのブラウザで使った分は捨てる。
 //     合算はしない）。アカウントが空なら、手元の内容をアカウントに入れる（Store.resolveLogin）。
-//     捨てた内容があれば、読み直したあとにメニューを開いて知らせる（NOTICE_KEY）
+//     捨てた内容があれば、読み直したあとに画面の下に知らせる（NOTICE_KEY・toast）
 //   - ログインしたままページを開いたとき：クラウドを読み → Store.merge で手元と合わせ（名前ごとに新しい方）→ 両方に書く
 //     （まだクラウドに書けていなかった手元の変更を失わないため）
 //   - 「ログインしたまま」かは SESSION_KEY（ログイン中 'in'、ログアウトの状態が分かったら 'out'）と、
@@ -239,10 +239,33 @@ async function main() {
     } catch (e) {
       key = null;
     }
-    if (key !== 'account.localReplaced' && key !== 'account.signedOutCleared' && key !== 'account.signedOutKept') return;
-    message = { key: key, ok: true };
-    menuOpen = true;
-    render();
+    if (key !== 'account.localReplaced' && key !== 'account.signedOutCleared') return;
+    toast(key);
+  }
+  // 画面の下の知らせ（css/common.css の .site-toast。移植元の練習ページのバッジの知らせと同じ形）。× か 10 秒で閉じる
+  function toast(key) {
+    let box = document.getElementById('siteToast');
+    if (!box) {
+      box = el('div', 'site-toast');
+      box.id = 'siteToast';
+      box.setAttribute('role', 'status');
+      document.body.append(box);
+    }
+    const text = el('div', 'site-toast-text');
+    I.set(text, key);
+    const close = el('button', 'site-toast-close');
+    close.type = 'button';
+    close.textContent = '×';
+    I.set(close, 'account.toastClose', null, 'aria-label');
+    const hide = () => {
+      box.classList.remove('show');
+      if (box.contains(document.activeElement)) document.activeElement.blur();
+    };
+    close.addEventListener('click', hide);
+    box.replaceChildren(close, text);
+    requestAnimationFrame(() => box.classList.add('show'));
+    clearTimeout(box.hideTimer);
+    box.hideTimer = setTimeout(hide, 10000);
   }
 
   function fail(e) {

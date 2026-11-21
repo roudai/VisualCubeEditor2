@@ -452,3 +452,54 @@ html {
     font-size: 1.1rem;
   }
 }
+
+/* 画面の下の知らせ（js/cloud-sync.js の toast。ログインでデータを置き換えた・ログアウトしてデータを消した）。
+   移植元の練習ページのバッジの知らせ（.practice-toast）と同じ形で、色は控えめに */
+.site-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  z-index: 1060;
+  width: max-content;
+  max-width: min(32rem, calc(100vw - 2rem));
+  padding: .6rem 2rem .6rem 1rem;
+  border: 1px solid #cfe2ff;
+  border-radius: .75rem;
+  background: #f1f6ff;
+  color: #084298;
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .15);
+  font-size: .875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 1rem);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.site-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+.site-toast-close {
+  position: absolute;
+  top: .15rem;
+  right: .3rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #3d6fb6;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.site-toast-close:hover {
+  background: rgba(0, 0, 0, .06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-toast {
+    transition: none;
+  }
+}
