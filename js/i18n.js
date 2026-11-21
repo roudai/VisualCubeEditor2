@@ -55,7 +55,7 @@
       'editor.caseAria': '{set} case',
       'editor.navAria': '{set} navigation',
       // エディタにもともとある項目（index.html の #app の中。{{ t('…') }} で使う）
-      'editor.showParameter': 'Show parameter',
+      'editor.showParameter': 'Show parameters',
       'editor.puzzleType': 'Puzzle type',
       'editor.stateLegendN': 'n : a blank face (gray)',
       'editor.stateLegendO': "o : an 'oriented' face (silver)",
