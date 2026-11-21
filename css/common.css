@@ -480,6 +480,13 @@ html {
   opacity: 1;
   pointer-events: auto;
   transform: translate(-50%, 0);
+  animation: toast-pop-fixed .5s ease;
+}
+/* 知らせが出るときに少し大きくなって戻る（見落とさないように）。fixed は画面の真ん中に寄せる translate を含める */
+@keyframes toast-pop-fixed {
+  0% { opacity: 0; transform: translate(-50%, .5rem) scale(.85); }
+  55% { opacity: 1; transform: translate(-50%, 0) scale(1.06); }
+  100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
 }
 .site-toast-close {
   position: absolute;
@@ -501,5 +508,8 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .site-toast {
     transition: none;
+  }
+  .site-toast.show {
+    animation: none;
   }
 }
