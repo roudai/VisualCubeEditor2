@@ -12,9 +12,9 @@ URL: https://visualcube.roudai.net/
 
 ### Image editor (`/`)
 - Draw any cube from 1x1x1 to 17x17x17, from an algorithm or by setting the sticker colors directly
-  - **Algorithm to apply**: the state after the algorithm
-  - **Algorithm to solve case**: the state that the algorithm solves (on 3x3x3, rotations, wide moves and slice moves are cancelled out)
-  - **Defines the cube state**: paint each sticker
+  - **Apply algorithm**: the state after the algorithm
+  - **Solve with algorithm**: the state that the algorithm solves (on 3x3x3, rotations, wide moves and slice moves are cancelled out)
+  - **Set colors**: paint each sticker
 - Normal (3D) or Plan (top) view, stage masks (F2L, OLL, COLL, …), arrows, rotation, colors, opacity and projection distance
 - Color presets (Standard / OLL / Custom), transparent or opaque background, image size, and PNG download with your own file name
 - Pick a PLL / OLL / COLL case from a list. The algorithm, the view and the colors are set for you,
