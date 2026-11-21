@@ -126,7 +126,7 @@
             <li>ログインしなくても、設定・習得状況・自分の手順・練習の記録はこのブラウザに保存されます。</li>
             <li>右上の「ログイン」から Google・Facebook・GitHub のアカウントでログインすると、アカウントにも保存され、ほかの端末やブラウザでも同じデータを使えます。アカウントは Megaminx Image Editor と共通です。</li>
             <li>アカウントにデータがあるときにログインすると、そのブラウザにはアカウントのデータが読み込まれます。ログインする前にそのブラウザで使った内容（習得状況・練習の記録など）は、アカウントのデータに置き換わります。初めてログインしたとき（アカウントが空のとき）は、そのブラウザの内容がアカウントに保存されます。</li>
-            <li>ログアウトすると、最新の変更をアカウントに保存してから、そのブラウザのデータを消します（言語の設定は残ります）。データはアカウントに残っているので、もう一度ログインすれば戻ります。通信できずに保存できなかったときは、ログアウトしません（ページを開いたときからアカウントと合わせられていなかったときは、ログアウトしてそのブラウザのデータを残します）。</li>
+            <li>ログアウトすると、最新の変更をアカウントに保存してから、そのブラウザのデータを消します（言語の設定は残ります）。データはアカウントに残っているので、もう一度ログインすれば戻ります。通信できずに保存できなかったときは、ログアウトしません。ページを開いたときから保存できていなかったときは、保存をやり直し、それでも保存できなければ、ログアウトはしますが、そのブラウザのデータは消さずに残します（もう一度同じアカウントでログインすると、アカウントと合わせます）。</li>
             <li>保存できる記録の量には上限があり、超えると古いものから自動で消えます（元に戻せません）。
               <ul>
                 <li>PLL・OLL・COLL・ZBLL の練習の記録：PLL・OLL・COLL・ZBLL それぞれ最新 5000 件</li>
@@ -199,7 +199,7 @@
             <li>Without signing in, your settings, progress, own algorithms and practice records are saved in this browser.</li>
             <li>Sign in with Google, Facebook or GitHub from "Sign in" at the top right to save them to your account too, so you can use the same data on other devices and browsers. The account is shared with Megaminx Image Editor.</li>
             <li>If your account already has data, signing in loads it into the browser, replacing anything you did in that browser before signing in (progress, practice records and so on). The first time you sign in (when your account is empty), what is in the browser is saved to your account.</li>
-            <li>When you sign out, your latest changes are saved to your account and then the data in that browser is cleared (your language setting stays). Your data is still in your account, so signing in again brings it back. If your changes can't be saved (for example, when you're offline), you stay signed in. (If the page couldn't sync with your account since it was opened, you are signed out and the data in that browser is kept.)</li>
+            <li>When you sign out, your latest changes are saved to your account and then the data in that browser is cleared (your language setting stays). Your data is still in your account, so signing in again brings it back. If your changes can't be saved (for example, when you're offline), you stay signed in. If your changes haven't been saved since the page opened, saving is tried again; if it still fails, you are signed out but the data in that browser is kept (signing in again with the same account combines it with your account).</li>
             <li>There are limits on how many records can be saved. Once a limit is reached, the oldest are deleted automatically (this can't be undone).
               <ul>
                 <li>PLL / OLL / COLL / ZBLL practice records: the latest 5,000 each for PLL, OLL, COLL and ZBLL</li>

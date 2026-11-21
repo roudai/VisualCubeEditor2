@@ -387,7 +387,7 @@
       'account.signedOutCleared': 'Signed out. The data in this browser has been cleared (it is still in your account).',
       'account.signOutFailed': "Couldn't save your latest changes to your account, so you are still signed in. Check your connection and try again.",
       'account.toastClose': 'Close',
-      'account.signedOutKept': "Signed out. Your latest changes couldn't be saved to your account, so the data in this browser has been kept. When you sign in again with the same account, it will be combined with your account.",
+      'account.signedOutKept': "Signed out. Your latest changes couldn't be saved to your account, so the data in this browser has been kept. Sign in again with the same account to combine it with your account.",
       'account.linkPrompt': '{email} is already registered with another sign-in method. Sign in with that method to link {provider} to it.',
       'account.linked': 'Linked {provider}. You can now sign in with it too.',
       'account.linkFailed': 'Signed in, but could not link {provider}.',

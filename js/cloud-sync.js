@@ -33,7 +33,8 @@ const box = document.getElementById('accountBox');
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 const APP_ID = 'visualcube-editor'; // users/{uid}/apps/<APP_ID> に保存する
 const SYNCED_KEY = 'visualcube-editor:synced-uid'; // この端末でクラウドと合わせたことのあるアカウント
-const SESSION_KEY = 'visualcube-editor:session'; // 'in'：ログインしたまま / 'out'：ログアウトの状態だった（次のログインは新しいログイン）
+const SESSION_KEY = 'visualcube-editor:session'; // 'in'：ログインしたまま / 'out'：ログアウトの状態だった（次のログインは新しいログイン） /
+// 'kept'：保存できずにデータを残してログアウトした（次に同じアカウントで入ると合わせる）
 const NOTICE_KEY = 'visualcube-editor:login-notice'; // 読み直したあとに知らせる文のキー（sessionStorage。ログイン前のデータを捨てた・ログアウトして消した）
 const LOGOUT_KEY = 'visualcube-editor:signed-out-at'; // ログアウトでこのブラウザのデータを消したこと（ほかのタブが storage イベントで読み直す）
 const PUSH_DELAY = 1500;
@@ -168,8 +169,6 @@ async function main() {
     return Store.fromCloud(main, logs);
   }
 
-  // 手元にデータが無い（言語だけ。ほかのタブのログアウトで消した直後など）か。そのときはクラウドに書かない（アカウントを空で上書きしないように）
-  const blank = (snap) => !Object.keys(snap.data).some((name) => name !== 'lang');
   // 手元をクラウドに書く。書く前に本体を読み、最後に書いた（読んだ）ものと違えば、同じアカウントの別の端末が書いているので、
   // クラウドを読んで手元と合わせてから（Store.merge。練習の記録は両方、設定などは新しい方）書く（別の端末の記録を上書きしないように）
   // 同時に 2 つ走らないように順番に（ページを離れるときの書き込みと、まとめて書く書き込みが重なったときなど）
@@ -180,7 +179,9 @@ async function main() {
     return run;
   }
   async function syncOnce() {
-    if (blank(Store.snapshot())) return null;
+    // 手元が言語だけなら書かない。ログイン中にそうなるのは、ほかのタブでログアウトしてデータを消した直後だけ
+    // （習得状況を全部戻しても、記録を全部消しても名前は残る）。そのままアカウントを空で上書きしないように
+    if (!Object.keys(Store.snapshot().data).some((name) => name !== 'lang')) return null;
     const got = await dbSdk.getDoc(docRef());
     const now = got.exists() ? got.data().json : null;
     let snap = Store.snapshot();
@@ -218,14 +219,17 @@ async function main() {
     }
   });
 
-  // reload：手元の内容が変わったら読み直す（ログアウトの前にやり直すときは読み直さない）
+  // ログインの同期。できたら true、失敗したら false（ready は false のまま）。
+  // options.reload が false なら、手元が変わっても読み直さない（ログアウトの前のやり直し）
   let loginSyncing = false;
   async function syncOnLogin(options) {
-    const reload = !(options && options.reload === false);
+    const reload = !options || options.reload !== false;
+    const me = user;
     loginSyncing = true;
     setStatus('syncing');
     try {
       const remote = await read();
+      if (user !== me) return false; // 読んでいるあいだにログアウトした
       const local = Store.snapshot();
       // 新しいログインなら、アカウントの内容で上書きする（アカウントが空なら手元を入れる）。store.js の resolveLogin
       const who = { owner: readLocal(SYNCED_KEY), uid: user.uid, fresh: readLocal(SESSION_KEY) === 'out' };
@@ -240,13 +244,15 @@ async function main() {
       if (partial) fail(partial);
       else setStatus('synced');
       if (discarded) setNotice('account.localReplaced');
-      if (!localChanged) showNotice();
+      if (!localChanged || !reload) showNotice();
       if (localChanged && reload) {
         if (signInDone) await signInDone; // ログインの処理（Facebook の写真の保存）が終わってから
         location.reload(); // クラウドの内容を画面に反映する
       }
+      return true;
     } catch (e) {
       fail(e);
+      return false;
     } finally {
       loginSyncing = false;
     }
@@ -304,11 +310,12 @@ async function main() {
   }
 
   // ログアウト：まだクラウドに書いていない変更を書いてからログアウトし、このブラウザのデータを消す（言語だけ残す）。
-  // 書けなかったら（オフライン）ログアウトせずに知らせる（消すと失うため）
-  // ページを開いたときのログインの同期が失敗していたら（ready が false のまま）、まずやり直す。
-  // やり直しても失敗したら、ログアウトはするが、このブラウザのデータは消さずに残す（移植元はここでログアウトせずに止まり、
-  // 同期をやり直さないので、ページを読み直すまでログアウトできなかった）。次に同じアカウントでログインしたときは、手元と合わせる（SESSION_KEY 'kept'）
+  // 書けなかったら（オフライン）ログアウトせずに知らせる（消すと失うため）。ログインの同期の途中も同じ。
+  // ページを開いたときの同期が失敗していたら、まずやり直す。やり直しても失敗したら（原因が続くもの。上限を超えた文書など）、
+  // ログアウトはするが、このブラウザのデータは消さずに残す（SESSION_KEY を 'kept'。次に同じアカウントで入ると合わせる）
   let signingOut = false;
+  const withTimeout = (p) =>
+    Promise.race([p, new Promise((resolve, reject) => setTimeout(() => reject(new Error('timeout')), 15000))]);
   async function signOutNow() {
     if (signingOut) return;
     message = null;
@@ -322,14 +329,18 @@ async function main() {
     }
     signingOut = true;
     if (!ready) {
-      await syncOnLogin({ reload: false });
-      if (!ready) {
+      let ok = false;
+      try {
+        ok = await withTimeout(syncOnLogin({ reload: false }));
+      } catch (e) {
+        ok = false; // 15 秒で返ってこない（オフラインなど）
+      }
+      if (!ok) {
+        ready = false;
+        writeLocal(SESSION_KEY, 'kept'); // onAuthStateChanged(null) より先に（'out' にしないように）
         await authSdk.signOut(auth);
-        writeLocal(SESSION_KEY, 'kept');
         signingOut = false;
-        message = { key: 'account.signedOutKept', ok: true };
-        menuOpen = true;
-        render();
+        toast('account.signedOutKept');
         return;
       }
     }
@@ -337,10 +348,7 @@ async function main() {
     try {
       // 記録を分けて書けないとき（ルールが古い）は本体だけに書けていれば続ける。
       // オフラインだと Firestore の書き込みは返ってこないので、15 秒で書けなかったことにする
-      await Promise.race([
-        sync(),
-        new Promise((resolve, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
-      ]);
+      await withTimeout(sync());
     } catch (e) {
       signingOut = false;
       fail(e);
@@ -358,12 +366,12 @@ async function main() {
   }
   // ほかのタブでログアウトしてデータを消したら、このタブも読み直す（画面のデータを書き戻さないように）
   window.addEventListener('storage', (e) => {
-    if (e.key !== LOGOUT_KEY || !e.newValue) return;
-    // 読み直すまでのあいだに、消えたあとの手元をクラウドに書かないように、すぐ止める
-    ready = false;
-    clearTimeout(timer);
-    timer = null;
-    location.reload();
+    if (e.key === LOGOUT_KEY && e.newValue) {
+      ready = false; // 読み直すまでのあいだに、空になった手元をクラウドに書かないように
+      clearTimeout(timer);
+      timer = null;
+      location.reload();
+    }
   });
 
   // ログインの処理（Facebook の写真の取得まで）が終わるまでの Promise。
