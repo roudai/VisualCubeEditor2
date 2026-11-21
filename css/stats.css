@@ -1,0 +1,902 @@
+/* 記録のページ（stats.html）。処理は js/stats.js */
+
+/* 種類・範囲・期間の切り替え（練習ページと同じセグメント型） */
+.stats-segment {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 50rem;
+  background-color: #eef0f3;
+}
+.stats-segment button {
+  border: 0;
+  border-radius: 50rem;
+  padding: .2rem .75rem;
+  background: transparent;
+  color: #495057;
+  font-size: .82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.stats-segment button.active {
+  background-color: #fff;
+  color: #212529;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+}
+.stats-segment button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+
+/* 集計のカード */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr; /* 段が分かれても（スマホの 2 列など）、下の小さい字の無いカードも同じ高さにそろえる */
+  gap: .75rem;
+}
+/* 通し：6 枚なので 3 列 × 2 段（スマホは下の 2 列のまま） */
+.stats-cards.full {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 767.98px) {
+  .stats-cards,
+  .stats-cards.full {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.stats-card {
+  padding: .85rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: .85rem;
+  background: #fff;
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .04);
+}
+.stats-card-label {
+  color: #6c757d;
+  font-size: .75rem;
+}
+.stats-card-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+.stats-card-sub {
+  color: #6c757d;
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+}
+/* スマホ（幅 576px 未満）：カードを小さくする。2 列のまま、ラベル（左）と数字（右）を横に並べ、
+   小さい字（ベスト・現在など）は数字の下に右寄せ。余白・角も詰める */
+@media (max-width: 575.98px) {
+  .stats-cards {
+    gap: .5rem;
+  }
+  .stats-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto; /* 狭い画面ではラベルの方を折り返し、数字は 1 行のまま */
+    align-content: center;
+    align-items: baseline;
+    column-gap: .4rem;
+    padding: .4rem .7rem;
+    border-radius: .7rem;
+  }
+  .stats-card-label {
+    font-size: .7rem;
+    line-height: 1.2;
+  }
+  .stats-card-value {
+    font-size: 1.2rem;
+    line-height: 1.25;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .stats-card-sub {
+    grid-column: 1 / -1;
+    font-size: .68rem;
+    text-align: right;
+  }
+}
+
+/* パネル（グラフ・表） */
+.stats-panel {
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 1rem;
+  background: #fff;
+}
+.stats-title {
+  margin: 0 0 .5rem;
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+/* タイムの推移（横軸＝1回ごとの記録。点＝1回のタイム、線＝ao5・ao12） */
+.stats-chart {
+  position: relative;
+}
+.stats-chart-empty {
+  margin: 2rem 0;
+  text-align: center;
+}
+.stats-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y; /* 縦のスクロールはそのまま、横になぞると値を出す */
+}
+.stats-grid {
+  stroke: #eef0f3;
+  stroke-width: 1;
+}
+.stats-axis {
+  fill: #adb5bd;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.stats-single {
+  fill: #ced4da;
+}
+.stats-single.learned {
+  fill: #8fd1b0;
+}
+.stats-single.learning {
+  fill: #f5cf74;
+}
+.stats-dnf {
+  stroke: #e35d6a;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+.stats-avg-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.stats-avg-line.ao5 {
+  stroke: #0d6efd;
+}
+.stats-avg-line.ao12 {
+  stroke: #6f42c1;
+  stroke-width: 2.4;
+}
+.stats-time-line {
+  fill: none;
+  stroke: #0d6efd;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  opacity: .55;
+}
+.stats-target {
+  stroke: #198754;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  opacity: .7;
+}
+/* タイムの分布（棒＝区間ごとの回数。右の端の「〜以上」の棒は薄く） */
+.stats-bar {
+  fill: #0d6efd;
+  opacity: .55;
+  transition: opacity .1s ease;
+}
+.stats-bar.fast {
+  fill: #198754; /* 目安以内（目安の破線と同じ緑） */
+}
+.stats-bar.over {
+  opacity: .3;
+}
+.stats-bar.active {
+  opacity: .9;
+}
+.stats-cursor {
+  stroke: #adb5bd;
+  stroke-width: 1;
+}
+.stats-tip {
+  position: absolute;
+  z-index: 1;
+  min-width: 9rem;
+  padding: .4rem .6rem;
+  border: 1px solid #e9ecef;
+  border-radius: .5rem;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.stats-tip-head {
+  color: #6c757d;
+}
+.stats-tip-case {
+  font-weight: 600;
+}
+.stats-tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.stats-tip-label {
+  color: #6c757d;
+}
+.stats-tip-label.ao5 {
+  color: #0d6efd;
+}
+.stats-tip-label.ao12 {
+  color: #6f42c1;
+}
+.stats-tip-value {
+  font-weight: 600;
+}
+/* 推移のグラフの窓（記録が多いとき。js/stats.js の renderChart）：横にドラッグ・スワイプで動かす。縦のスクロールは邪魔しない */
+.stats-svg.paged {
+  touch-action: pan-y;
+  cursor: grab;
+}
+.stats-svg.paged.dragging {
+  cursor: grabbing;
+}
+/* ‹ 1701–2000 回目 / 2000 › と、全体のうち今の位置を示す細い帯、最新 */
+.stats-trend-nav {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .3rem;
+  color: #6c757d;
+  font-size: .75rem;
+  font-variant-numeric: tabular-nums;
+}
+.stats-trend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0 .1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 50%;
+  background: #fff;
+  color: #495057;
+  font-size: 1rem;
+  line-height: 1;
+}
+.stats-trend-btn:hover:not(:disabled) {
+  background: #f1f3f5;
+}
+.stats-trend-btn:disabled {
+  opacity: .35;
+}
+.stats-trend-range {
+  white-space: nowrap;
+}
+.stats-trend-track {
+  position: relative;
+  flex: 1 1 4rem;
+  min-width: 2rem;
+  height: 4px;
+  margin: 0 .25rem;
+  border-radius: 999px;
+  background: #e9ecef;
+  cursor: grab;
+  touch-action: none; /* 帯の上で指を横に動かしたら、ページではなく窓を動かす */
+}
+/* 掴める範囲：見た目の 4px の線の上下に広げる */
+.stats-trend-track::before {
+  content: "";
+  position: absolute;
+  inset: -10px 0;
+}
+.stats-trend-track:focus {
+  outline: none;
+}
+.stats-trend-track:focus-visible {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.stats-trend-track.dragging {
+  cursor: grabbing;
+}
+.stats-trend-thumb {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: #adb5bd;
+  transition: top .15s ease, bottom .15s ease, background-color .15s ease;
+}
+/* 触れている・掴んでいる間は、つまみを少し太く・濃く */
+.stats-trend-track:hover .stats-trend-thumb,
+.stats-trend-track.dragging .stats-trend-thumb,
+.stats-trend-track:focus-visible .stats-trend-thumb {
+  top: -2px;
+  bottom: -2px;
+  background: #6c757d;
+}
+.stats-trend-latest {
+  padding: .1rem .5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 999px;
+  background: #fff;
+  color: #495057;
+  font-size: .75rem;
+  white-space: nowrap;
+}
+.stats-trend-latest:hover {
+  background: #f1f3f5;
+}
+.stats-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1rem;
+  margin-top: .25rem;
+  color: #6c757d;
+  font-size: .75rem;
+}
+.stats-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.stats-legend-mark {
+  display: inline-block;
+}
+.stats-legend-mark.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ced4da;
+}
+.stats-legend-mark.dot.learned {
+  background: #8fd1b0;
+}
+.stats-legend-mark.dot.learning {
+  background: #f5cf74;
+}
+.stats-legend-mark.dnf::before {
+  content: '×';
+  color: #e35d6a;
+  font-weight: 600;
+}
+.stats-legend-mark.line {
+  width: 14px;
+  height: 2px;
+}
+.stats-legend-mark.line.ao5 {
+  background: #0d6efd;
+}
+.stats-legend-mark.line.ao12 {
+  background: #6f42c1;
+}
+.stats-legend-mark.line.time {
+  background: #0d6efd;
+  opacity: .55;
+}
+.stats-legend-mark.bar {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #0d6efd;
+  opacity: .55;
+}
+.stats-legend-mark.bar.fast {
+  background: #198754;
+}
+.stats-legend-mark.target {
+  width: 14px;
+  border-top: 1px dashed #198754;
+}
+
+/* ケースごとの表 */
+.stats-table th {
+  color: #6c757d;
+  font-size: .75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.stats-table td {
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+.stats-sort {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.stats-sort:hover {
+  color: #212529;
+}
+.stats-sort-mark {
+  font-size: .65rem;
+}
+.stats-img {
+  width: 48px;
+}
+.stats-img .case-image svg {
+  display: block;
+}
+.stats-case {
+  font-weight: 600;
+  text-decoration: none;
+}
+.stats-status {
+  display: inline-block;
+  padding: .05rem .5rem;
+  border-radius: 50rem;
+  font-size: .72rem;
+  background: #f1f3f5;
+  color: #6c757d;
+}
+.stats-status.learning {
+  background: rgba(240, 173, 0, .16);
+  color: #7a5a00;
+}
+.stats-hint {
+  margin-left: .35rem;
+  color: #adb5bd;
+  font-size: .72rem;
+}
+.stats-status.learned {
+  background: rgba(25, 135, 84, .12);
+  color: #146c43;
+}
+
+/* 通しの記録の一覧：スクランブルは押すと開く */
+.stats-scramble-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0d6efd;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.stats-scramble-toggle::before {
+  content: '▸ ';
+}
+.stats-scramble-toggle[aria-expanded="true"]::before {
+  content: '▾ ';
+}
+/* 開いたスクランブルは、その行のすぐ下に表の幅いっぱいで出す（列の幅を変えない） */
+.stats-scramble-wrap {
+  width: 0;
+  min-width: 100%;
+  overflow-x: auto; /* 表より長いときはこの中だけ横にスクロール */
+}
+.stats-scramble-row > td {
+  padding-top: 0;
+  background: #fafbfc;
+}
+.stats-scramble-text {
+  width: fit-content;
+  margin-top: .25rem;
+  font-family: var(--bs-font-monospace);
+  font-size: .72rem;
+  white-space: pre-line;
+  color: #495057;
+}
+
+/* ケースごとの表の並び（苦手順 / グループ順 / 覚える順） */
+.stats-sort-bar {
+  margin: .25rem 0 .5rem;
+}
+.stats-sort-bar[hidden] {
+  display: none;
+}
+/* 最近（直近 10 回の平均）：解けなかった回の数を小さく添える。回数が少ないときは薄く */
+.stats-recent {
+  white-space: nowrap;
+}
+.stats-recent-dnf {
+  margin-left: .35rem;
+  color: #dc3545;
+  font-size: .72rem;
+}
+.stats-few {
+  opacity: .45;
+}
+
+/* 記録の一覧のページ送り */
+.stats-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-top: .75rem;
+  font-size: .82rem;
+}
+.stats-pager[hidden] {
+  display: none;
+}
+.stats-pager-info {
+  color: #6c757d;
+  font-variant-numeric: tabular-nums;
+}
+.stats-pager-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem;
+}
+.stats-page {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 .55rem;
+  border: 1px solid #dee2e6;
+  border-radius: .5rem;
+  background: #fff;
+  color: #495057;
+  font-variant-numeric: tabular-nums;
+}
+.stats-page:hover:not(:disabled):not(.active) {
+  background: #f1f3f5;
+}
+.stats-page.active {
+  border-color: #0d6efd;
+  background: #0d6efd;
+  color: #fff;
+}
+.stats-page:disabled {
+  opacity: .4;
+}
+.stats-page:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.stats-page-gap {
+  padding: 0 .15rem;
+  color: #adb5bd;
+}
+
+/* 通しの記録の削除 */
+.stats-delete-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  min-height: 34px;
+  margin: .25rem 0 .5rem;
+  font-size: .82rem;
+}
+.stats-delete-confirm {
+  color: #b02a37;
+  font-weight: 500;
+}
+.stats-delete-message {
+  color: #6c757d;
+}
+.stats-delete-all {
+  order: 1; /* 削除のメッセージより後ろ（右端）に置く */
+  margin-left: auto;
+  padding: 0;
+  color: #6c757d; /* 普段は赤くしない（赤は確認のあとの「すべて削除する」だけ） */
+  font-size: .82rem;
+  text-decoration: none;
+}
+.stats-delete-all:hover,
+.stats-delete-all:focus-visible {
+  color: #212529;
+  text-decoration: underline;
+}
+.stats-undo {
+  font-size: .82rem;
+  text-decoration: none;
+}
+.stats-check {
+  width: 2rem;
+}
+.stats-check .form-check-input {
+  margin: 0;
+  cursor: pointer;
+}
+.stats-row-delete {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #adb5bd;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.stats-row-delete:hover,
+.stats-row-delete:focus-visible {
+  outline: none;
+  background: rgba(0, 0, 0, .06);
+  color: #212529;
+}
+
+/* 通しの記録の一覧：日時・タイム・平均・削除の列は中身の幅だけにする（残りの幅はスクランブルの列へ） */
+.stats-table .stats-shrink {
+  width: 1%;
+  padding-right: 2.25rem;
+  white-space: nowrap;
+}
+/* スマホでは横にはみ出さないよう少し詰める */
+@media (max-width: 575.98px) {
+  .stats-table .stats-shrink {
+    padding-right: 1rem;
+  }
+}
+.stats-table .stats-shrink:last-child {
+  padding-right: .25rem;
+}
+
+/* ---- 通しの記録の一覧：スマホでは横にスクロールしないよう、1件を2段にまとめる ----
+   1段目：チェック・タイム（大きく）・見る・×   2段目：日時・ao5・ao12（小さく）
+   見出しの行は隠し、「すべて選ぶ」は削除のバーに出す */
+.stats-select-all-mobile {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  .stats-select-all-mobile {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-right: .25rem;
+    color: #6c757d;
+  }
+  .stats-table.stats-full-table thead {
+    display: none;
+  }
+  .stats-table.stats-full-table,
+  .stats-table.stats-full-table tbody {
+    display: block;
+    width: 100%;
+  }
+  /* 1件を2段のグリッドにする
+     列：チェック | 日時 | ao5 | ao12（残りの幅） | 見る | ×
+     1段目：チェック・タイム（日時〜ao12 の列にまたがる）・見る・×
+     2段目：      ・日時・ao5・ao12 */
+  .stats-table.stats-full-table tbody tr:not(.stats-scramble-row) {
+    display: grid;
+    /* ao12 の列は残りの幅（足りなければ省略）にして、狭い画面でも横にはみ出さないようにする */
+    grid-template-columns: 1.6rem auto minmax(0, auto) minmax(0, 1fr) auto auto;
+    column-gap: .45rem;
+    align-items: center;
+    padding: .45rem .25rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .stats-table.stats-full-table tbody tr > td,
+  .stats-table.stats-full-table tbody tr > td.stats-shrink:last-child {
+    border: 0;
+    padding: 0;
+    width: auto;
+    background: transparent;
+    box-shadow: none; /* 選んだ行の色をセルごとではなく行全体に付ける */
+  }
+  .stats-table.stats-full-table .cell-check {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  .stats-table.stats-full-table .cell-time {
+    grid-column: 2 / 5;
+    grid-row: 1;
+    text-align: left !important;
+    font-size: 1.05rem;
+  }
+  .stats-table.stats-full-table .cell-toggle {
+    grid-column: 5;
+    grid-row: 1;
+  }
+  .stats-table.stats-full-table .cell-del {
+    grid-column: 6;
+    grid-row: 1 / 3;
+  }
+  .stats-table.stats-full-table .cell-date,
+  .stats-table.stats-full-table .cell-avg {
+    grid-row: 2;
+    font-size: .75rem;
+    color: #6c757d;
+    text-align: left !important;
+  }
+  .stats-table.stats-full-table .cell-date {
+    grid-column: 2;
+  }
+  .stats-table.stats-full-table .cell-avg[data-label="ao5"] {
+    grid-column: 3;
+  }
+  /* ao12 は 1 段目の「見る」の下まで使う（「1:…」と切れないように） */
+  .stats-table.stats-full-table .cell-avg[data-label="ao12"] {
+    grid-column: 4 / 6;
+  }
+  .stats-table.stats-full-table .cell-avg {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stats-table.stats-full-table .cell-avg::before {
+    content: attr(data-label) ' ';
+    color: #adb5bd;
+  }
+  .stats-table.stats-full-table tbody tr.table-active {
+    background-color: rgba(13, 110, 253, .06);
+  }
+  .stats-table.stats-full-table .stats-scramble-row {
+    display: block;
+  }
+  .stats-table.stats-full-table .stats-scramble-row > td {
+    display: block;
+    padding: .25rem .25rem .5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+  /* スクランブル（1 行約 41 文字・折り返さない）を、狭いスマホでも横にスクロールせずに読める大きさにする */
+  .stats-table.stats-full-table .stats-scramble-text {
+    font-size: min(.72rem, 2.6vw);
+  }
+}
+
+/* ---- PLL・OLL・COLL・ZBLL の記録の一覧：スマホでは 2 段にまとめる（ソルブの一覧と同じ形）----
+   1段目：チェック・ケース・タイム（大きく）・判定・×   2段目：日時（小さく） */
+@media (max-width: 575.98px) {
+  .stats-table.stats-caselog-table thead {
+    display: none;
+  }
+  .stats-table.stats-caselog-table,
+  .stats-table.stats-caselog-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .stats-table.stats-caselog-table tbody tr {
+    display: grid;
+    grid-template-columns: 1.6rem auto minmax(0, 1fr) auto auto;
+    column-gap: .5rem;
+    align-items: center;
+    padding: .45rem .25rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .stats-table.stats-caselog-table tbody tr > td,
+  .stats-table.stats-caselog-table tbody tr > td.stats-shrink:last-child {
+    border: 0;
+    padding: 0;
+    width: auto;
+    background: transparent;
+    box-shadow: none;
+  }
+  .stats-table.stats-caselog-table .cell-check {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  .stats-table.stats-caselog-table .cell-case {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .stats-table.stats-caselog-table .cell-time {
+    grid-column: 3;
+    grid-row: 1;
+    text-align: left !important;
+    font-size: 1.05rem;
+  }
+  .stats-table.stats-caselog-table .cell-verdict {
+    grid-column: 4;
+    grid-row: 1 / 3;
+    white-space: nowrap;
+  }
+  .stats-table.stats-caselog-table .cell-del {
+    grid-column: 5;
+    grid-row: 1 / 3;
+  }
+  .stats-table.stats-caselog-table .cell-date {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    font-size: .75rem;
+  }
+  .stats-table.stats-caselog-table tbody tr.table-active {
+    background-color: rgba(13, 110, 253, .06);
+  }
+}
+
+/* ---- ケースごとの表：スマホ（幅 576px 未満）では横にスクロールしないよう、1 ケースを 2 段にまとめる ----
+   1段目：画像・ケース・習得状況・最近（右）   2段目：回数・ベスト・平均・最終（小さい字の 1 行。cell-meta）
+   見出しの行は隠す（並べ替えは表の上の苦手順 / グループ順 / 覚える順） */
+.stats-table .cell-meta {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  .stats-table .stats-col-group {
+    display: none;
+  }
+  .stats-table .stats-status {
+    white-space: nowrap;
+  }
+  .stats-img {
+    width: 36px;
+  }
+  .stats-img .case-image svg {
+    width: 32px;
+    height: 32px;
+  }
+  .stats-table.stats-case-table thead {
+    display: none;
+  }
+  .stats-table.stats-case-table,
+  .stats-table.stats-case-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .stats-table.stats-case-table tbody tr {
+    display: grid;
+    /* 列：画像 | ケース | 習得状況（残りの幅） | 最近・最終（右） */
+    grid-template-columns: 36px auto minmax(0, 1fr) auto;
+    column-gap: .6rem;
+    row-gap: .1rem;
+    align-items: center;
+    padding: .45rem .25rem;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .stats-table.stats-case-table tbody tr > td {
+    border: 0;
+    padding: 0;
+    width: auto;
+    background: transparent;
+  }
+  .stats-table.stats-case-table .stats-img {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  .stats-table.stats-case-table .cell-name {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .stats-table.stats-case-table .cell-status {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .stats-table.stats-case-table .cell-recent {
+    grid-column: 4;
+    grid-row: 1;
+    font-size: 1rem;
+    text-align: right;
+  }
+  .stats-table.stats-case-table .cell-wide {
+    display: none;
+  }
+  .stats-table.stats-case-table .cell-meta {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: .75rem;
+    grid-column: 2 / 5;
+    grid-row: 2;
+    font-size: .75rem;
+    color: #495057;
+  }
+  /* 最後に練習した日は 2 段目の右端 */
+  .stats-meta-date {
+    margin-left: auto;
+    color: #adb5bd;
+  }
+  .stats-meta-item {
+    white-space: nowrap;
+  }
+  .stats-meta-label {
+    color: #adb5bd;
+  }
+}
+
+/* 種類・期間の切り替え。広い画面は見出しの横に 1 つの箱。
+   スマホ（幅 576px 未満）は「練習 記録 [PLL OLL COLL ZBLL ソルブ]」の 1 行と、期間の 1 行の 2 行にまとめる
+   （日本語は 360px でも 1 行目に収まる。英語は 390px なら 1 行、360px では種類が次の行に回る。見出しとの間隔は css/common.css の .page-head） */
+.stats-controls-break {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  .stats-head {
+    row-gap: .5rem !important;
+  }
+  .stats-head .stats-controls {
+    display: contents !important;
+  }
+  .stats-controls-break {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
+  }
+  .stats-head .stats-segment button {
+    padding-left: .55rem;
+    padding-right: .55rem;
+  }
+}

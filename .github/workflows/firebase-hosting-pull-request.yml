@@ -1,0 +1,28 @@
+# プルリクエストごとに、Firebase Hosting のプレビューチャンネルへテスト用のページを公開する（本番は今までどおり GitHub Pages）。
+#   - 公開する中身・URL の形は firebase.json（.html なしの URL で開ける。data・reference・test・tools は載せない）
+#   - URL はプルリクエストにコメントで付く。push するたびに同じ URL を更新し、7 日で消える
+#   - Megaminx Image Editor と同じ Firebase プロジェクト・同じサイトに公開するので、チャンネル名を vce2-pr<番号> にして重ならないようにする
+#   - 鍵はリポジトリの Secrets の FIREBASE_SERVICE_ACCOUNT_ROUDAINET_CUBE_TOOLS（Firebase のサービスアカウントの鍵。手で登録する）
+#   - フォークからのプルリクエストは Secrets が使えないので動かさない
+# テスト用のページは本番と同じ Firebase プロジェクトにつながり、ログインもできる（同じプロジェクトの Hosting の URL は許可されている）。
+# ログインすると本番のアカウントのデータを読み書きするので、保存の仕方を変えるときは気をつける。ログインしなければブラウザの保存だけで動く
+name: Deploy preview to Firebase Hosting
+on:
+  pull_request:
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+jobs:
+  preview:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ROUDAINET_CUBE_TOOLS }}
+          projectId: roudainet-cube-tools
+          channelId: vce2-pr${{ github.event.pull_request.number }}
+          expires: 7d

@@ -1,0 +1,149 @@
+{
+  "1": {
+    "name": "Ua",
+    "group": "Edges only",
+    "algset": "PLL",
+    "s": "R U' R U R U R U' R' U' R2",
+    "a": "R2 U R U R' U' R' U' R' U R'"
+  },
+  "2": {
+    "name": "Ub",
+    "group": "Edges only",
+    "algset": "PLL",
+    "s": "R2 U R U R' U' R' U' R' U R'",
+    "a": "R U' R U R U R U' R' U' R2"
+  },
+  "3": {
+    "name": "H",
+    "group": "Edges only",
+    "algset": "PLL",
+    "s": "R2 U2 R' U2 R2 U2 R2 U2 R' U2 R2",
+    "a": "M2' U M2' U2 M2' U M2'"
+  },
+  "4": {
+    "name": "Z",
+    "group": "Edges only",
+    "algset": "PLL",
+    "s": "R U R2 U' R' U' R U R' U' R' U R' U R U2",
+    "a": "M' U M'2 U M'2 U M' U2 M'2 U'"
+  },
+  "5": {
+    "name": "Aa",
+    "group": "Corners only",
+    "algset": "PLL",
+    "s": "R2 F2 R' B' R F2 R' B R'",
+    "a": "x' R U' R D2 R' U R D2 R2 x"
+  },
+  "6": {
+    "name": "Ab",
+    "group": "Corners only",
+    "algset": "PLL",
+    "s": "R B' R F2 R' B R F2 R2",
+    "a": "x' R2 D2 R' U' R D2 R' U R' x"
+  },
+  "7": {
+    "name": "E",
+    "group": "Corners only",
+    "algset": "PLL",
+    "s": "F R B R' F' R B' R' F R B' R' F' R B R'",
+    "a": "x' R U' R' D R U R' D' R U R' D R U' R' D' x"
+  },
+  "8": {
+    "name": "T",
+    "group": "Adjacent swap",
+    "algset": "PLL",
+    "s": "F R U' R' U R U R2 F' R U R U' R'",
+    "a": "R U R' U' R' F R2 U' R' U' R U R' F'"
+  },
+  "9": {
+    "name": "F",
+    "group": "Adjacent swap",
+    "algset": "PLL",
+    "s": "R' U' R U' R' U R U R2 F' R U R U' R' F U R",
+    "a": "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R"
+  },
+  "10": {
+    "name": "Ja",
+    "group": "Adjacent swap",
+    "algset": "PLL",
+    "s": "U R' L' U2 R U R' U2 L U' R",
+    "a": "R' U L' U2 R U' R' U2 L R U'"
+  },
+  "11": {
+    "name": "Jb",
+    "group": "Adjacent swap",
+    "algset": "PLL",
+    "s": "U R U R2 F' R U R U' R' F R U' R'",
+    "a": "R U R' F' R U R' U' R' F R2 U' R' U'"
+  },
+  "12": {
+    "name": "Ra",
+    "group": "Adjacent swap",
+    "algset": "PLL",
+    "s": "U R2 F R U R U' R' F' R U2 R' U2 R",
+    "a": "R' U2 R U'2 R' F R U R' U' R' F' R2 U'"
+  },
+  "13": {
+    "name": "Rb",
+    "group": "Adjacent swap",
+    "algset": "PLL",
+    "s": "U R U2 R D R' U R D' R' U' R' U R U R'",
+    "a": "R U' R' U' R U R D R' U' R D' R' U'2 R' U'"
+  },
+  "14": {
+    "name": "Y",
+    "group": "Diagonal swap",
+    "algset": "PLL",
+    "s": "F R' F' R U R U' R' F R U' R' U R U R' F'",
+    "a": "F R U' R' U' R U R' F' R U R' U' R' F R F'"
+  },
+  "15": {
+    "name": "V",
+    "group": "Diagonal swap",
+    "algset": "PLL",
+    "s": "R' B' D R D' R D R2 D' R B R U R' U' R",
+    "a": "R' U R U' R' Fw' U' R U2 R' U' R U' R' Fw R"
+  },
+  "16": {
+    "name": "Na",
+    "group": "Diagonal swap",
+    "algset": "PLL",
+    "s": "R U R' U2 R U R2 F' R U R U' R' F R U' R' U' R U' R'",
+    "a": "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'"
+  },
+  "17": {
+    "name": "Nb",
+    "group": "Diagonal swap",
+    "algset": "PLL",
+    "s": "R' U R' F R F' R U' R' F' U F R U R' U' R",
+    "a": "R' U R U' R' F' U' F R U R' F R' F' R U' R"
+  },
+  "18": {
+    "name": "Ga",
+    "group": "G",
+    "algset": "PLL",
+    "s": "U' R2 U' R U' R U R' U R2 U D' R U' R' D",
+    "a": "D' R U R' U' D R2 U' R U' R' U R' U R2 U"
+  },
+  "19": {
+    "name": "Gb",
+    "group": "G",
+    "algset": "PLL",
+    "s": "D' R U R' U' D R2 U' R U' R' U R' U R2 U",
+    "a": "U' R2' U' R U' R U R' U R2 D' U R U' R' D"
+  },
+  "20": {
+    "name": "Gc",
+    "group": "G",
+    "algset": "PLL",
+    "s": "U R2 U R' U R' U' R U' R2 U' D R' U R D'",
+    "a": "D R' U' R U D' R2 U R' U R U' R U' R2' U'"
+  },
+  "21": {
+    "name": "Gd",
+    "group": "G",
+    "algset": "PLL",
+    "s": "D R' U' R U D' R2 U R' U R U' R U' R2 U'",
+    "a": "U R2 U R' U R' U' R U' R2 D U' R' U R D'"
+  }
+}

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja" data-i18n-title-page="title.privacy">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-yEPZ7jP9S0QKiUQ0m3jjsO4ProIW7wvR9gXkI7JOGa2XVsw53Yke2bsdkBbjmmiX"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="shortcut icon" href="favicon/icon.ico" />
+    <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="favicon/android-chrome-192×192.png" />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LP5F7RVYQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'G-2LP5F7RVYQ')
+    </script>
+    <style>
+      .policy h2 {
+        font-size: 1.05rem;
+        margin-top: 1.75rem;
+      }
+      .policy p,
+      .policy li {
+        font-size: 0.925rem;
+        line-height: 1.75;
+      }
+      .delete-card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.75rem;
+        background: #f8f9fa;
+      }
+    </style>
+    <title>Privacy Policy - VisualCube Editor 3.0</title>
+  </head>
+  <body style="visibility: hidden" onLoad="document.body.style.visibility='visible'">
+    <div class="container pb-5">
+      <nav class="navbar bg-light site-nav">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="/">VisualCube Editor 3.0</a>
+          <!-- 右側：広い画面では 言語・アカウント・ページへのリンク・GitHub を1行に並べる。
+               スマホではアカウントとメニューのボタンだけを出し、言語とリンクはメニューの中に入れる（js/navbar.js） -->
+          <div class="nav-right">
+            <span id="accountBox"></span>
+            <button type="button" class="nav-toggle" id="navToggle" aria-controls="navMenu" aria-expanded="false" data-i18n-aria-label="nav.menu" aria-label="Menu">
+              <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            </button>
+            <div class="nav-menu" id="navMenu">
+              <span id="langSwitch"></span>
+              <a href="/" class="nav-link-item" data-i18n="nav.editor">Editor</a>
+              <a href="/pll" class="nav-link-item" data-i18n="nav.pllList">PLL</a>
+              <a href="/oll" class="nav-link-item" data-i18n="nav.ollList">OLL</a>
+              <a href="/practice" class="nav-link-item" data-i18n="nav.practice">Practice</a>
+              <a href="/stats" class="nav-link-item" data-i18n="nav.stats">Stats</a>
+              <a href="https://github.com/roudai/VisualCubeEditor2" class="nav-link-item nav-github" aria-label="GitHub">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main class="policy mx-auto" style="max-width: 46rem">
+        <!-- 日本語 -->
+        <article lang="ja" data-lang-block="ja">
+          <h1 class="h4 mt-4">プライバシーポリシー</h1>
+          <p class="text-muted small">制定日：2026年11月17日　改定日：2026年11月21日　運営：roudai.net</p>
+          <p>VisualCube Editor 3.0（<a href="https://visualcube.roudai.net/">https://visualcube.roudai.net/</a>。以下「本サイト」）は、ログインして設定や練習の記録などを保存する機能で扱う情報と、アクセス解析で扱う情報について、次のとおり取り扱います。ログインしなくても本サイトは使え、その場合の設定や記録はお使いのブラウザの中だけに保存され、運営者に送られることはありません。</p>
+
+          <h2>1. ログインで受け取る情報</h2>
+          <p>Google・Facebook・GitHub のいずれかでログインすると、そのサービスから次の情報を受け取ります。</p>
+          <ul>
+            <li>名前（表示名）</li>
+            <li>メールアドレス</li>
+            <li>プロフィール写真</li>
+            <li>アカウントを見分けるための ID</li>
+          </ul>
+
+          <h2>2. 保存する情報</h2>
+          <p>ログインしている間、どの端末でも同じ状態で使えるように、次の内容をアカウントに保存します。</p>
+          <ul>
+            <li>配色・画像サイズなどの設定</li>
+            <li>PLL・OLL・COLL・ZBLL の習得状況と一覧の絞り込み</li>
+            <li>保存した自分の手順</li>
+            <li>表示する言語</li>
+            <li>練習の記録（解いたタイム・日時・ケース・判定、ソルブのスクランブルとペナルティ）と練習の設定</li>
+          </ul>
+
+          <h2>3. 使い方</h2>
+          <p>受け取った情報は、ログインの状態の表示（名前・写真・ログイン方法）と、上の内容の保存・読み込みのためだけに使います。広告や分析には使いません（アクセス解析で扱う情報は「6. アクセス解析」のとおりで、ログインで受け取る情報やアカウントに保存した内容とは別です）。</p>
+
+          <h2>4. 保存先と第三者への提供</h2>
+          <p>情報は Google が提供する Firebase（Authentication・Cloud Firestore）に保存します。法令に基づく場合を除き、第三者に提供・販売することはありません。保存した内容は本人だけが読み書きできるように設定しています。</p>
+          <p>ログインのアカウントは、同じ運営者の Megaminx Image Editor と共通です。同じ方法でログインすると、どちらのサイトでも同じアカウントになります。アカウントに保存する内容はサイトごとに別々で、本サイトの内容と Megaminx Image Editor の内容が混ざることはありません。</p>
+
+          <h2>5. ブラウザへの保存</h2>
+          <p>設定・習得状況・練習の記録などはお使いのブラウザ（localStorage）にも保存します。ブラウザのサイトデータを消すと削除されます。ログイン中にログアウトすると、このブラウザに保存した内容は言語の設定を除いて削除されます（アカウントには残ります）。</p>
+          <p>ログイン中は、ページを開いたときの表示をすばやく出すため、ログインしているアカウントの名前・メールアドレス・プロフィール写真の URL・ログイン方法もブラウザに保存します。これはログアウトすると削除されます。</p>
+
+          <h2>6. アクセス解析</h2>
+          <p>本サイトは、利用状況を知るために、すべてのページで Google が提供する Google Analytics を使っています。Google Analytics は Cookie などを使い、開いたページの URL、ブラウザや端末の種類、おおよその地域、IP アドレスなどの情報を集めて Google に送ります。ログインしていない場合も対象です。集めた情報は <a href="https://policies.google.com/privacy?hl=ja">Google のプライバシーポリシー</a>に従って扱われます。</p>
+          <p>ログインで受け取る情報（名前・メールアドレスなど）と、アカウントに保存した内容を、運営者が Google Analytics に送ることはありません。Google Analytics による収集を止めたい場合は、<a href="https://tools.google.com/dlpage/gaoptout?hl=ja">Google アナリティクス オプトアウト アドオン</a>を使うか、ブラウザの設定で Cookie を無効にしてください。</p>
+          <p>本サイトは現在、広告を表示していません。</p>
+
+          <h2 id="delete-ja">7. データの削除</h2>
+          <p>下の「アカウントのデータを削除」から、いつでもご自身で削除できます。アカウントに保存した内容と、ログインに使うアカウントの情報（名前・メールアドレス・写真・ID）がすべて削除され、元に戻すことはできません。お使いのブラウザに保存された内容（習得状況・練習の記録・設定）も一緒に削除するかを選べます。残した場合は、そのブラウザでログインせずに使い続けられ、もう一度ログインするとその内容が新しいアカウントに保存されます。</p>
+          <p><strong>ログインのアカウントは Megaminx Image Editor と共通のため、削除は両方のサイトに及びます。</strong>本サイトで削除すると、同じアカウントで Megaminx Image Editor に保存した内容も削除され、どちらのサイトにもそのアカウントではログインしていない状態になります。Megaminx Image Editor で削除した場合も同じで、本サイトに保存した内容も削除されます。片方のサイトの内容だけを削除することはできません。</p>
+          <p>削除できない場合は、下の問い合わせ先からご連絡ください。確認のうえ削除します。Facebook の設定画面から本サイトとの連携を解除することもできます。</p>
+
+          <h2>8. お問い合わせ</h2>
+          <p><a href="https://github.com/roudai/VisualCubeEditor2/issues">GitHub の Issues</a> からご連絡ください。</p>
+
+          <h2>9. 改定</h2>
+          <p>内容を変更するときは、このページでお知らせします。</p>
+          <p class="mt-4"><a href="/terms">利用規約</a></p>
+        </article>
+
+        <!-- English -->
+        <article lang="en" data-lang-block="en" hidden>
+          <h1 class="h4 mt-4">Privacy Policy</h1>
+          <p class="text-muted small">Effective: November 17, 2026 · Last updated: November 21, 2026 · Operated by roudai.net</p>
+          <p>This policy explains how VisualCube Editor 3.0 (<a href="https://visualcube.roudai.net/">https://visualcube.roudai.net/</a>, the "site") handles your information when you sign in to save your settings, practice records and more, and the information handled by access analytics. You can use the site without signing in; in that case everything is stored only in your browser and is never sent to us.</p>
+
+          <h2>1. Information we receive when you sign in</h2>
+          <p>When you sign in with Google, Facebook or GitHub, we receive the following from that service:</p>
+          <ul>
+            <li>Your name (display name)</li>
+            <li>Your email address</li>
+            <li>Your profile picture</li>
+            <li>An ID that identifies your account</li>
+          </ul>
+
+          <h2>2. Information we store</h2>
+          <p>While you are signed in, we save the following to your account so you can use the same settings on any device:</p>
+          <ul>
+            <li>Color scheme, image size and other settings</li>
+            <li>Your PLL / OLL / COLL / ZBLL learning progress and list filters</li>
+            <li>Algorithms you saved as your own</li>
+            <li>Your display language</li>
+            <li>Your practice records (solve times, dates, cases and results, plus full-solve scrambles and penalties) and practice settings</li>
+          </ul>
+
+          <h2>3. How we use it</h2>
+          <p>We use this information only to show your sign-in status (name, picture and sign-in method) and to save and load the items above. We do not use it for advertising or analytics. (The information handled by access analytics is described in "6. Access analytics" and is separate from the information we receive when you sign in and the data saved to your account.)</p>
+
+          <h2>4. Where it is stored and sharing</h2>
+          <p>The information is stored in Firebase (Authentication and Cloud Firestore), provided by Google. We do not share or sell it to third parties except as required by law. Your saved data can be read and written only by you.</p>
+          <p>Your sign-in account is shared with Megaminx Image Editor, which is run by the same operator. If you sign in with the same method, you use the same account on both sites. The data saved to your account is kept separately for each site, so the site's data and Megaminx Image Editor's data are never mixed.</p>
+
+          <h2>5. Storage in your browser</h2>
+          <p>Your settings, progress, practice records and so on are also stored in your browser (localStorage). They are removed when you clear the site's data in your browser. When you sign out, what is stored in your browser is removed, except for your language setting; it is still kept in your account.</p>
+          <p>While you are signed in, the name, email address, profile picture URL and sign-in method of your account are also stored in your browser so that pages can show your sign-in status quickly. They are removed when you sign out.</p>
+
+          <h2>6. Access analytics</h2>
+          <p>To understand how the site is used, every page of the site uses Google Analytics, provided by Google. Google Analytics uses cookies and similar technologies to collect information such as the URL of the pages you open, your browser and device type, your approximate location and your IP address, and sends it to Google. This applies even when you are not signed in. The collected information is handled according to <a href="https://policies.google.com/privacy?hl=en">Google's Privacy Policy</a>.</p>
+          <p>We do not send the information we receive when you sign in (such as your name and email address) or the data saved to your account to Google Analytics. To stop collection by Google Analytics, use the <a href="https://tools.google.com/dlpage/gaoptout?hl=en">Google Analytics Opt-out Browser Add-on</a> or disable cookies in your browser settings.</p>
+          <p>The site does not currently show advertisements.</p>
+
+          <h2 id="delete-en">7. Deleting your data</h2>
+          <p>You can delete your data at any time with "Delete my account data" below. Everything saved to your account and your sign-in account information (name, email address, picture and ID) will be permanently deleted. You can choose whether to also delete what is stored in your browser (progress, practice records and settings). If you keep it, you can go on using the site in that browser without signing in, and signing in again will save it to a new account.</p>
+          <p><strong>Because your sign-in account is shared with Megaminx Image Editor, deletion applies to both sites.</strong> If you delete here, the data you saved to the same account on Megaminx Image Editor is deleted as well, and you will no longer be signed in with that account on either site. The same is true if you delete on Megaminx Image Editor: the data you saved on the site is deleted as well. It is not possible to delete the data of only one site.</p>
+          <p>If you cannot delete it yourself, please contact us below and we will delete it after confirmation. You can also remove the site from the apps connected to your Facebook account in Facebook's settings.</p>
+
+          <h2>8. Contact</h2>
+          <p>Please contact us via <a href="https://github.com/roudai/VisualCubeEditor2/issues">GitHub Issues</a>.</p>
+
+          <h2>9. Changes</h2>
+          <p>If we change this policy, we will announce it on this page.</p>
+          <p class="mt-4"><a href="/terms">Terms of Use</a></p>
+        </article>
+
+        <!-- データの削除（js/privacy.js） -->
+        <section id="delete" class="delete-card p-3 mt-4">
+          <h2 class="mt-0" data-i18n="privacy.deleteTitle">Delete my account data</h2>
+          <p id="deleteStatus" class="mb-2"></p>
+          <div id="deleteActions" class="d-flex flex-wrap gap-2"></div>
+          <div id="deleteMessage" class="small mt-2" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+    <script src="js/store.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/legal.js"></script>
+    <script src="js/privacy.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script type="module" src="js/cloud-sync.js"></script>
+  </body>
+</html>

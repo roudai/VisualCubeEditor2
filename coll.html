@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja" data-i18n-title-page="title.collList">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-yEPZ7jP9S0QKiUQ0m3jjsO4ProIW7wvR9gXkI7JOGa2XVsw53Yke2bsdkBbjmmiX"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
+    />
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/cases.css" />
+    <link rel="shortcut icon" href="favicon/icon.ico" />
+    <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="favicon/android-chrome-192×192.png" />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LP5F7RVYQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'G-2LP5F7RVYQ')
+    </script>
+    <title>COLL - VisualCube Editor 3.0</title>
+  </head>
+  <body data-set="coll" style="visibility: hidden" onLoad="document.body.style.visibility='visible'">
+    <div class="container pb-5">
+      <nav class="navbar bg-light site-nav">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="/">VisualCube Editor 3.0</a>
+          <!-- 右側：広い画面では 言語・アカウント・ページへのリンク・GitHub を1行に並べる。
+               スマホではアカウントとメニューのボタンだけを出し、言語とリンクはメニューの中に入れる（js/navbar.js） -->
+          <div class="nav-right">
+            <span id="accountBox"></span>
+            <button type="button" class="nav-toggle" id="navToggle" aria-controls="navMenu" aria-expanded="false" data-i18n-aria-label="nav.menu" aria-label="Menu">
+              <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            </button>
+            <div class="nav-menu" id="navMenu">
+              <span id="langSwitch"></span>
+              <a href="/" class="nav-link-item" data-i18n="nav.editor">Editor</a>
+              <a href="/pll" class="nav-link-item" data-i18n="nav.pllList">PLL</a>
+              <a href="/oll" class="nav-link-item" data-i18n="nav.ollList">OLL</a>
+              <a href="/practice" class="nav-link-item" data-i18n="nav.practice">Practice</a>
+              <a href="/stats" class="nav-link-item" data-i18n="nav.stats">Stats</a>
+              <a href="https://github.com/roudai/VisualCubeEditor2" class="nav-link-item nav-github" aria-label="GitHub">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <h1 class="h4 mt-3"><span data-i18n="list.collHeading">COLL</span> <small id="caseCount" class="text-muted fs-6"></small></h1>
+      <p class="text-muted small mb-2" data-i18n="list.collIntro">Orient and permute the corners at once, for cases whose edges are already oriented. Click a case to open it in the editor. Click the circle to mark your progress.</p>
+      <a id="practiceLink" href="/practice" class="btn btn-primary btn-sm mb-2 me-1" data-i18n="practice.listButton" data-i18n-title="practice.listButtonTitle">Practice</a>
+      <button id="downloadZip" type="button" class="btn btn-outline-secondary btn-sm mb-2 d-none d-md-inline-block" title="40 cases as PNG, with the colors shown here and the image settings saved in the editor">Download ZIP</button>
+      <!-- ZIP でダウンロードの確認（押してすぐにはダウンロードしない。js/cases.js の renderZipConfirm） -->
+      <div id="zipConfirm" class="zip-confirm d-none d-md-flex" hidden></div>
+      <div id="progressBox"></div>
+      <div id="groupNav" class="mb-1"></div>
+      <div id="caseList"></div>
+    </div>
+    <script src="js/store.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="library/srVisualizer.min.js"></script>
+    <script src="js/cube-state.js"></script>
+    <script src="js/cube-draw.js"></script>
+    <script src="js/coll-data.js"></script>
+    <script src="js/coll-groups.js"></script>
+    <script src="js/case-sections.js"></script>
+    <script src="js/case-check.js"></script>
+    <script src="js/custom-algs.js"></script>
+    <script src="js/zip-store.js"></script>
+    <script src="js/progress.js"></script>
+    <script src="js/cases.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script type="module" src="js/cloud-sync.js"></script>
+  </body>
+</html>
