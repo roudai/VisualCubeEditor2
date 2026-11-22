@@ -99,11 +99,6 @@
           <div id="visualcube"></div>
           {{ algorithm }}
         </div>
-        <!-- ダウンロード：画像のすぐ下に置く（Megaminx Image Editor と同じ。ファイル名の欄は下の設定の中） -->
-        <div class="text-center mb-3">
-          <button class="btn btn-outline-secondary" type="button" id="downloadImage" @click="downloadImage">{{ t('editor.download') }}</button>
-        </div>
-
         <p>
           <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">{{ t('editor.showParameter') }}</button>
         </p>
@@ -111,10 +106,23 @@
           <div class="card card-body">{{ parameter }}</div>
         </div>
 
-        <!-- File Name（ダウンロードのボタンは画像のすぐ下） -->
-        <div class="mb-2">
-          <label class="form-label" for="fileName">{{ t('editor.fileName') }}</label>
-          <input type="text" class="form-control" id="fileName" v-model="fileName" autocomplete="off" spellcheck="false" />
+        <!-- File Name の横にダウンロード（設定を決めてから押す並び）。広い画面（md 以上）ではファイル名と画像サイズを横に並べる -->
+        <div class="row g-2 mb-2">
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="fileName">{{ t('editor.fileName') }}</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="fileName" v-model="fileName" autocomplete="off" spellcheck="false" />
+              <button class="btn btn-outline-secondary" type="button" id="downloadImage" @click="downloadImage">{{ t('editor.download') }}</button>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="imageSize">{{ t('editor.imageSize') }}</label>
+            <!-- Megaminx Image Editor と同じ数値の入力欄。確定（Enter・欄を離れる・↑↓）で反映する（js/main.js の onImageSizeChange）。「リセット」で 128 に戻す -->
+            <div class="input-group">
+              <input type="number" class="form-control" id="imageSize" :min="imageMin" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
+              <button class="btn btn-outline-secondary" type="button" id="imageSizeReset" @click="resetSize">{{ t('common.reset') }}</button>
+            </div>
+          </div>
         </div>
 
         <!-- Puzzle Type -->
@@ -124,16 +132,6 @@
             <input type="text" inputmode="numeric" pattern="\d*" maxlength="2" class="form-control" id="cubeSize" v-model.number="cubeSize" />
             <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)">-</button>
             <button class="btn btn-outline-secondary" type="button" @click="cubeSize = incrementNumber(cubeSize,17,1)">+</button>
-          </div>
-        </div>
-
-        <!-- Size of generated image -->
-        <div class="mb-2">
-          <label class="form-label" for="imageSize">{{ t('editor.imageSize') }}</label>
-          <!-- Megaminx Image Editor と同じ数値の入力欄。確定（Enter・欄を離れる・↑↓）で反映する（js/main.js の onImageSizeChange）。「リセット」で 128 に戻す -->
-          <div class="input-group">
-            <input type="number" class="form-control" id="imageSize" :min="imageMin" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
-            <button class="btn btn-outline-secondary" type="button" id="imageSizeReset" @click="resetSize">{{ t('common.reset') }}</button>
           </div>
         </div>
 
@@ -164,42 +162,44 @@
             <option value="alg">{{ t('editor.typeAlg') }}</option>
             <option value="state" :disabled="algorithmDisabled">{{ t('editor.typeState') }}</option>
           </select>
-          <!-- PLL のケースを選ぶ（Group → Case、Prev / Next）。選ぶと 3x3・Plan 表示になる -->
-          <!-- 見えるラベル（PLL / OLL）は置かない（プルダウンの初期表示「-- PLL --」「-- OLL --」がラベルを兼ねる。読み上げの名前は各プルダウンの aria-label） -->
-          <div class="row g-2 mb-2 align-items-center" v-for="set in caseSets" :key="set.key" v-show="!showFacelets">
-            <div class="col-12 col-md-5">
-              <select class="form-select" :id="set.key + 'Group'" :aria-label="t('editor.groupAria', { set: set.label })" @change="onCaseGroupChange(set.key, $event.target.value)">
-                <option value="" :selected="!caseSel[set.key].group">-- {{ set.label }} --</option>
-                <option v-for="g in caseGroups(set.key)" :key="g.value" :value="g.value" :selected="g.value === caseSel[set.key].group">{{ g.label }}</option>
-              </select>
-            </div>
-            <div class="col-12 col-md-3">
-              <select class="form-select" :id="set.key + 'Case'" :aria-label="t('editor.caseAria', { set: set.label })" :disabled="!caseSel[set.key].group" @change="onCaseChange(set.key, $event.target.value)">
-                <option v-for="c in casesInGroup(set.key)" :key="c.name" :value="c.name" :selected="c.name === caseSel[set.key].name">{{ c.name }}</option>
-              </select>
-            </div>
-            <div class="col-12 col-md-auto">
-              <div class="btn-group" role="group" :aria-label="t('editor.navAria', { set: set.label })">
-                <button class="btn btn-outline-secondary" type="button" :id="set.key + 'Prev'" @click="stepCase(set.key, -1)">{{ t('common.prev') }}</button>
-                <button class="btn btn-outline-secondary" type="button" :id="set.key + 'Next'" @click="stepCase(set.key, 1)">{{ t('common.next') }}</button>
+          <!-- PLL・OLL・COLL のケースを選ぶ。[PLL | OLL] の切り替えで種類を選び、その種類のグループ（OLL は OLL / COLL のグループ）とケースだけを出す
+               （js/editor-cases.js の caseTab。選ぶと 3x3・Plan 表示になる）。広い画面は 1 行、スマホは「切り替え・グループ」「ケース・前へ・次へ」の 2 行。
+               グループのプルダウンの初期表示「-- PLL --」「-- OLL --」がラベルを兼ねる（読み上げの名前は aria-label） -->
+          <div class="row g-2 mb-2 align-items-center" v-show="!showFacelets">
+            <div class="col-auto">
+              <div class="btn-group" role="group" :aria-label="t('editor.setAria')">
+                <input type="radio" class="btn-check" name="caseTab" id="caseTabPll" value="pll" autocomplete="off" v-model="caseTab" />
+                <label class="btn btn-outline-secondary" for="caseTabPll">PLL</label>
+                <input type="radio" class="btn-check" name="caseTab" id="caseTabOll" value="oll" autocomplete="off" v-model="caseTab" />
+                <label class="btn btn-outline-secondary" for="caseTabOll">OLL</label>
               </div>
             </div>
-          </div>
-          <!-- OLL・COLL のケースを選ぶ：1つ目で種類（OLL / COLL のグループ）、2つ目でケース（OLL は番号順 1〜57）。js/editor-cases.js -->
-          <div class="row g-2 mb-2 align-items-center" v-show="!showFacelets">
-            <div class="col-12 col-md-5">
-              <select class="form-select" id="ollGroup" :aria-label="t('editor.groupAria', { set: 'OLL / COLL' })" @change="onOllKindChange($event.target.value)">
+            <div class="col col-md-4">
+              <select class="form-select" id="pllGroup" v-show="caseTab === 'pll'" :aria-label="t('editor.groupAria', { set: 'PLL' })" @change="onCaseGroupChange('pll', $event.target.value)">
+                <option value="" :selected="!caseSel.pll.group">-- PLL --</option>
+                <option v-for="g in caseGroups('pll')" :key="g.value" :value="g.value" :selected="g.value === caseSel.pll.group">{{ g.label }}</option>
+              </select>
+              <!-- OLL・COLL：1つ目で種類（OLL / COLL のグループ）、2つ目でケース（OLL は番号順 1〜57） -->
+              <select class="form-select" id="ollGroup" v-show="caseTab === 'oll'" :aria-label="t('editor.groupAria', { set: 'OLL / COLL' })" @change="onOllKindChange($event.target.value)">
                 <option value="" :selected="!ollKind">-- OLL --</option>
                 <option v-for="k in ollKinds" :key="k.value" :value="k.value" :selected="k.value === ollKind">{{ k.label }}</option>
               </select>
             </div>
-            <div class="col-12 col-md-3">
-              <select class="form-select" id="ollCase" :aria-label="t('editor.caseAria', { set: 'OLL / COLL' })" :disabled="!ollKind" @change="onOllCaseChange($event.target.value)">
+            <div class="w-100 d-md-none"></div>
+            <div class="col col-md-3">
+              <select class="form-select" id="pllCase" v-show="caseTab === 'pll'" :aria-label="t('editor.caseAria', { set: 'PLL' })" :disabled="!caseSel.pll.group" @change="onCaseChange('pll', $event.target.value)">
+                <option v-for="c in casesInGroup('pll')" :key="c.name" :value="c.name" :selected="c.name === caseSel.pll.name">{{ c.name }}</option>
+              </select>
+              <select class="form-select" id="ollCase" v-show="caseTab === 'oll'" :aria-label="t('editor.caseAria', { set: 'OLL / COLL' })" :disabled="!ollKind" @change="onOllCaseChange($event.target.value)">
                 <option v-for="c in ollKindCases" :key="c.name" :value="c.name" :selected="c.name === ollKindCase">{{ c.name }}</option>
               </select>
             </div>
-            <div class="col-12 col-md-auto">
-              <div class="btn-group" role="group" :aria-label="t('editor.navAria', { set: 'OLL / COLL' })">
+            <div class="col-auto">
+              <div class="btn-group" role="group" v-show="caseTab === 'pll'" :aria-label="t('editor.navAria', { set: 'PLL' })">
+                <button class="btn btn-outline-secondary" type="button" id="pllPrev" @click="stepCase('pll', -1)">{{ t('common.prev') }}</button>
+                <button class="btn btn-outline-secondary" type="button" id="pllNext" @click="stepCase('pll', 1)">{{ t('common.next') }}</button>
+              </div>
+              <div class="btn-group" role="group" v-show="caseTab === 'oll'" :aria-label="t('editor.navAria', { set: 'OLL / COLL' })">
                 <button class="btn btn-outline-secondary" type="button" id="ollPrev" @click="stepOll(-1)">{{ t('common.prev') }}</button>
                 <button class="btn btn-outline-secondary" type="button" id="ollNext" @click="stepOll(1)">{{ t('common.next') }}</button>
               </div>

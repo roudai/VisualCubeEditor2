@@ -66,7 +66,7 @@ roudai.net の COLL（https://roudai.net/oll/coll/ ）に準拠する。
   - 画像は PLL と同じ配色（エディタで保存した配色。OLL 配色のときは OLL を選ぶ前の配色）で、側面のエッジのステッカーをグレー（`#404040`）にする（`Progress.caseColors(c, scheme, 'coll')`）
   - ZIP は `visualcube-coll.zip`（中は `coll-21-1.png` など）
   - ナビバーにはリンクを置かない（ユーザーの回答）。OLL 一覧の説明の下に「COLL（十字完成のケースのコーナーを一度に揃える）›」のリンクを置く（以前は「COLL一覧（…）›」）
-- エディタ：COLL の行は無く、OLL の行で選ぶ（`OLL [COLL H (OLL 21) ▼] [21-2 ▼] [‹ Prev][Next ›]`。1つ目で COLL のグループを選ぶとその最初のケース、2つ目でそのグループのケース）。Prev / Next は COLL 全体をデータの順に送る（21-4 の次は 22-1。1つ目も切り替わる）。URL は `?coll=21-1`（優先順位は `?pll` → `?oll` → `?coll` → `?case` → `?alg`）。ファイル名は `coll-21-1.png`
+- エディタ：COLL の行は無く、[PLL | OLL] の OLL で選ぶ（`[PLL|OLL] [COLL H (OLL 21) ▼] [21-2 ▼] [‹ Prev][Next ›]`。1つ目で COLL のグループを選ぶとその最初のケース、2つ目でそのグループのケース）。Prev / Next は COLL 全体をデータの順に送る（21-4 の次は 22-1。1つ目も切り替わる）。URL は `?coll=21-1`（優先順位は `?pll` → `?oll` → `?coll` → `?case` → `?alg`）。ファイル名は `coll-21-1.png`
   - COLL を選ぶと、配色は PLL を選んだときと同じ扱い（OLL 配色なら OLL を選ぶ前の配色に戻す）にし、Stage Mask を COLL にする
   - COLL 以外を選ぶ・選択を外す・Clear で、COLL で付けた Stage Mask を外す。COLL を選んでいる間に手で Stage Mask を変えたら、それ以降は触らない
   - 自分の手順は PLL・OLL と同じく保存できる（`custom-algs` の `coll`）

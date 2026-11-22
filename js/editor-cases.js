@@ -40,7 +40,7 @@
 
   window.EditorCases = {
     data: () => ({
-      caseSets: [{ key: 'pll', label: 'PLL' }], // グループ → ケースで選ぶ行（OLL・COLL は別の行：ollKinds）
+      caseTab: 'pll', // [PLL | OLL] の切り替え（OLL は OLL・COLL）。切り替えるだけでは選んでいるケースは変えない。保存はしない
       // 選んでいるケース（group が空なら未選択）。ケースそのものは selectedCase で引く
       caseSel: { pll: { group: '', name: '' }, oll: { group: '', name: '' }, coll: { group: '', name: '' } },
       collMaskSet: false, // COLL を選んで Stage Mask を COLL にしたか（外すときに戻すため）
@@ -219,6 +219,7 @@
       // 未選択から選んだときは case にする。選んだまま別のケースに変えたときは種類をそのままにする
       selectCase(key, c) {
         const keepType = this.selectedCase !== null && this.algtype !== 'state';
+        this.caseTab = key === 'pll' ? 'pll' : 'oll'; // 選んだケースの種類に切り替える（URL の ?pll= / ?oll= / ?coll=・前へ・次へも）
         SET_KEYS.forEach((other) => {
           this.caseSel[other] = other === key ? { group: c.group, name: c.name } : { group: '', name: '' };
         });

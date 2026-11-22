@@ -93,7 +93,7 @@ Cube Voyage「OLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
 - 番号とケースの対応をテストで確かめる（移植元には無い）
 
 ## 画面（PLL との違い。共通の内容は `reference/PLL_SPEC.md`「画面」）
-- エディタ：`OLL  [種類 ▼] [Case ▼] [‹ Prev][Next ›]`。PLL の行の下。COLL もこの行で選ぶ（`reference/COLL_SPEC.md`）。同時に選べるのは PLL・OLL・COLL のどれか1つ
+- エディタ：`[PLL|OLL] [種類 ▼] [Case ▼] [‹ Prev][Next ›]`。PLL と同じ行で、[PLL | OLL] の切り替えで OLL を選ぶと出す（reference/PLL_SPEC.md の「画面」）。COLL もこの行で選ぶ（`reference/COLL_SPEC.md`）。同時に選べるのは PLL・OLL・COLL のどれか1つ
   - 1つ目（種類）：`OLL` / `COLL H (OLL 21)` … `COLL Sune (OLL 27)`。`OLL` を選ぶと OLL 1 を選ぶ。`-- OLL --` に戻すと OLL・COLL の選択を外す
   - 2つ目：OLL のときは番号 1〜57（番号順。OLL 一覧の番号順と同じ。データの並びはグループ順のまま）
   - Prev / Next：OLL を選んでいれば番号順（57 の次は 1）。何も選んでいなければ Next は OLL 1、Prev は OLL 57
