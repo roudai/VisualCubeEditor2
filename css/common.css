@@ -435,6 +435,16 @@ html.booting body {
 .account-menu-message.ok {
   color: #198754;
 }
+/* アプリの中のブラウザでログインできなかったときの、URL をコピーするボタン（コピーできなければ URL の欄） */
+.account-menu-copy {
+  display: grid;
+  gap: .35rem;
+  max-width: 16rem;
+  padding: .2rem .65rem .45rem;
+}
+.account-menu-copy .btn {
+  justify-self: start;
+}
 /* 同じメールアドレスが別の方法で登録済みのときの案内（前に使った方法を選んでもらう） */
 .account-menu-note {
   max-width: 16rem;

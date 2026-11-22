@@ -376,6 +376,11 @@ async function main() {
     }
   });
 
+  // ログインのポップアップが開けない・この環境ではログインできないときのエラー。アプリの中のブラウザ（独自の WebView）で起きるので、
+  // 「Chrome や Safari で開いてください」の案内と URL をコピーするボタンを出す（端末の判定はしない。Android の X のアプリは中身が Chrome で
+  // ログインできるため、最初から案内は出さず、失敗したときだけ）
+  const IN_APP_ERRORS = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported'];
+
   // ログインの処理（Facebook の写真の取得まで）が終わるまでの Promise。
   // ログインの直後にクラウドの内容でページを読み直すときは、これを待つ（途中で読み直すと写真が保存されないため）
   let signInDone = null;
@@ -406,6 +411,8 @@ async function main() {
         const email = e.customData && e.customData.email;
         linkPending = credential && email ? { key: key, credential: credential, email: email } : null;
         message = linkPending ? null : { key: 'account.signInFailed' };
+      } else if (e && IN_APP_ERRORS.includes(e.code)) {
+        message = { key: 'account.openInBrowser', copyUrl: true };
       } else {
         message = { key: 'account.signInFailed' };
       }
@@ -551,7 +558,34 @@ async function main() {
   function messageBox() {
     const m = el('div', 'account-menu-message' + (message.ok ? ' ok' : ''));
     I.set(m, message.key, message.params);
-    return m;
+    if (!message.copyUrl) return m;
+    // ページの URL をコピーするボタン（Chrome や Safari に貼って開けるように）。コピーできない環境では、URL を選んだ状態の欄を出す
+    // （押したボタンは消さない。消すとメニューの外を押したことになって閉じるため）
+    const wrap = el('div', 'account-menu-copy');
+    const button = el('button', 'btn btn-sm btn-outline-secondary');
+    button.type = 'button';
+    I.set(button, 'account.copyUrl');
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        I.set(button, 'account.urlCopied');
+      } catch (e) {
+        let field = wrap.querySelector('input');
+        if (!field) {
+          field = el('input', 'form-control form-control-sm');
+          field.readOnly = true;
+          field.value = location.href;
+          I.set(field, 'account.copyUrl', null, 'aria-label');
+          wrap.append(field);
+        }
+        field.focus();
+        field.select();
+      }
+    });
+    wrap.append(button);
+    const box = el('div');
+    box.append(m, wrap);
+    return box;
   }
 
   function menuItem(icon, labelKey, onClick, className) {
