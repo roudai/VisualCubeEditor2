@@ -88,13 +88,17 @@ so links between pages return 404 there.
 ```sh
 node tools/serve.js 8000      # http://localhost:8000/
 node tools/serve.js --demo    # http://localhost:8001/stats  (sample records, sign-in disabled)
+node tools/serve.js --demo --max   # http://localhost:8002/stats  (every record at its limit)
 ```
 
 `--demo` uses its own port so that its browser storage stays separate from yours. It fills in practice records,
 recent times and progress (`tools/demo-data.js`) and shows a badge with a reset link (`/__demo/reset`).
 When `VERSION` in `tools/demo-data.js` changes, a browser with older sample data is filled in again.
+`--demo --max` fills in the largest data the site keeps (5000 records each for PLL, OLL, COLL, ZBLL, full solves
+and LL over 400 days, every case learned and every PLL / OLL / COLL case with its own algorithm), to check layout,
+speed and storage size. Switching between `--demo` and `--max` on the same port clears the site's storage and fills it in again.
 
-To open the site in Chrome on an Android phone connected over USB, run `tools/android.sh [--demo] [page]`
+To open the site in Chrome on an Android phone connected over USB, run `tools/android.sh [--demo [--max]] [page]`
 (it starts the server, runs `adb reverse` and opens Chrome; no Wi-Fi needed).
 
 Tests (Node.js built-in test runner; checked with Node.js 24):

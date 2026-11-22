@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # USB でつないだ Android の Chrome で、ローカルのサイトを開く（実機で確かめるため）。
-#   tools/android.sh [--demo] [ページ]
+#   tools/android.sh [--demo [--max]] [ページ]
 #     --demo  テストデータで動かす（tools/serve.js --demo。ポート 8001）。付けなければ普段のデータ（ポート 8000）
+#     --max   最大のテストデータで動かす（tools/serve.js --demo --max。ポート 8002。--demo は省いてもよい）
 #     ページ  開くページ（例：practice?set=full、stats）。既定は practice
 #   例：tools/android.sh --demo 'practice?set=full'
+#       tools/android.sh --max stats
 #       （zsh では ? が特別な意味になるので、? を含むページは '' で囲む）
 #
 # することは 3 つ：
@@ -18,18 +20,20 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 DEMO=''
+MAX=''
 PAGE='practice'
 for arg in "$@"; do
   case "$arg" in
     --demo) DEMO='--demo' ;;
+    --max) DEMO='--demo' MAX='--max' ;;
     -h | --help)
-      sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *) PAGE="${arg#/}" ;;
   esac
 done
-PORT=$([ -n "$DEMO" ] && echo 8001 || echo 8000)
+if [ -n "$MAX" ]; then PORT=8002; elif [ -n "$DEMO" ]; then PORT=8001; else PORT=8000; fi
 URL="http://localhost:$PORT/$PAGE"
 
 # adb：パスに無ければ Android Studio の SDK の場所を探す
@@ -84,7 +88,7 @@ up() { curl -s -o /dev/null --max-time 1 "http://localhost:$PORT/"; }
 if up; then
   echo "サーバーはもう動いています（ポート ${PORT}）。それを使います。"
 else
-  node tools/serve.js $DEMO "$PORT" &
+  node tools/serve.js $DEMO $MAX "$PORT" &
   SERVER_PID=$!
   for _ in $(seq 1 50); do
     up && break

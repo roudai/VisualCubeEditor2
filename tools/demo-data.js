@@ -5,6 +5,7 @@
 // 覚える順・範囲（algset）が無いのでデータの順に使い、通しのスクランブルは random-state の 3x3）。
 //
 //   build({ now })  → { practice, progress }（store.js の 'practice'・'progress' にそのまま入れる形）
+//   buildMax({ now, scramblePool }) → { practice, progress, 'custom-algs' }：最大のデータ（node tools/serve.js --demo --max。下の説明）
 //   VERSION         テストデータの中身（種類・量）を変えたら上げる。serve.js --demo は、ブラウザに入れた版と違えば入れ直す
 'use strict';
 const PLL = require('../js/pll-data.js');
@@ -120,4 +121,125 @@ function build(opts) {
   return { practice: practice, progress: progress };
 }
 
-module.exports = { build: build, THRESHOLDS: THRESHOLDS, VERSION: VERSION };
+// ---- 最大のデータ（node tools/serve.js --demo --max）----
+// 保存できる上限いっぱいの記録の状態。画面が重くならないか・ブラウザの保存に収まるかの確認用（MegaminxImageEditor の buildMax を 3x3 用にしたもの。称号・バッジは無いので入れない）
+//   - 記録：PLL・OLL・COLL・ZBLL それぞれ 5000 件（Progress.addLog の上限）、ソルブ・LL それぞれ 5000 件（FULL_LOG_MAX・LL_LOG_MAX）。
+//     過去 400 日、毎日練習したことにする（今日まで続いている）
+//   - 習得状況：すべて習得済み。最近のタイムは全ケース 10 件ずつ
+//   - 自分の手順：PLL・OLL・COLL の全ケース（既定の手順の前に R R' を足したもの。CustomAlgs.validate を通した形。ZBLL は自分の手順を持たない）
+//   - ソルブのスクランブルは 1 つ作るのに 30ms ほどかかり、5000 件では数分かかるので、scramblePool 個（既定 300）を作って使い回す
+const MAX_DAYS = 400;
+
+// days 日前から今まで、毎日 count / days 回前後の日時（古い順）。朝 5〜7 時の練習も混ぜる
+function dailyTimes(random, count, days, now) {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const out = [];
+  for (let d = days - 1; d >= 0; d--) {
+    const left = count - out.length;
+    const n = d === 0 ? left : Math.max(1, Math.round((left / (d + 1)) * (0.6 + random() * 0.8)));
+    const start = today.getTime() - d * DAY;
+    for (let i = 0; i < n && out.length < count; i++) {
+      const hour = random() < 0.05 ? 5 + random() * 2 : 7 + random() * 16;
+      let at = start + Math.floor(hour * 3600000);
+      if (at > now - 60 * 1000) at = now - 60 * 1000 - Math.floor(random() * 3600000);
+      out.push(at);
+    }
+  }
+  // 同じ日時が重ならないように 1 ms ずつずらす（記録は日時で見分ける）
+  out.sort((a, b) => a - b);
+  for (let i = 1; i < out.length; i++) if (out[i] <= out[i - 1]) out[i] = out[i - 1] + 1;
+  return out.slice(0, count);
+}
+
+function buildMax(opts) {
+  const now = (opts && opts.now) || Date.now();
+  const poolSize = (opts && opts.scramblePool) || 300;
+  const random = rng(20261122);
+  const P = require('../js/progress.js');
+  const CA = require('../js/custom-algs.js');
+  const pick = (list) => list[Math.floor(random() * list.length)];
+  const SETS = { pll: PLL, oll: OLL, coll: COLL, zbll: ZBLL };
+
+  // PLL・OLL・COLL・ZBLL：全ケースを順にまわしながら、古いほど遅く、新しいほど速く。最新 150 件はヒントなしで目安以内
+  function caseRecords(set, cases) {
+    const ats = dailyTimes(random, 5000, MAX_DAYS, now); // Progress.addLog の上限（種類ごと）
+    return ats.map((at, i) => {
+      const progress = i / ats.length;
+      const c = i < cases.length ? cases[i] : pick(cases);
+      const recent = i >= ats.length - 150;
+      const hint = !recent && random() < 0.03;
+      const sec = !recent && random() < 0.04 ? null : round2(Math.max(1.2, (recent ? 0.55 : 1.4 - progress * 0.7) * THRESHOLDS[set] * (0.7 + random() * 0.6)));
+      const status = !hint && sec !== null && sec <= THRESHOLDS[set] ? 'learned' : 'learning';
+      return { at: at, set: set, name: c.name, sec: sec, status: status, hint: hint };
+    });
+  }
+  const caseLog = [].concat(...Object.entries(SETS).map(([set, cases]) => caseRecords(set, cases))).sort((a, b) => b.at - a.at); // 新しい順
+
+  // ソルブ：40 秒前後から 15 秒前後へ。最新 150 回は DNF なし
+  const pool = [];
+  for (let i = 0; i < poolSize; i++) pool.push(W.encode(W.cube3(random)));
+  const fullAts = dailyTimes(random, P.FULL_LOG_MAX, MAX_DAYS, now);
+  const full = fullAts.map((at, i) => {
+    const progress = i / fullAts.length;
+    const recent = i >= fullAts.length - 150;
+    const r = random();
+    const sec = round2(Math.max(12, 40 - progress * 25 + (random() - 0.5) * 6));
+    const penalty = recent ? '' : r < 0.02 ? 'DNF' : r < 0.05 ? '+2' : '';
+    return { at: at, sec: sec, penalty: penalty, s: pool[i % pool.length] };
+  });
+
+  // LL：OLL → PLL（PLL スキップもある）。4% は DNF（sec: null）
+  const llAts = dailyTimes(random, P.LL_LOG_MAX, MAX_DAYS, now);
+  const ll = llAts.map((at, i) => {
+    const progress = i / llAts.length;
+    const rec = { at: at, sec: random() < 0.04 ? null : round2(Math.max(4, 14 - progress * 7 + (random() - 0.5) * 4)), o: pick(OLL).name };
+    if (random() > 0.02) rec.p = pick(PLL).name;
+    return rec;
+  });
+
+  // 習得状況はすべて習得済み、最近のタイムは各ケースの記録から 10 件（足りなければ目安以内のタイムで埋める）
+  const progress = {};
+  const times = {};
+  Object.entries(SETS).forEach(([set, cases]) => {
+    progress[set] = {};
+    times[set] = {};
+    cases.forEach((c) => {
+      progress[set][c.name] = 'learned';
+      times[set][c.name] = [];
+    });
+  });
+  caseLog.forEach((e) => {
+    const list = times[e.set][e.name];
+    if (e.sec !== null && !e.hint && list.length < 10) list.push(e.sec);
+  });
+  Object.keys(times).forEach((set) => {
+    Object.values(times[set]).forEach((list) => {
+      while (list.length < 10) list.push(round2(THRESHOLDS[set] * (0.5 + random() * 0.4)));
+    });
+  });
+
+  // 自分の手順：PLL・OLL・COLL の全ケース
+  const customAlgs = {};
+  ['pll', 'oll', 'coll'].forEach((set) => {
+    customAlgs[set] = {};
+    SETS[set].forEach((c) => {
+      const v = CA.validate(set, c, "R R' " + c.alg, SETS[set]);
+      if (v.ok && !v.isDefault) customAlgs[set][c.name] = { alg: v.alg, setup: v.setup };
+    });
+  });
+
+  const practice = {
+    set: 'pll',
+    filter: 'all',
+    thresholds: THRESHOLDS,
+    log: caseLog,
+    times: times,
+    full: { inspection: true, log: full.reverse() }, // 新しい順
+    ll: { oll: 'all', pll: 'all', log: ll.reverse() },
+    stats: { set: 'pll', period: 'all', sort: 'weak', desc: true, sortV: 2, tab: 'cases' },
+  };
+  return { practice: practice, progress: progress, 'custom-algs': customAlgs };
+}
+
+module.exports = { build: build, buildMax: buildMax, THRESHOLDS: THRESHOLDS, VERSION: VERSION };

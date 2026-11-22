@@ -83,14 +83,55 @@ test('serve.js --demo：ページにテストデータのスクリプトを入�
     assert.equal((await get(demo, '/js/firebase-config.js')).body.trim().startsWith('window.FIREBASE_CONFIG = null;'), true);
     const seed = await get(demo, '/__demo/seed.js');
     assert.ok(seed.body.includes(JSON.stringify(PREFIX)));
-    assert.ok(seed.body.includes(JSON.stringify(data)), 'テストデータがそのまま入る');
-    assert.ok(seed.body.includes(`VERSION = "v${Demo.VERSION}"`), '入れた版が違えば入れ直す');
+    assert.ok(seed.body.includes(`VERSION = "demo:v${Demo.VERSION}"`), '入れた版・モードが違えば入れ直す');
+    assert.ok(seed.body.includes("'/__demo/data.json'"), 'データは別に読む（ページに埋め込まない）');
+    assert.deepEqual(JSON.parse((await get(demo, '/__demo/data.json')).body), data, 'テストデータがそのまま入る');
     assert.match((await get(demo, '/__demo/reset')).body, /location\.replace\('\/stats'\)/);
     assert.doesNotMatch((await get(plain, '/stats')).body, /__demo/);
     assert.doesNotMatch((await get(plain, '/js/firebase-config.js')).body, /FIREBASE_CONFIG = null/);
     assert.equal((await get(plain, '/__demo/seed.js')).status, 404);
+    assert.equal((await get(plain, '/__demo/data.json')).status, 404);
   } finally {
     demo.close();
     plain.close();
   }
+});
+
+test('serve.js --demo --max：印のモードが max になる（同じポートで --max の有無を変えたら入れ直す）', async () => {
+  const { createServer } = require('../tools/serve.js');
+  const server = createServer({ demo: true, max: true, demoData: { practice: {} } }).listen(0, '127.0.0.1');
+  try {
+    await new Promise((r) => server.once('listening', r));
+    const seed = await get(server, '/__demo/seed.js');
+    assert.ok(seed.body.includes(`VERSION = "max:v${Demo.VERSION}"`));
+    assert.ok(seed.body.includes('最大のデータ'));
+    assert.deepEqual(JSON.parse((await get(server, '/__demo/data.json')).body), { practice: {} });
+  } finally {
+    server.close();
+  }
+});
+
+test('demo-data：buildMax は記録がどれも上限まで（過去 400 日・毎日）、全ケース習得・自分の手順', () => {
+  const max = Demo.buildMax({ now: NOW, scramblePool: 3 });
+  const sets = { pll: PLL, oll: OLL, coll: COLL, zbll: ZBLL };
+  const log = max.practice.log;
+  Object.entries(sets).forEach(([set, cases]) => {
+    const list = log.filter((e) => e.set === set);
+    assert.equal(list.length, 5000, set);
+    const names = new Set(cases.map((c) => c.name));
+    assert.ok(list.every((e) => names.has(e.name)), `${set} は今あるケースだけ`);
+    assert.equal(new Set(list.map((e) => e.name)).size, cases.length, `${set} は全ケースが出る`);
+    assert.ok(cases.every((c) => max.progress[set][c.name] === 'learned'), `${set} はすべて習得済み`);
+    assert.ok(cases.every((c) => max.practice.times[set][c.name].length === 10), `${set} の最近のタイムは 10 件ずつ`);
+  });
+  log.forEach((e, i) => {
+    if (i) assert.ok(log[i - 1].at >= e.at, '新しい順');
+    assert.ok(e.at <= NOW && e.at > NOW - 401 * 864e5);
+  });
+  assert.equal(new Set(log.map((e) => Math.floor((NOW - e.at) / 864e5))).size >= 399, true, '毎日の記録がある');
+  assert.equal(max.practice.full.log.length, 5000);
+  assert.equal(max.practice.ll.log.length, 5000);
+  [max.practice.full.log, max.practice.ll.log].forEach((list) => list.forEach((r, i) => i && assert.ok(list[i - 1].at >= r.at, '新しい順')));
+  assert.ok(max.practice.ll.log.every((r) => OLL.some((c) => c.name === r.o) && (r.p === undefined || PLL.some((c) => c.name === r.p))));
+  ['pll', 'oll', 'coll'].forEach((set) => assert.equal(Object.keys(max['custom-algs'][set]).length, sets[set].length, `${set} は全ケースが自分の手順`));
 });
