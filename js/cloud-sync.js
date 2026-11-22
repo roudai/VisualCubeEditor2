@@ -37,6 +37,7 @@ const SYNCED_KEY = 'visualcube-editor:synced-uid'; // この端末でクラウ�
 const SESSION_KEY = 'visualcube-editor:session'; // 'in'：ログインしたまま / 'out'：ログアウトの状態だった（次のログインは新しいログイン） /
 // 'kept'：保存できずにデータを残してログアウトした（次に同じアカウントで入ると合わせる）
 const NOTICE_KEY = 'visualcube-editor:login-notice'; // 読み直したあとに知らせる文のキー（sessionStorage。ログイン前のデータを捨てた・ログアウトして消した）
+const SYNC_RELOAD_KEY = 'visualcube-editor:sync-reload'; // 同期の内容を反映するために読み直す時刻（sessionStorage。練習のページが読み直す前の問題をそのまま出すのに使う。js/practice.js）
 const LOGOUT_KEY = 'visualcube-editor:signed-out-at'; // ログアウトでこのブラウザのデータを消したこと（ほかのタブが storage イベントで読み直す）
 const PUSH_DELAY = 1500;
 
@@ -249,6 +250,11 @@ async function main() {
       if (!localChanged || !reload) showNotice();
       if (localChanged && reload) {
         if (signInDone) await signInDone; // ログインの処理（Facebook の写真の保存）が終わってから
+        try {
+          sessionStorage.setItem(SYNC_RELOAD_KEY, String(Date.now()));
+        } catch (e) {
+          // 印を残せなくても読み直す（練習のページは新しい問題になるだけ）
+        }
         location.reload(); // クラウドの内容を画面に反映する
       }
       return true;

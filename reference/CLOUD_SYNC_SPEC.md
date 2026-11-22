@@ -70,6 +70,7 @@ MegaminxImageEditor の `reference/CLOUD_SYNC_SPEC.md` を VisualCube Editor 用
 ## 動き（`js/cloud-sync.js`）
 - `js/firebase-config.js` の `window.FIREBASE_CONFIG` が `null`、または SDK を読み込めないときは何もしない（ログインのボタンも出さない）
 - ログインしたとき・ログイン中にページを開いたとき：クラウドを読み → 上の決め方で手元に反映する内容を決め → 両方に書く。手元の内容が変わったらページを1回読み直して画面に反映する
+  - 読み直す前に `sessionStorage` の `visualcube-editor:sync-reload` に時刻を残す。練習のページは、これが 30 秒以内なら読み直す前の問題（スクランブル）をそのまま出す（開いて 1 秒ほどでスクランブルが急に変わらないように。reference/PRACTICE_SPEC.md。MegaminxImageEditor 80685b1）
 - ログイン中：`store-change` を受けて 1.5 秒まとめてからクラウドに書く。ページを離れる（非表示になる）ときは待たずに書く
   - 書く前に本体の文書を読み、最後に書いた（読んだ）中身と違えば、同じアカウントの別の端末が書いたので、クラウドを読んで `Store.merge` で手元と合わせてから書く（手元も合わせた内容にする。画面は次に開いたときに反映）。書き込みは 1 つずつ順番に
   - **VCE2 での違い**：練習の記録を足すときは、最近のタイムを保存したもの（`Store`）から読み直して足す（合わせた別の端末の最近のタイムを、ページを開いたときの古い値で上書きしないように。js/practice.js）
