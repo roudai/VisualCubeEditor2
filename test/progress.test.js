@@ -86,6 +86,44 @@ test('displaySettings：PLL は OLL 配色のとき OLL を選ぶ前の配色、
   withStorage({}, () => assert.equal(P.displaySettings('pll').scheme.F, M.DEFAULT_SCHEME.F));
 });
 
+test('isInverseOf：手順をそのまま逆にしたスクランブルか（前後の U・括弧・書き方の違いを除く）', () => {
+  const alg = "(U) R U2 R' U' R U' R2 U2 R U R' U R"; // ZBLL T-2GLL3
+  const inverse = "R' U' R U' R' U2 R2 U R' U R U2 R'";
+  assert.equal(P.isInverseOf(inverse, alg), true);
+  assert.equal(P.isInverseOf("U2 " + inverse + " U'", alg), true); // 前後の AUF は除く
+  assert.equal(P.isInverseOf("R' U' R U' R' U'2 R2 U R' U R U2' R'", alg), true); // U'2 は U2'（3x3 では U2 と同じ）
+  assert.equal(P.isInverseOf("R U2 R' U' R U' R'", "R U R' U R U2 R'"), true); // Sune の逆
+  assert.equal(P.isInverseOf("F U2 F' U' F U' F'", "R U R' U R U2 R'"), false); // 面を移しただけの形は逆ではない（短さで除く）
+  assert.equal(P.isInverseOf("R U R' U'", "R U R' U'"), false);
+  assert.equal(P.isInverseOf('U2', 'U2'), false); // U だけのものは比べない
+  assert.equal(P.isInverseOf('', alg), false);
+});
+
+test('practiceScrambles：逆の手順と短すぎるもの（PLL 10 手以下・OLL・COLL・ZBLL 7 手以下）を除き、どのケースにも残る', () => {
+  const removed = {};
+  ['pll', 'oll', 'coll', 'zbll'].forEach((set) => {
+    const data = require(`../js/${set}-data.js`);
+    const scrambles = require(`../js/${set}-scrambles.js`);
+    removed[set] = 0;
+    data.forEach((c) => {
+      const list = scrambles[c.name] || [];
+      const used = P.practiceScrambles(set, list, c.alg);
+      assert.ok(used.length > 0, `${set} ${c.name}`);
+      used.forEach((s) => {
+        assert.equal(P.isInverseOf(s, c.alg), false, `${set} ${c.name}: ${s}`);
+        assert.ok(s.replace(/[()]/g, ' ').split(/\s+/).filter(Boolean).length >= P.SCRAMBLE_MIN_MOVES[set], `${set} ${c.name}: ${s}`);
+      });
+      removed[set] += list.length - used.length;
+    });
+  });
+  // PLL・OLL・COLL は自前のソルバで作っているので除くものは無い。ZBLL は手順の逆 135 個と、
+  // Sune・Antisune 系の 7 手 8 個のうち逆でない 5 個（F 面に移した形 4 個と、L の手順に対する R の形 1 個）
+  assert.deepEqual(removed, { pll: 0, oll: 0, coll: 0, zbll: 140 });
+  // 除くと残らないときは逆の手順だけを除き、それでも残らなければそのまま
+  assert.deepEqual(P.practiceScrambles('pll', ["R U R'", "R U' R'"], "R U R'"), ["R U R'"]);
+  assert.deepEqual(P.practiceScrambles('pll', ["R U' R'"], "R U R'"), ["R U' R'"]);
+});
+
 test('wrapAuf：前後に AUF を足し、もともと前後にある U とまとめる', () => {
   assert.equal(P.wrapAuf("R U R'", 0, 0), "R U R'");
   assert.equal(P.wrapAuf("R U R'", 1, 3), "U R U R' U'");

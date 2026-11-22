@@ -611,8 +611,9 @@
     const notInverse = last && last.inverse ? notSame.filter((c) => c.name !== last.inverse) : notSame;
     const candidates = notInverse.length ? notInverse : notSame;
     const c = forced ? forced : P.pickWeighted(candidates, weightFor(prefs.set));
-    // スクランブルはランダムな AUF 込みで作ってある（tools/gen-scrambles.js）ので、そのまま出す
-    const scrambles = SCRAMBLES[prefs.set][c.name] || [];
+    // スクランブルはランダムな AUF 込みで作ってある（tools/gen-scrambles.js）ので、そのまま出す。
+    // 今の手順（自分の手順があればそれ）をそのまま逆にしたものと、短すぎるものは除く（usableScrambles）
+    const scrambles = usableScrambles(prefs.set, SCRAMBLES[prefs.set][c.name], c.alg);
     const scramble = scrambles[Math.floor(Math.random() * scrambles.length)] || '';
     current = { set: prefs.set, c: c, scramble: scramble };
     lastName = c.name;
@@ -652,6 +653,11 @@
   // つないだ状態はその OLL のケースになり、並び（OLL のあとの PLL）はランダムになる。
   // つなぎ目のとなり合う同じ面の回転（"U U2"・"R2 R" など）は 1 つにまとめる（P.joinMoves）
   const rand = (list) => list[Math.floor(Math.random() * list.length)];
+  // スクランブルの候補から、今の手順（自分の手順があればそれ。DATA は CustomAlgs.merged 済み）をそのまま逆にしたものと、
+  // 短すぎるもの（PLL は 10 手以下、OLL・COLL・ZBLL は 7 手以下）を除く（解く手順がスクランブルから読めてしまうため。Progress.practiceScrambles）
+  function usableScrambles(set, list, alg) {
+    return P.practiceScrambles(set, list, alg);
+  }
   const rand4 = () => Math.floor(Math.random() * 4);
   function llScramble(pllScramble, ollScramble) {
     return P.joinMoves(P.wrapAuf(pllScramble, rand4(), rand4()), P.wrapAuf(ollScramble, 0, rand4()));
@@ -661,7 +667,7 @@
   const LL_TIME_MS = 1500;
   let lastLl = null;
   function pickLl() {
-    const pllScrambles = Object.values(SCRAMBLES.pll).filter((list) => list.length);
+    const pllScrambles = DATA.pll.map((c) => usableScrambles('pll', SCRAMBLES.pll[c.name], c.alg)).filter((list) => list.length);
     const olls = DATA.oll.filter((c) => llMode('oll') === 'all' || P.statusOf('oll', c.name) === 'learned');
     if (!olls.length) return { reason: 'practice.llNoOll' };
     const learnedPll = new Set(DATA.pll.filter((c) => llMode('pll') === 'all' || P.statusOf('pll', c.name) === 'learned').map((c) => c.name));
@@ -670,7 +676,7 @@
     const until = performance.now() + LL_TIME_MS;
     while (performance.now() < until) {
       const oll = rand(choices);
-      const ollScrambles = SCRAMBLES.oll[oll.name] || [];
+      const ollScrambles = usableScrambles('oll', SCRAMBLES.oll[oll.name], oll.alg);
       if (!ollScrambles.length || !pllScrambles.length) continue;
       const scramble = llScramble(rand(rand(pllScrambles)), rand(ollScrambles));
       const after = window.CaseCheck.pllAfter(scramble, oll.alg, DATA.pll);

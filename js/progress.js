@@ -48,6 +48,12 @@
  *                                     （例：wrapAuf("U R U'", 1, 1) → "U2 R"）。前後の AUF を足しても同じケースのまま（練習の出題用）
  *   joinMoves(...algs)              手順をつなぎ、となり合う同じ面の回転をまとめる（例："R2 R" → "R'"、"R R'" → 消す）。
  *                                     まとめて消えたら、その前後もまたまとめる（練習の LL のスクランブルのつなぎ目用）
+ *   isInverseOf(scramble, alg)      スクランブルが手順をそのまま逆にしたものか（前後の U・括弧・書き方の違い（R'2 と R2'）を除いて比べる）。
+ *                                     練習の出題で、解く手順がスクランブルから読めてしまうものを避けるため
+ *   practiceScrambles(set, list, alg)
+ *                                   練習の出題に使うスクランブル（list から、alg をそのまま逆にしたものと、短すぎるもの（PLL は 10 手以下、
+ *                                     OLL・COLL・ZBLL は 7 手以下。SCRAMBLE_MIN_MOVES）を除く）。除くと 1 つも残らなければ逆の手順だけを除き、
+ *                                     それでも残らなければ list のまま
  *
  * ブラウザでは window.Progress、node では module.exports として公開する。
  */
@@ -370,6 +376,48 @@
     return out.join(' ');
   }
 
+  // 括弧を外して 1 手ずつにし、書き方をそろえる（R'2 → R2'）。手順の記法でないものはそのまま
+  const movesOf = (text) =>
+    String(text || '')
+      .replace(/[()]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((token) => {
+        const m = MOVE.exec(token);
+        return m ? m[1] + MOVE_TEXT[MOVE_AMOUNT[m[2] || '']] : token;
+      });
+  // となり合う同じ面をまとめ、前後の U を除いた形（比べる用）
+  function coreMoves(moves) {
+    const tokens = joinMoves(moves.join(' ')).split(' ').filter(Boolean);
+    while (tokens.length && U_AMOUNT[tokens[0]] !== undefined) tokens.shift();
+    while (tokens.length && U_AMOUNT[tokens[tokens.length - 1]] !== undefined) tokens.pop();
+    return tokens.join(' ');
+  }
+  function isInverseOf(scramble, alg) {
+    const inverse = movesOf(alg)
+      .reverse()
+      .map((token) => {
+        const m = MOVE.exec(token);
+        return m ? m[1] + MOVE_TEXT[4 - MOVE_AMOUNT[m[2] || '']] : token;
+      });
+    const core = coreMoves(movesOf(scramble));
+    return core !== '' && core === coreMoves(inverse);
+  }
+
+  // 練習の出題に使うスクランブルの最小の手数（これより短いものは手順が読めてしまうので出さない）。
+  // PLL・OLL・COLL は自前のソルバで作っていて（tools/gen-scrambles.js。12 手以上）今は当てはまらないが、移植元と同じ基準にしておく。
+  // ZBLL（もらったデータ）は Sune・Antisune 系の 2GLL に、手順の逆とそれを F 面に移しただけの 7 手がある（OLL と同じく 7 手以下を除く。
+  // 8〜10 手は別の短い手順なので残す）
+  const SCRAMBLE_MIN_MOVES = { pll: 11, oll: 8, coll: 8, zbll: 8 };
+  function practiceScrambles(set, list, alg) {
+    const all = Array.isArray(list) ? list : [];
+    const notInverse = all.filter((s) => !isInverseOf(s, alg));
+    const min = SCRAMBLE_MIN_MOVES[set] || 0;
+    const longEnough = notInverse.filter((s) => movesOf(s).length >= min);
+    if (longEnough.length) return longEnough;
+    return notInverse.length ? notInverse : all;
+  }
+
   function wrapAuf(scramble, pre, post) {
     const tokens = String(scramble).trim().split(/\s+/).filter(Boolean);
     let head = pre % 4;
@@ -390,6 +438,9 @@
     pickWeighted: pickWeighted,
     wrapAuf: wrapAuf,
     joinMoves: joinMoves,
+    isInverseOf: isInverseOf,
+    practiceScrambles: practiceScrambles,
+    SCRAMBLE_MIN_MOVES: SCRAMBLE_MIN_MOVES,
     formatTime: formatTime,
     effectiveTime: effectiveTime,
     average: average,
