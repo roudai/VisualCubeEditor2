@@ -113,6 +113,18 @@
   font-size: .95rem;
   font-weight: 600;
 }
+/* グラフ・表のパネルの見出しの行：切り替えが見出しを兼ねる（PLL・OLL・COLL・ZBLL の表とグラフは見出しの文字を見えない形にする）。
+   表は右端に並べ替え（.stats-sort-bar） */
+.stats-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .5rem;
+}
+.stats-panel-head .stats-title {
+  margin: 0;
+}
 
 /* タイムの推移（横軸＝1回ごとの記録。点＝1回のタイム、線＝ao5・ao12） */
 .stats-chart {
@@ -479,12 +491,39 @@
   color: #495057;
 }
 
-/* ケースごとの表の並び（苦手順 / グループ順 / 覚える順） */
+/* ケースごとの表の並び（苦手順 / グループ順 / 覚える順）：見出しの行（.stats-panel-head）の右端。
+   広い画面はボタン、スマホ（幅 576px 未満）はプルダウン（ボタンだと「ケースごと / 記録の一覧」と 1 行に入らないため） */
 .stats-sort-bar {
-  margin: .25rem 0 .5rem;
+  margin-left: auto;
 }
 .stats-sort-bar[hidden] {
   display: none;
+}
+.stats-sort-select {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  .stats-sort-bar .stats-segment {
+    display: none;
+  }
+  /* 切り替えと同じ灰色の丸い形・同じ高さ（3px の縁 ＋ スマホのボタンと同じ文字・余白） */
+  .stats-sort-select {
+    display: block;
+    width: auto;
+    border: 3px solid #eef0f3;
+    border-radius: 50rem;
+    padding: .2rem 1.5rem .2rem .6rem;
+    background-color: #eef0f3;
+    background-position: right .45rem center;
+    color: #212529;
+    font-size: .78rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .stats-sort-select:focus {
+    border-color: #eef0f3;
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+  }
 }
 /* 最近（直近 10 回の平均）：解けなかった回の数を小さく添える。回数が少ないときは薄く */
 .stats-recent {

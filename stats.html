@@ -72,8 +72,9 @@
       <section id="statsCards" class="stats-cards"></section>
 
       <section class="stats-panel mt-3">
-        <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
-          <h2 class="stats-title" id="statsChartTitle" data-i18n="stats.trend">Times</h2>
+        <!-- 見出しの行：切り替えが見出しを兼ねる（見出しの文字は読み上げ用に見えない形で残す。文言は js/stats.js が切り替える） -->
+        <div class="stats-panel-head">
+          <h2 class="stats-title visually-hidden" id="statsChartTitle" data-i18n="stats.trend">Times</h2>
           <!-- グラフ：推移（折れ線） / 分布（棒グラフ）の切り替え（js/stats.js） -->
           <div id="statsChartTabs"></div>
         </div>
@@ -81,13 +82,14 @@
       </section>
 
       <section class="stats-panel mt-3">
-        <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
+        <!-- 見出しの行：PLL・OLL・COLL・ZBLL は「ケースごと / 記録の一覧」の切り替えが見出しを兼ね（見出しの文字は読み上げ用に見えない形で残す）、
+             ケースごとのときは同じ行の右端に並べ替え。ソルブ・LL は切り替えが無いので見出し「記録の一覧」を見せる（js/stats.js） -->
+        <div class="stats-panel-head">
           <h2 class="stats-title" id="statsTableTitle" data-i18n="stats.byCase">By case</h2>
-          <!-- PLL・OLL：ケースごと / 記録の一覧 の切り替え（js/stats.js） -->
           <div id="statsTableTabs"></div>
+          <!-- ケースごとの表の並び：苦手順 / グループ順 / 覚える順（広い画面はボタン、スマホはプルダウン。js/stats.js） -->
+          <div id="statsSort" class="stats-sort-bar" hidden></div>
         </div>
-        <!-- ケースごとの表の並び：苦手順 / グループ順 / 覚える順（js/stats.js） -->
-        <div id="statsSort" class="stats-sort-bar" hidden></div>
         <!-- 記録の一覧の削除（選んだ記録をまとめて削除。確認・元に戻す。js/stats.js） -->
         <div id="statsDeleteBar" class="stats-delete-bar" hidden></div>
         <div class="table-responsive">

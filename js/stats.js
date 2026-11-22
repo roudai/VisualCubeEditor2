@@ -805,9 +805,30 @@
     // 覚える順（ZBLL は OCLL ごと。小グループ順と同じ並びになるので出さない）
     if (hasStages() && view.set !== 'zbll') items.push(Object.assign({ value: 'learn' }, window.CaseSections.orderKeys(view.set, DATA[view.set]).learn));
     const current = view.sort === 'learn' && (!hasStages() || view.set === 'zbll') ? 'weak' : view.sort;
-    const seg = segment(items, current, (v) => change({ sort: v, desc: v === 'weak' }));
+    const pick = (v) => change({ sort: v, desc: v === 'weak' });
+    const seg = segment(items, current, pick);
     I.set(seg, 'list.orderAria', null, 'aria-label');
-    box.replaceChildren(seg);
+    // スマホ（幅 576px 未満）は同じ項目のプルダウン（css/stats.css で出し分け）。
+    // 表の列の見出しで並べ替えたとき（どれにも当たらない）は「並び」を出す
+    const select = el('select', 'form-select form-select-sm stats-sort-select');
+    I.set(select, 'list.orderAria', null, 'aria-label');
+    if (!items.some((item) => item.value === current)) {
+      const option = el('option');
+      option.value = '';
+      option.disabled = true;
+      option.selected = true;
+      I.set(option, 'list.orderAria');
+      select.append(option);
+    }
+    items.forEach((item) => {
+      const option = el('option');
+      option.value = item.value;
+      I.set(option, item.key);
+      option.selected = item.value === current;
+      select.append(option);
+    });
+    select.addEventListener('change', () => pick(select.value));
+    box.replaceChildren(seg, select);
   }
 
   function renderTable(log) {
@@ -1364,6 +1385,8 @@
     const full = own(); // 通し・LL（タイムだけ）
     const solves = full || view.tab === 'solves';
     I.set($('statsTableTitle'), solves ? 'stats.solves' : 'stats.byCase');
+    // PLL・OLL・COLL・ZBLL は「ケースごと / 記録の一覧」の切り替えが見出しを兼ねるので、見出しの文字は読み上げ用に見えない形にする
+    $('statsTableTitle').classList.toggle('visually-hidden', !full);
     if (!solves) {
       $('statsDeleteBar').hidden = true;
       $('statsPager').hidden = true;
