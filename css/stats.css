@@ -538,14 +538,19 @@
   opacity: .45;
 }
 
-/* 記録の一覧のページ送り */
+/* 表のパネル：中身を入れ替えたとき（ページ送り・並べ替えなど）に、ブラウザが表の行を目印にスクロールを動かさないようにする
+   （ページを移ったときの位置は js/stats.js の goPage で合わせる） */
+#statsTablePanel {
+  overflow-anchor: none;
+}
+/* 記録の一覧のページ送り（表の頭。見出しの行と削除のバーのあいだ） */
 .stats-pager {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
-  margin-top: .75rem;
+  margin-bottom: .25rem;
   font-size: .82rem;
 }
 .stats-pager[hidden] {
@@ -586,9 +591,49 @@
   outline: none;
   box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
 }
-.stats-page-gap {
-  padding: 0 .15rem;
-  color: #adb5bd;
+.stats-page-step {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+}
+/* ページを選ぶプルダウン（6 ページ以上）：ページ送りのボタンと同じ高さ・縁・角 */
+.stats-page-select {
+  width: auto;
+  height: 2rem;
+  padding: 0 1.75rem 0 .65rem;
+  border-color: #dee2e6;
+  border-radius: .5rem;
+  background-position: right .5rem center;
+  color: #495057;
+  font-size: .82rem;
+  font-variant-numeric: tabular-nums;
+}
+.stats-page-select:focus {
+  border-color: #dee2e6;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+/* スマホ：前へ・次へは矢印だけ（プルダウンと 1 行に収める） */
+@media (max-width: 575.98px) {
+  .stats-page-step {
+    justify-content: center;
+    padding: 0;
+  }
+  .stats-page-step-label {
+    display: none;
+  }
+  /* 幅 320px でも「‹ [100 · 2025/10/19〜10/22 ▾] ›」が 1 行に入るよう、プルダウンの余白と文字を少し詰め、
+     それでも足りなければプルダウンの方を縮める（こちらはカードの内側の幅が移植元より狭いため） */
+  .stats-pager-nav {
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+  .stats-page-select {
+    min-width: 0;
+    flex: 0 1 auto;
+    padding: 0 1.4rem 0 .5rem;
+    background-position: right .35rem center;
+    font-size: .78rem;
+  }
 }
 
 /* 通しの記録の削除 */

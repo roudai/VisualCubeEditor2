@@ -105,6 +105,8 @@
           <!-- ケースごとの表の並び：苦手順 / グループ順 / 覚える順（広い画面はボタン、スマホはプルダウン。js/stats.js） -->
           <div id="statsSort" class="stats-sort-bar" hidden></div>
         </div>
+        <!-- 記録の一覧のページ送り（js/stats.js）。50 件は画面に収まらないので、表の下ではなく頭に置く（移ったらそのページの 1 件目から読めるように） -->
+        <div id="statsPager" class="stats-pager" hidden></div>
         <!-- 記録の一覧の削除（選んだ記録をまとめて削除。確認・元に戻す。js/stats.js） -->
         <div id="statsDeleteBar" class="stats-delete-bar" hidden></div>
         <div class="table-responsive">
@@ -113,8 +115,6 @@
             <tbody id="statsBody"></tbody>
           </table>
         </div>
-        <!-- 記録の一覧のページ送り（js/stats.js） -->
-        <div id="statsPager" class="stats-pager" hidden></div>
       </section>
     </div>
     <script src="js/store.js"></script>

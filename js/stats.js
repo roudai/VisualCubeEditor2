@@ -980,24 +980,43 @@
     page = Math.min(Math.max(1, page), pages);
     return recs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   }
-  // 出すページ番号：7 ページまではすべて。それより多いときは最初・最後・今のページの前後 1 つで、あいだは「…」（null）
-  function pageNumbers(pages) {
-    const out = [];
-    for (let i = 1; i <= pages; i++) {
-      if (pages <= 7 || i === 1 || i === pages || Math.abs(i - page) <= 1) out.push(i);
-      else if (out[out.length - 1] !== null) out.push(null);
-    }
-    return out;
+  // ページ数がこれより多いときは、番号のボタンの代わりにページを選ぶプルダウンにする（番号が多いとスマホで 1 行に入らず、途中へも飛べないため）。
+  // 5 は、幅 320px のスマホでも前へ・次へ（矢印）と番号が 1 行に収まる数
+  const PAGE_BUTTONS_MAX = 5;
+  // プルダウンの日付：今年なら「11/21」、ほかの年なら「2025/11/21」
+  const pageDay = (ms) => {
+    const d = new Date(ms);
+    const md = `${d.getMonth() + 1}/${d.getDate()}`;
+    return d.getFullYear() === new Date().getFullYear() ? md : `${d.getFullYear()}/${md}`;
+  };
+  // n ページ目の記録の日付の範囲（古い日〜新しい日。記録は新しい順）。1 日だけなら日付 1 つ。
+  // 終わりの日は、始まりと同じ年なら年を省く（「2025/10/21〜10/23」）
+  function pageDates(recs, n) {
+    const newer = recs[(n - 1) * PAGE_SIZE].at;
+    const older = recs[Math.min(recs.length, n * PAGE_SIZE) - 1].at;
+    const from = pageDay(older);
+    const to = pageDay(newer);
+    if (from === to) return { key: 'stats.pageOptionDay', params: { n: n, d: from } };
+    const sameYear = new Date(older).getFullYear() === new Date(newer).getFullYear();
+    const toShort = sameYear ? `${new Date(newer).getMonth() + 1}/${new Date(newer).getDate()}` : to;
+    return { key: 'stats.pageOption', params: { n: n, from: from, to: toShort } };
   }
+  // ページを移っても、ページ送り（表の頭）は画面の同じ位置に残す（削除のバーの出入りなどでずれないように。
+  // 移ったページは、ページ送りのすぐ下から 1 件目が続く）。直すときはアニメーションさせない
+  // （Bootstrap がページのスクロールをなめらかにしているので、そのままだと下へ行って戻るように動いて見える）。
+  // ブラウザが表の行を目印にスクロールを合わせる動き（scroll anchoring）は、表のパネルでは止めている（css/stats.css）
   function goPage(n) {
+    const before = $('statsPager').getBoundingClientRect().top;
     page = n;
     render();
-    // 下のページ送りで変えたときは、表の頭が見えるところまで戻す
-    const panel = $('statsTableTitle').closest('.stats-panel');
-    if (panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ block: 'start' });
+    const pager = $('statsPager');
+    const diff = pager.hidden ? 0 : pager.getBoundingClientRect().top - before;
+    if (Math.abs(diff) >= 1) window.scrollTo({ top: window.scrollY + diff, behavior: 'instant' });
   }
-  function renderPager(total) {
+  // recs：一覧の記録すべて（新しい順）。PAGE_BUTTONS_MAX ページまでは番号のボタン、それより多いときはページを選ぶプルダウン（各ページの日付付き）
+  function renderPager(recs) {
     const box = $('statsPager');
+    const total = recs.length;
     const pages = Math.ceil(total / PAGE_SIZE);
     box.hidden = pages <= 1;
     box.replaceChildren();
@@ -1006,22 +1025,46 @@
     I.set(info, 'stats.pageRange', { n: total, from: (page - 1) * PAGE_SIZE + 1, to: Math.min(total, page * PAGE_SIZE) });
     const nav = el('nav', 'stats-pager-nav');
     I.set(nav, 'stats.pagerAria', null, 'aria-label');
-    const button = (key, text, target, disabled, current) => {
-      const b = el('button', 'stats-page' + (current ? ' active' : ''));
+    // 前へ・次へ：スマホ（幅 576px 未満）は矢印だけ（文字は読み上げ用の aria-label に残す。css/stats.css）
+    const step = (key, arrow, target, disabled) => {
+      const b = el('button', 'stats-page stats-page-step');
       b.type = 'button';
-      if (key) I.set(b, key);
-      else {
-        b.textContent = text;
-        I.set(b, 'stats.pageN', { n: target }, 'aria-label');
-      }
+      const label = el('span', 'stats-page-step-label');
+      I.set(label, key);
+      I.set(b, key, null, 'aria-label');
+      const mark = el('span', null, arrow);
+      mark.setAttribute('aria-hidden', 'true');
+      if (arrow === '‹') b.append(mark, label);
+      else b.append(label, mark);
       b.disabled = disabled;
-      if (current) b.setAttribute('aria-current', 'page');
       b.addEventListener('click', () => goPage(target));
       return b;
     };
-    nav.append(button('common.prev', null, page - 1, page === 1));
-    pageNumbers(pages).forEach((n) => nav.append(n === null ? el('span', 'stats-page-gap', '…') : button(null, String(n), n, false, n === page)));
-    nav.append(button('common.next', null, page + 1, page === pages));
+    nav.append(step('stats.pagePrev', '‹', page - 1, page === 1));
+    if (pages <= PAGE_BUTTONS_MAX) {
+      for (let n = 1; n <= pages; n++) {
+        const b = el('button', 'stats-page' + (n === page ? ' active' : ''), String(n));
+        b.type = 'button';
+        I.set(b, 'stats.pageN', { n: n }, 'aria-label');
+        if (n === page) b.setAttribute('aria-current', 'page');
+        b.addEventListener('click', () => goPage(n));
+        nav.append(b);
+      }
+    } else {
+      const select = el('select', 'form-select form-select-sm stats-page-select');
+      I.set(select, 'stats.pageSelectAria', null, 'aria-label');
+      for (let n = 1; n <= pages; n++) {
+        const option = el('option');
+        option.value = String(n);
+        const label = pageDates(recs, n);
+        I.set(option, label.key, label.params);
+        option.selected = n === page;
+        select.append(option);
+      }
+      select.addEventListener('change', () => goPage(Number(select.value)));
+      nav.append(select);
+    }
+    nav.append(step('stats.pageNext', '›', page + 1, page === pages));
     box.append(info, nav);
   }
 
@@ -1227,7 +1270,7 @@
     $('statsHead').replaceChildren(head);
     $('statsTablePanel').hidden = !recs.length; // 期間内に記録が無ければ表のパネルごと隠す（削除のバーも出さない）
     renderDeleteBar(recs, shown);
-    renderPager(recs.length);
+    renderPager(recs);
     // その時点の平均は期間に関係なく、それまでの記録から出す
     // スクランブルは「見る」で、その行のすぐ下に表の幅いっぱいの行として開く（表の列の幅を崩さないように）
     $('statsBody').replaceChildren(
@@ -1322,7 +1365,7 @@
     $('statsHead').replaceChildren(head);
     $('statsTablePanel').hidden = !recs.length; // 期間内に記録が無ければ表のパネルごと隠す（削除のバーも出さない）
     renderDeleteBar(recs, shown);
-    renderPager(recs.length);
+    renderPager(recs);
     $('statsBody').replaceChildren(
       ...shown.map((r) => {
         const date = dateTime(r.at);
