@@ -758,6 +758,65 @@ body:not(.practice-full) .practice-stage.running #dnfButton,
     grid-template-columns: repeat(auto-fill, minmax(4.7rem, 1fr));
   }
 }
+/* チップはボタン（押すとケースを下に出す）。見た目は丸い札のまま */
+.practice-history-chip {
+  padding: .15rem .6rem;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.practice-history li:has(> .practice-history-chip) {
+  padding: 0;
+}
+.practice-history-chip[aria-expanded="true"] {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+/* 押したチップのケース：画像・名前・習得状況・手順・その回のタイム・最近のベスト／平均・エディタで開く */
+.practice-history-detail {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  margin-top: .6rem;
+  padding: .75rem 2.2rem .75rem .75rem;
+  border: 1px solid #e9ecef;
+  border-radius: .75rem;
+  background: #fff;
+}
+.practice-history-detail[hidden] {
+  display: none;
+}
+.practice-history-detail .case-image {
+  flex: none;
+}
+.practice-history-close {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  width: .6em;
+  height: .6em;
+}
+.practice-history-status {
+  padding: .05rem .5rem;
+  border-radius: 50rem;
+  background: #f1f3f5;
+  color: #495057;
+  font-size: .72rem;
+}
+.practice-history-status.learned {
+  background: rgba(25, 135, 84, .1);
+  color: #146c43;
+}
+.practice-history-status.learning {
+  background: rgba(240, 173, 0, .14);
+  color: #7a5a00;
+}
+.practice-history-editor {
+  display: inline-block;
+  margin-top: .35rem;
+}
 .practice-history li.learned {
   background: rgba(25, 135, 84, .1);
   color: #146c43;

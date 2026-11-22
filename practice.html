@@ -99,7 +99,7 @@
           <button id="cancelButton" type="button" class="btn btn-sm btn-outline-secondary" data-key="Esc" aria-keyshortcuts="Escape" data-i18n="practice.cancel">Cancel</button>
         </div>
         <div id="practiceHintText" class="practice-hint-text" aria-live="polite"></div>
-        <div id="practiceEmpty" class="practice-empty" data-i18n="practice.empty" hidden>No cases match. Change the target.</div>
+        <div id="practiceEmpty" class="practice-empty" data-i18n="practice.empty" hidden>No cases to practice. Change the target.</div>
       </section>
 
       <!-- 結果 -->
@@ -111,6 +111,8 @@
         <div id="practiceFullStats" class="practice-full-stats mb-2" hidden></div>
         <h2 class="h6 text-muted" data-i18n="practice.history">Recent results</h2>
         <ol id="practiceHistory" class="practice-history"></ol>
+        <!-- 最近の記録のチップを押したときのケース（js/practice.js の showHistoryDetail） -->
+        <div id="practiceHistoryDetail" class="practice-history-detail" hidden></div>
       </section>
     </div>
     <script src="js/store.js"></script>

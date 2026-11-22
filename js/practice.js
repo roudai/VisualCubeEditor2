@@ -1258,6 +1258,7 @@
 
   function renderHistory() {
     renderFullStats();
+    if (isLl() || isFull()) showHistoryDetail(null); // ケースを出すのは PLL・OLL・COLL・ZBLL だけ
     $('practiceHistory').classList.toggle('full', isFull()); // ソルブはタイムだけなので、丸を同じ幅でそろえる（css/practice.css）
     // 最近の記録：保存してある、今の種類の最新 HISTORY 件（ページを開き直しても出る。記録のページで消せばここからも消える）
     if (isLl()) {
@@ -1275,9 +1276,84 @@
     }
     const log = (S.get('practice') || {}).log || [];
     const rows = log.filter((e) => e && e.set === prefs.set).slice(0, HISTORY);
+    // 押すと、そのケースの画像・手順などを下に出す（もう一度押すと閉じる）
+    const isOpen = (e) => !!openedRecord && e.at === openedRecord.at && e.name === openedRecord.name;
     $('practiceHistory').replaceChildren(
-      ...rows.map((e) => el('li', e.status === 'learned' ? 'learned' : 'learning', `${e.name} ${typeof e.sec === 'number' ? format(e.sec) : 'DNF'}`))
+      ...rows.map((e) => {
+        const li = el('li', e.status === 'learned' ? 'learned' : 'learning');
+        const chip = el('button', 'practice-history-chip', `${e.name} ${typeof e.sec === 'number' ? format(e.sec) : 'DNF'}`);
+        chip.type = 'button';
+        chip.setAttribute('aria-controls', 'practiceHistoryDetail');
+        chip.setAttribute('aria-expanded', String(isOpen(e)));
+        chip.addEventListener('click', (ev) => {
+          openedRecord = isOpen(e) ? null : e;
+          renderHistory();
+          // マウス・タップで押したときはフォーカスを外す（そのあとのスペースでタイマーではなくこのボタンを押さないように）
+          if (ev.detail > 0) document.activeElement.blur();
+        });
+        li.append(chip);
+        return li;
+      })
     );
+    showHistoryDetail(rows.find(isOpen) || null);
+  }
+
+  // ---- 最近の記録のケース（チップを押したとき）----
+  // その回のタイム・日時、ケースの画像・名前・今の習得状況・手順（自分の手順があればそれ）・最近のベスト／平均、エディタで開くリンク
+  let openedRecord = null;
+  function showHistoryDetail(rec) {
+    const box = $('practiceHistoryDetail');
+    openedRecord = rec;
+    box.hidden = !rec;
+    box.replaceChildren();
+    if (!rec) return;
+    const set = rec.set;
+    const c = (DATA[set] || []).find((x) => x.name === rec.name);
+    const body = el('div', 'practice-result-body');
+    const head = el('div', 'd-flex flex-wrap align-items-baseline gap-2');
+    head.append(el('span', 'practice-case-name', `${set.toUpperCase()} ${rec.name}`));
+    const status = P.statusOf(set, rec.name);
+    const badge = el('span', 'practice-history-status ' + status);
+    I.set(badge, 'status.' + status);
+    head.append(badge);
+    body.append(head);
+    if (c) body.append(el('div', 'practice-case-alg', c.alg));
+    const d = new Date(rec.at);
+    const date = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    const thisTime = el('div', 'practice-case-stats mt-1');
+    I.set(thisTime, 'practice.historyThis', { time: typeof rec.sec === 'number' ? format(rec.sec) : 'DNF', date: date });
+    body.append(thisTime);
+    const times = (prefs.times && prefs.times[set] && prefs.times[set][rec.name]) || [];
+    if (times.length) {
+      const stats = el('div', 'practice-case-stats');
+      const best = Math.min(...times);
+      const avg = times.reduce((a, b) => a + b, 0) / times.length;
+      I.set(stats, 'practice.caseStats', { best: format(best), avg: format(avg), n: times.length });
+      body.append(stats);
+    }
+    // エディタで開く（ZBLL はエディタに行が無いので、一覧と同じく名前と手順を渡す）
+    const link = el('a', 'practice-history-editor small');
+    link.href =
+      set === 'zbll' && c
+        ? `/?zbll=${encodeURIComponent(rec.name)}&case=${encodeURIComponent(c.alg)}`
+        : `/?${set}=${encodeURIComponent(rec.name)}`;
+    I.set(link, 'practice.historyEditor');
+    body.append(link);
+    const close = el('button', 'btn-close practice-history-close');
+    close.type = 'button';
+    I.set(close, 'practice.tipClose', null, 'aria-label');
+    close.addEventListener('click', () => {
+      openedRecord = null;
+      renderHistory();
+    });
+    if (c) {
+      const display = P.displaySettings(set);
+      const image = el('div', 'case-image');
+      const colors = P.caseColors(c, display.scheme, set);
+      D.draw(image, colors.ucolor, colors.scolor, { size: 72, border: display.border });
+      box.append(image);
+    }
+    box.append(body, close);
   }
 
   // ---- 操作 ----
@@ -1442,6 +1518,46 @@
   });
 
   savePrefs({ set: prefs.set, filter: prefs.filter, thresholds: { pll: threshold('pll'), oll: threshold('oll'), coll: threshold('coll') } });
+
+  // ---- 画面を消さない（Screen Wake Lock API）----
+  // 両手でキューブを回している間は画面に触れないので、スマホの画面が暗くなって消え、止められなくなるのを防ぐ。
+  // ページを開いている間は消さないが、計測していないまま 5 分なにも操作しなければ放す（置きっぱなしで電池を減らさないように）。
+  // 次に触れたら、また消さないようにする。画面を離れる（タブを切り替える）とブラウザが放すので、戻ったときにまた頼む。使えない端末では何もしない
+  const WAKE_IDLE_MS = 5 * 60 * 1000;
+  let wakeLock = null;
+  let wakeRequesting = false;
+  let lastActive = Date.now();
+  async function keepAwake() {
+    if (!navigator.wakeLock || wakeLock || wakeRequesting || document.visibilityState !== 'visible') return;
+    wakeRequesting = true;
+    try {
+      const lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', () => {
+        if (wakeLock === lock) wakeLock = null;
+      });
+      wakeLock = lock;
+    } catch (e) {
+      // 断られた（省電力モードなど）ときは何もしない
+    } finally {
+      wakeRequesting = false;
+    }
+  }
+  const active = () => {
+    lastActive = Date.now();
+    keepAwake();
+  };
+  ['pointerdown', 'keydown'].forEach((type) => document.addEventListener(type, active, true));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') active();
+  });
+  setInterval(() => {
+    if (wakeLock && state === 'idle' && Date.now() - lastActive > WAKE_IDLE_MS) {
+      const lock = wakeLock;
+      wakeLock = null;
+      lock.release().catch(() => {});
+    }
+  }, 30 * 1000);
+  keepAwake();
 
   renderSettings();
   next();
