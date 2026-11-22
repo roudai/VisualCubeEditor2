@@ -491,6 +491,19 @@ html {
   align-items: center;
   gap: .5rem 1rem;
 }
+/* 種類の名前：広い画面は長い名前、スマホ（幅 576px 未満）は短い名前（英語の「Full solve」→「Solve」。
+   種類が 6 つあり、「Full solve」だとスマホでは見出しと同じ行に入らないため。隠した方は読み上げにも出ない） */
+.label-narrow {
+  display: none;
+}
+@media (max-width: 575.98px) {
+  .label-wide {
+    display: none;
+  }
+  .label-narrow {
+    display: inline;
+  }
+}
 /* 切り替えを出す幅（768px 未満）：両ページで見出しを同じ大きさにし、少し詰める */
 @media (max-width: 767.98px) {
   .page-head {

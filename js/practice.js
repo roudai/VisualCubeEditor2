@@ -155,6 +155,13 @@
       if (item.key) I.set(label, item.key, item.params);
       else label.textContent = item.text;
       b.append(label);
+      // 狭い画面では短い名前に替える（英語の「Full solve」→「Solve」。css/common.css の .label-wide・.label-narrow）
+      if (item.shortKey) {
+        label.className = 'label-wide';
+        const short = el('span', 'label-narrow');
+        I.set(short, item.shortKey);
+        b.append(short);
+      }
       if (item.title) I.set(b, item.title, item.titleParams, 'title'); // マウスを乗せたときの説明
       if (item.count != null) b.append(el('span', 'count', String(item.count)));
       b.classList.toggle('active', item.value === current);
@@ -190,7 +197,7 @@
           { value: 'coll', text: 'COLL' },
           { value: 'zbll', text: 'ZBLL' },
           { value: 'll', text: 'LL', title: 'practice.llTitle' },
-          { value: 'full', key: 'practice.full' },
+          { value: 'full', key: 'practice.full', shortKey: 'practice.fullShort' },
         ],
         prefs.set,
         (v) => changeSettings({ set: v })

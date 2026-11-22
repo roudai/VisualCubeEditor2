@@ -79,7 +79,14 @@
     items.forEach((item) => {
       const b = el('button');
       b.type = 'button';
-      if (item.key) I.set(b, item.key, item.params);
+      if (item.shortKey) {
+        // 狭い画面では短い名前に替える（英語の「Full solve」→「Solve」。css/common.css の .label-wide・.label-narrow）
+        const wide = el('span', 'label-wide');
+        I.set(wide, item.key, item.params);
+        const short = el('span', 'label-narrow');
+        I.set(short, item.shortKey);
+        b.append(wide, short);
+      } else if (item.key) I.set(b, item.key, item.params);
       else b.textContent = item.text;
       if (item.title) I.set(b, item.title, item.titleParams, 'title'); // マウスを乗せたときの説明
       b.classList.toggle('active', item.value === current);
@@ -102,7 +109,7 @@
           { value: 'coll', text: 'COLL' },
           { value: 'zbll', text: 'ZBLL' },
           { value: 'll', text: 'LL', title: 'practice.llTitle' },
-          { value: 'full', key: 'practice.full' },
+          { value: 'full', key: 'practice.full', shortKey: 'practice.fullShort' },
         ],
         view.set,
         (v) => change({ set: v })
