@@ -132,6 +132,11 @@ and every scramble is verified.
 | `library/` | VisualCube TS (`srVisualizer.min.js`) |
 | `firestore.rules` | Firestore security rules (shared with Megaminx Image Editor) |
 
+Every page loads its scripts at the end of `<body>`. To avoid a flash of placeholder English text and empty lists,
+a short script in `<head>` (before `css/common.css`) adds `booting` to `<html>`, which hides the body
+(`html.booting body { visibility: hidden }`, so layout is still computed), and removes it on `DOMContentLoaded`
+or after 3 seconds at most. When you add a page, copy that script into its `<head>`.
+
 ### Libraries
 
 - Vue.js 3.5.45
