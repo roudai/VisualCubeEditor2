@@ -164,10 +164,8 @@
             <option value="state" :disabled="algorithmDisabled">{{ t('editor.typeState') }}</option>
           </select>
           <!-- PLL のケースを選ぶ（Group → Case、Prev / Next）。選ぶと 3x3・Plan 表示になる -->
+          <!-- 見えるラベル（PLL / OLL）は置かない（プルダウンの初期表示「-- PLL --」「-- OLL --」がラベルを兼ねる。読み上げの名前は各プルダウンの aria-label） -->
           <div class="row g-2 mb-2 align-items-center" v-for="set in caseSets" :key="set.key" v-show="!showFacelets">
-            <div class="col-12 col-md-1">
-              <label class="col-form-label" :for="set.key + 'Group'">{{ set.label }}</label>
-            </div>
             <div class="col-12 col-md-5">
               <select class="form-select" :id="set.key + 'Group'" :aria-label="t('editor.groupAria', { set: set.label })" @change="onCaseGroupChange(set.key, $event.target.value)">
                 <option value="" :selected="!caseSel[set.key].group">-- {{ set.label }} --</option>
@@ -188,9 +186,6 @@
           </div>
           <!-- OLL・COLL のケースを選ぶ：1つ目で種類（OLL / COLL のグループ）、2つ目でケース（OLL は番号順 1〜57）。js/editor-cases.js -->
           <div class="row g-2 mb-2 align-items-center" v-show="!showFacelets">
-            <div class="col-12 col-md-1">
-              <label class="col-form-label" for="ollGroup">OLL</label>
-            </div>
             <div class="col-12 col-md-5">
               <select class="form-select" id="ollGroup" :aria-label="t('editor.groupAria', { set: 'OLL / COLL' })" @change="onOllKindChange($event.target.value)">
                 <option value="" :selected="!ollKind">-- OLL --</option>
@@ -716,16 +711,18 @@
         <div class="mb-2">
           <div class="row">
             <div class="col-xs-12 col-md-4">
-              <label class="form-label" for="backgroundColor">{{ t('editor.bgColor') }}</label>
-              <div class="input-group form-inline mb-2">
-                <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor" @input="onBackgroundColorInput" />
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetBackground" @click="resetBackground">{{ t('common.reset') }}</button>
-              </div>
+              <!-- 背景：透明 / 色を指定 の 1 つにまとめ、色を指定のときだけ色とリセットを出す（保存の形は今までどおり bg と bgColor） -->
               <label class="form-label" for="background">{{ t('editor.background') }}</label>
-              <select class="form-select mb-2" id="background" v-model="background">
-                <option value="y">{{ t('editor.transparent') }}</option>
-                <option value="n">{{ t('editor.opaque') }}</option>
-              </select>
+              <div class="d-flex gap-2 mb-2">
+                <select class="form-select w-auto" id="background" v-model="background">
+                  <option value="y">{{ t('editor.transparent') }}</option>
+                  <option value="n">{{ t('editor.opaque') }}</option>
+                </select>
+                <div class="input-group form-inline" v-show="background === 'n'">
+                  <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor" :aria-label="t('editor.bgColor')" />
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="resetBackground" @click="resetBackground">{{ t('common.reset') }}</button>
+                </div>
+              </div>
             </div>
             <div class="col-xs-12 col-md-4">
               <label class="form-label" for="cubeColor">{{ t('editor.cubeColor') }}</label>

@@ -442,12 +442,6 @@
         this.$nextTick(() => this.drawCube());
       },
 
-      // ---- 背景 ----
-      // 背景色を選んだら不透明にする
-      onBackgroundColorInput() {
-        this.background = 'n';
-      },
-
       // ---- ダウンロード ----
       // 表示中の画像（PNG）を保存する。ファイル名が .png で終わらなければ付け足す（空欄なら visualcube.png）
       downloadImage() {

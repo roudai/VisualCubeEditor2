@@ -95,7 +95,8 @@
         <div id="statsChart" class="stats-chart"></div>
       </section>
 
-      <section class="stats-panel mt-3">
+      <!-- 表のパネル。期間内に記録が無いときはパネルごと隠す（「まだ記録がありません。」はグラフの側だけ。js/stats.js） -->
+      <section id="statsTablePanel" class="stats-panel mt-3">
         <!-- 見出しの行：PLL・OLL・COLL・ZBLL は「ケースごと / 記録の一覧」の切り替えが見出しを兼ね（見出しの文字は読み上げ用に見えない形で残す）、
              ケースごとのときは同じ行の右端に並べ替え。ソルブ・LL は切り替えが無いので見出し「記録の一覧」を見せる（js/stats.js） -->
         <div class="stats-panel-head">
@@ -114,7 +115,6 @@
         </div>
         <!-- 記録の一覧のページ送り（js/stats.js） -->
         <div id="statsPager" class="stats-pager" hidden></div>
-        <p id="statsEmpty" class="text-muted small my-3" data-i18n="stats.empty" hidden>No solves yet.</p>
       </section>
     </div>
     <script src="js/store.js"></script>

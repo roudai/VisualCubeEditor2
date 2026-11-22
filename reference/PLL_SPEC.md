@@ -181,7 +181,7 @@ Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
 ## 画面
 
 ### エディタ（`index.html`、`js/editor-cases.js`＝`js/main.js` の Vue アプリの mixin）
-- `PLL  [Group ▼] [Case ▼] [‹ Prev][Next ›]` の行で選ぶ（OLL の行はその下。同時に選べるのは PLL・OLL のどちらか1つ）。
+- `[-- PLL -- ▼] [Case ▼] [‹ Prev][Next ›]` の行で選ぶ（OLL の行はその下。同時に選べるのは PLL・OLL のどちらか1つ）。見えるラベル（PLL / OLL）は置かない（プルダウンの初期表示「-- PLL --」「-- OLL --」がラベルを兼ねる。読み上げの名前は各プルダウンの aria-label）。
   Prev / Next はデータの並び順で、端では反対の端に回る
 - 選ぶとパズルの種類を 3x3、表示を Plan（上面図）に切り替える（保存しない）。未選択から選んだときは種類を「Algorithm to solve case」にし、
   種類に応じて手順の欄に `alg`（Algorithm to solve case）または `setup`（Algorithm to apply）を入れる。どちらでも同じケースの画像になる
@@ -200,7 +200,7 @@ Cube Voyage「PLLを覚える順番」（https://cubevoyage.net/how-to-solve/adv
   3x3 以外は今までどおり、入力をそのままライブラリに渡す
 - **Color Preset**（Standard / OLL (U color only) / Custom）：面の色を手で変える・x y z で持ち替えると Custom になり、その配色を覚える。
   OLL を選ぶと OLL 配色にし、OLL 配色のまま PLL を選ぶと OLL を選ぶ前の配色に戻す（覚えていなければ Standard）
-- **Background**（Transparent / Opaque）：Opaque のとき Background Color で塗る。Background Color を選ぶと Opaque になる
+- **背景**（透明 / 色を指定。英語は Transparent / Color）：1 つのプルダウンにまとめ、「色を指定」のときだけ横に色とリセットを出し、その色で塗る（以前は「背景色」と「背景（透明 / 不透明）」の 2 つの欄）。保存の形は今までどおり（`bg`・`bgColor`）
 - 設定の保存（`visualcube-editor:settings`）：配色・Color Preset・画像サイズ・Cube Color・Background Color・Background。
   手順・種類・選択・ファイル名・パズルの種類・表示・マスク・回転・矢印は保存しない
 

@@ -857,7 +857,8 @@
     $('statsHead').replaceChildren(head);
 
     const list = sortRows(rows(log));
-    $('statsEmpty').hidden = list.length > 0;
+    // 期間内に記録が無ければ表のパネルごと隠す（「まだ記録がありません。」はグラフの側だけに出す）
+    $('statsTablePanel').hidden = !list.length;
     const display = P.displaySettings(view.set);
     $('statsBody').replaceChildren(
       ...list.map((r) => {
@@ -888,7 +889,8 @@
           recentTd.classList.add('stats-few');
           I.set(recentTd, 'stats.fewTitle', { n: rc.attempts }, 'title');
         }
-        const count = r.dnf ? `${r.count} (${r.dnf} DNF)` : String(r.count);
+        // 回数は解けなかった回も含めた数だけ（DNF は「最近」の列に出すので、ここでくり返さない）
+        const count = String(r.count);
         const date = `${last.getMonth() + 1}/${last.getDate()}`;
         const cells = [
           el('td', 'text-muted stats-col-group', r.group),
@@ -1223,7 +1225,7 @@
     });
     head.append(el('th', 'stats-shrink'));
     $('statsHead').replaceChildren(head);
-    $('statsEmpty').hidden = recs.length > 0;
+    $('statsTablePanel').hidden = !recs.length; // 期間内に記録が無ければ表のパネルごと隠す（削除のバーも出さない）
     renderDeleteBar(recs, shown);
     renderPager(recs.length);
     // その時点の平均は期間に関係なく、それまでの記録から出す
@@ -1318,7 +1320,7 @@
     });
     head.append(el('th'));
     $('statsHead').replaceChildren(head);
-    $('statsEmpty').hidden = recs.length > 0;
+    $('statsTablePanel').hidden = !recs.length; // 期間内に記録が無ければ表のパネルごと隠す（削除のバーも出さない）
     renderDeleteBar(recs, shown);
     renderPager(recs.length);
     $('statsBody').replaceChildren(
