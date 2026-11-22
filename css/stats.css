@@ -916,26 +916,12 @@
   }
 }
 
-/* 種類・期間の切り替え。広い画面は見出しの横に 1 つの箱。
-   スマホ（幅 576px 未満）は「練習 記録 [PLL OLL COLL ZBLL ソルブ]」の 1 行と、期間の 1 行の 2 行にまとめる
-   （日本語は 360px でも 1 行目に収まる。英語は 390px なら 1 行、360px では種類が次の行に回る。見出しとの間隔は css/common.css の .page-head） */
-.stats-controls-break {
-  display: none;
-}
+/* 見出しの横の種類の切り替え（見出しの行の並びは css/common.css の .page-head。期間はその下の .stats-period）。
+   スマホ（幅 576px 未満）は練習ページの切り替え（css/practice.css の .practice-segment）と同じ大きさに詰め、
+   見出しの行の高さも練習ページとそろえる */
 @media (max-width: 575.98px) {
-  .stats-head {
-    row-gap: .5rem !important;
-  }
-  .stats-head .stats-controls {
-    display: contents !important;
-  }
-  .stats-controls-break {
-    display: block;
-    flex-basis: 100%;
-    height: 0;
-  }
   .stats-head .stats-segment button {
-    padding-left: .55rem;
-    padding-right: .55rem;
+    padding: .2rem .45rem;
+    font-size: .78rem;
   }
 }

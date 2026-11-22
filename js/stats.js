@@ -108,19 +108,18 @@
         (v) => change({ set: v })
       )
     );
-    // スマホ（幅 576px 未満）：種類は見出しの横、期間は次の 1 行（css/stats.css で出し分け）
-    box.append(el('div', 'stats-controls-break'));
-    box.append(
-      segment(
-        [
-          { value: '7', key: 'stats.days', params: { n: 7 } },
-          { value: '30', key: 'stats.days', params: { n: 30 } },
-          { value: 'all', key: 'stats.allTime' },
-        ],
-        view.period,
-        (v) => change({ period: v })
-      )
+    // 種類は見出しの横（練習ページの種類と同じ場所）、期間はその下（ここから下のカード・グラフ・表だけを絞るので）
+    const periodSeg = segment(
+      [
+        { value: '7', key: 'stats.days', params: { n: 7 } },
+        { value: '30', key: 'stats.days', params: { n: 30 } },
+        { value: 'all', key: 'stats.allTime' },
+      ],
+      view.period,
+      (v) => change({ period: v })
     );
+    I.set(periodSeg, 'stats.period', null, 'aria-label');
+    $('statsPeriod').replaceChildren(periodSeg);
   }
 
   function change(next) {
