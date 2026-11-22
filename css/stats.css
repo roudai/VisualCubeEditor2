@@ -636,6 +636,20 @@
   }
 }
 
+/* iPhone では 16px より小さいプルダウンを押すと勝手に拡大するので、タッチの端末では 16px にする（高さは行の高さを詰めて保つ）。
+   スマホの詰めた指定（上）より後に置く */
+@media (pointer: coarse) {
+  .stats-page-select {
+    font-size: 16px;
+  }
+}
+@media (max-width: 575.98px) and (pointer: coarse) {
+  .stats-sort-select {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+}
+
 /* 通しの記録の削除 */
 .stats-delete-bar {
   display: flex;

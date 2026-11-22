@@ -7,6 +7,13 @@ html.booting body {
   visibility: hidden;
 }
 
+/* ダブルタップでの拡大を止める（前へ・次へや手順のボタンなどを続けて押したときに拡大しないように）。
+   ピンチでの拡大・スクロールはそのまま（拡大して見たい人のため。iPhone の Safari は user-scalable=no を無視するので、viewport では止めない）。
+   touch-action は祖先と重なって効くので、記録のページのグラフの pan-y / none・練習のタイマーの none などはそのまま効く */
+html {
+  touch-action: manipulation;
+}
+
 /* ---- ナビバー（js/navbar.js）----
    広い画面：言語・アカウント・ページへのリンク・GitHub を1行に並べる（.nav-menu の中身も同じ行に出す）
    スマホ（md 未満）：タイトル・アカウント・メニューのボタンだけを1行に出し、言語とリンクはメニューの中 */
@@ -585,5 +592,13 @@ html {
   }
   .site-toast.show {
     animation: none;
+  }
+}
+
+/* iPhone では文字が 16px より小さい入力欄・プルダウンを押すと勝手に拡大するので、タッチの端末では小さい欄も 16px にする
+   （記録のページの並べ替え・ページ送りのプルダウンは css/stats.css、ログインできなかったときの URL の欄はここ） */
+@media (pointer: coarse) {
+  .account-url-field {
+    font-size: 16px;
   }
 }

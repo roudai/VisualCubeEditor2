@@ -572,7 +572,7 @@ async function main() {
       } catch (e) {
         let field = wrap.querySelector('input');
         if (!field) {
-          field = el('input', 'form-control form-control-sm');
+          field = el('input', 'form-control form-control-sm account-url-field'); // タッチの端末では 16px（css/common.css）
           field.readOnly = true;
           field.value = location.href;
           I.set(field, 'account.copyUrl', null, 'aria-label');

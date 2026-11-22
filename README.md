@@ -141,6 +141,12 @@ a short script in `<head>` (before `css/common.css`) adds `booting` to `<html>`,
 (`html.booting body { visibility: hidden }`, so layout is still computed), and removes it on `DOMContentLoaded`
 or after 3 seconds at most. When you add a page, copy that script into its `<head>`.
 
+On phones, double-tap zoom is turned off (`html { touch-action: manipulation }` in `css/common.css`) so that pressing
+buttons such as Prev / Next quickly does not zoom in. Pinch zoom still works (the viewport has no `user-scalable=no`;
+iOS Safari ignores it anyway). iOS zooms in when you tap an input or a select whose text is smaller than 16px,
+so on touch devices (`@media (pointer: coarse)`) small fields use 16px: the sort and page selects on the stats page
+and the URL field shown when sign-in fails. Do the same for new small fields (`-sm` and so on).
+
 ### Libraries
 
 - Vue.js 3.5.45
