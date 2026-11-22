@@ -8,7 +8,7 @@ const app = Vue.createApp({
   data: () => ({
     parameter: {},
     imageHeight: 128,
-    algtype: 'alg',
+    algtype: 'case', // 初期値は「この手順で揃う状態」（PLL・OLL のケースを選ぶとこれになり、ケースの画像もこの形。?alg= で開いたときは js/editor-cases.js が alg にする）
     algorithm: '',
     algorithm3: false,
     algorithm4: false,
