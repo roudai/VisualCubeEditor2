@@ -393,3 +393,17 @@ test('firestore.rules の記録の文書の種類が LOG_SETS とそろってい
   assert.ok(m, 'logDoc() に visualcube-editor-log-(…) が無い');
   assert.deepEqual(m[1].split('|').sort(), Store.LOG_SETS.slice().sort());
 });
+
+// 決めた種類のほかの名前の記録の文書は作れない（Firestore の matches は文字列全体に当てる。MegaminxImageEditor 34d0881 と同じ確かめ方）
+test('firestore.rules は決めた種類のほかの記録の文書を許さない', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const rules = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
+  const m = rules.match(/appId\.matches\('(visualcube-editor-log-[^']*)'\)/);
+  assert.ok(m);
+  const pattern = new RegExp('^' + m[1] + '$');
+  for (const set of Store.LOG_SETS) assert.ok(pattern.test('visualcube-editor-log-' + set), set);
+  for (const name of ['x', 'pllx', 'aaaaaaaaaaaa', 'PLL', '', 'zbll2']) {
+    assert.equal(pattern.test('visualcube-editor-log-' + name), false, name);
+  }
+});
