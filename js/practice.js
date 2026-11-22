@@ -724,6 +724,7 @@
   function clearShown() {
     shownRecAt = null;
     $('solvedCase').textContent = '';
+    $('focusVerdict').replaceChildren();
   }
   const format = (sec) => P.formatTime(sec); // 60 秒以上は分表記（1:05.23）
 
@@ -884,6 +885,18 @@
 
   // 止めたタップ（クリック）で、そのままボタンまで押してしまわないように少しの間ボタンを無視する
   let ignoreClicksUntil = 0;
+  // そのボタンの上で押し始めたクリックか。タッチでは、止めたタップのクリックが、指を離したところに止めたあとで出たボタン
+  // （全画面の判定の行など）に届くことがある。押していた時間が長いと上の 0.4 秒も過ぎるので、押し始めた場所で見分ける。
+  // キーボード（e.detail が 0）は押し始めが無いので通す
+  let downTarget = null;
+  document.addEventListener(
+    'pointerdown',
+    (e) => {
+      downTarget = e.target;
+    },
+    true
+  );
+  const pressedOn = (e, button) => e.detail === 0 || (!!downTarget && button.contains(downTarget));
 
   // スタートした直後に続けて押して止めてしまわないように、スタートから MIN_RUN_MS の間は止めない
   // （キー・タップとも。Esc の中止・「解けなかった」「スキップ」はこれまでどおり）
@@ -942,18 +955,20 @@
       result.replaceChildren(note('practice.undone'));
     };
     // 「練習中にする」：習得済みと判定されたけれど、練習中にしておきたいとき（揃っていなかった・まだ自信が無いなど）。
-    // ケースとこの回の判定だけを練習中にし、タイムはそのまま残す。そのあとも「取り消す」はできる
-    const toLearning = () => {
-      P.setStatus(set, c.name, 'learning');
-      const log = ((S.get('practice') || {}).log || []).map((e) => (isThis(e) ? Object.assign({}, e, { status: 'learning' }) : e));
+    // ケースとこの回の判定だけを練習中にし、タイムはそのまま残す。そのあとも「記録を取り消す」はできる。
+    // 練習中にしたあとは「習得済みに戻す」で判定どおりの習得済みに戻せる（押し間違えたときのため）
+    const setManual = (manual) => {
+      const newStatus = manual ? 'learning' : 'learned';
+      P.setStatus(set, c.name, newStatus);
+      const log = ((S.get('practice') || {}).log || []).map((e) => (isThis(e) ? Object.assign({}, e, { status: newStatus }) : e));
       savePrefs({ log: log });
-      entry.status = 'learning';
-      entry.manual = true;
+      entry.status = newStatus;
+      entry.manual = manual;
       renderHistory();
       renderSettings();
-      showResult(entry, undo, null);
+      showResult(entry, undo, setManual);
     };
-    showResult(entry, undo, toLearning);
+    showResult(entry, undo, setManual);
     renderHistory();
     renderSettings(); // 対象の件数を更新
     next(true);
@@ -970,8 +985,23 @@
     return d;
   }
 
-  // toLearning：「練習中にする」を押したとき（習得済みと判定された回だけ出す。null なら出さない）
-  function showResult(entry, undo, toLearning) {
+  // 「練習中にする」⇔「習得済みに戻す」のボタン（出さないときは null）。guard：ボタンの上で押し始めたときだけ効かせる（全画面の判定の行）
+  function manualToggle(entry, setManual, guard) {
+    if (!setManual) return null;
+    const back = !!entry.manual;
+    if (!back && entry.status !== 'learned') return null;
+    const b = el('button', 'btn btn-link practice-undo');
+    b.type = 'button';
+    I.set(b, back ? 'practice.toLearned' : 'practice.toLearning');
+    I.set(b, back ? 'practice.toLearnedTitle' : 'practice.toLearningTitle', null, 'title');
+    b.addEventListener('click', (e) => {
+      if (!guard || pressedOn(e, b)) setManual(!back);
+    });
+    return b;
+  }
+
+  // setManual(true)：「練習中にする」（習得済みと判定された回だけ出す）、setManual(false)：「習得済みに戻す」（練習中にしたあとだけ出す）
+  function showResult(entry, undo, setManual) {
     const { set, c, sec, status, threshold, hinted, manual, scramble } = entry;
     const result = $('practiceResult');
     result.hidden = false;
@@ -995,16 +1025,10 @@
     I.set(undoButton, 'practice.undo');
     undoButton.addEventListener('click', undo);
     head.append(verdict);
-    // 「練習中にする」「取り消す」は 1 つの塊にして、入らなければ一緒に次の行へ
+    // 「練習中にする」（「習得済みに戻す」）「記録を取り消す」は 1 つの塊にして、入らなければ一緒に次の行へ
     const actions = el('span', 'practice-result-actions');
-    if (toLearning && status === 'learned') {
-      const learningButton = el('button', 'btn btn-link practice-undo');
-      learningButton.type = 'button';
-      I.set(learningButton, 'practice.toLearning');
-      I.set(learningButton, 'practice.toLearningTitle', null, 'title');
-      learningButton.addEventListener('click', toLearning);
-      actions.append(learningButton);
-    }
+    const manualButton = manualToggle(entry, setManual, false);
+    if (manualButton) actions.append(manualButton);
     actions.append(undoButton);
     head.append(actions);
 
@@ -1028,6 +1052,22 @@
     }
     body.append(stats);
     result.append(image, body);
+
+    // 全画面のときにタイマーの下に出す判定の 1 行（判定・練習中にする・記録を取り消す。結果の欄と同じ動き）
+    const line = $('focusVerdict');
+    const lineVerdict = verdict.cloneNode(true);
+    const lineActions = el('span', 'practice-result-actions');
+    // タイマーのすぐ下にあるので、止めたタップがそのまま届かないよう、ボタンの上で押し始めたときだけ効かせる（pressedOn）
+    const lineManual = manualToggle(entry, setManual, true);
+    if (lineManual) lineActions.append(lineManual);
+    const u = el('button', 'btn btn-link practice-undo');
+    u.type = 'button';
+    I.set(u, 'practice.undo');
+    u.addEventListener('click', (e) => {
+      if (pressedOn(e, u)) undo();
+    });
+    lineActions.append(u);
+    line.replaceChildren(lineVerdict, lineActions);
   }
 
   // ---- 通しの記録 ----
@@ -1392,6 +1432,12 @@
       resetTimer();
       return;
     }
+    // 計測していないときの Esc は全画面を閉じる
+    if (e.key === 'Escape' && focusOn) {
+      e.preventDefault();
+      setFocus(false);
+      return;
+    }
     if (e.code === 'Space' || e.key === ' ') {
       e.preventDefault();
       if (isFull()) fullDown();
@@ -1486,8 +1532,8 @@
       .slice(0, n)
       .join(' ');
   }
-  $('hintButton').addEventListener('click', () => {
-    if (!current || isLl() || state === 'inspecting' || performance.now() < ignoreClicksUntil) return;
+  $('hintButton').addEventListener('click', (e) => {
+    if (!current || isLl() || state === 'inspecting' || performance.now() < ignoreClicksUntil || !pressedOn(e, $('hintButton'))) return;
     const box = $('practiceHintText');
     // もう一度押すと消す（一度見たので、この問題は練習中の扱いのまま）
     if (box.childElementCount) {
@@ -1508,8 +1554,8 @@
   $('cancelButton').addEventListener('click', () => {
     if (state !== 'idle') resetTimer();
   });
-  $('skipButton').addEventListener('click', () => {
-    if (performance.now() < ignoreClicksUntil) return;
+  $('skipButton').addEventListener('click', (e) => {
+    if (performance.now() < ignoreClicksUntil || !pressedOn(e, $('skipButton'))) return;
     next();
   });
 
@@ -1518,6 +1564,33 @@
   });
 
   savePrefs({ set: prefs.set, filter: prefs.filter, thresholds: { pll: threshold('pll'), oll: threshold('oll'), coll: threshold('coll') } });
+
+  // ---- 全画面（スクランブルとタイマーだけの画面）----
+  // iPhone の Safari は要素の Fullscreen API が使えないので、CSS でタイマーのカードを画面いっぱいに広げる（body.practice-focus）。
+  // Fullscreen API が使える端末では、ブラウザのバーも隠す（失敗しても CSS の全画面だけで動く）。保存はしない
+  let focusOn = false;
+  let focusScrollY = 0;
+  function setFocus(on) {
+    if (on === focusOn) return;
+    focusOn = on;
+    const button = $('focusButton');
+    if (on) focusScrollY = window.scrollY;
+    document.body.classList.toggle('practice-focus', on);
+    button.setAttribute('aria-pressed', String(on));
+    I.set(button, on ? 'practice.focusExit' : 'practice.focus', null, 'aria-label');
+    const root = document.documentElement;
+    if (on && root.requestFullscreen && !document.fullscreenElement) {
+      root.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+    } else if (!on && document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+    if (!on) window.scrollTo({ top: focusScrollY, behavior: 'instant' });
+  }
+  $('focusButton').addEventListener('click', () => setFocus(!focusOn));
+  // ブラウザの全画面から抜けた（Android の戻る・Esc など）ときは、こちらの全画面も閉じる
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && focusOn) setFocus(false);
+  });
 
   // ---- 画面を消さない（Screen Wake Lock API）----
   // 両手でキューブを回している間は画面に触れないので、スマホの画面が暗くなって消え、止められなくなるのを防ぐ。
