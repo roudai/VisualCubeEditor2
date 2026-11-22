@@ -4,7 +4,8 @@
 //   - Firestore の users/{uid}/apps/visualcube-editor の1文書に、store.js の snapshot を JSON 文字列で保存する（{ json, savedAt }）。
 //     PLL・OLL・COLL・ZBLL の練習の記録（各最大 5000 件）は 1 文書に入らないので、短い形にして種類ごとの文書
 //     users/{uid}/apps/visualcube-editor-log-pll・-log-oll・-log-coll・-log-zbll に分ける（Store.toCloud・fromCloud）。中身が変わった文書だけ書く。
-//     ソルブ・LL の記録（それぞれ最大 5000 件）も -log-full・-log-ll に分ける（本体に fullSplit: true・llSplit: true）
+//     ソルブ・LL の記録（それぞれ最大 5000 件）も -log-full・-log-ll に分ける（本体に fullSplit: true・llSplit: true）。
+//     Firestore のルール（firestore.rules の logDoc）はこの 6 種類の名前だけを許すので、種類を増やしたらルールにも足して貼り直す
 //     同じ Firebase プロジェクトのほかのアプリ（Megaminx Image Editor など）は users/{uid}/apps/<アプリ名> に保存し、ログインは共通
 //   - 新しくログインしたとき：アカウントにデータがあれば、その内容で手元を上書きする（ログイン前にこのブラウザで使った分は捨てる。
 //     合算はしない）。アカウントが空なら、手元の内容をアカウントに入れる（Store.resolveLogin）。

@@ -382,3 +382,14 @@ test('LL の記録：クラウドでは -log-ll の文書に短い形で分け�
   // LL の記録は PLL などの記録（practice.log）に混ざらない
   assert.equal(m.log, undefined);
 });
+
+// firestore.rules の logDoc() が許す VisualCube Editor の記録の文書の種類は、Store.LOG_SETS と同じ
+// （種類を足したのにルールを直し忘れると、その種類の文書に書けず、クラウドへの保存がエラーになるため）
+test('firestore.rules の記録の文書の種類が LOG_SETS とそろっている', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const rules = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
+  const m = rules.match(/appId\.matches\('visualcube-editor-log-\(([a-z0-9|]+)\)'\)/);
+  assert.ok(m, 'logDoc() に visualcube-editor-log-(…) が無い');
+  assert.deepEqual(m[1].split('|').sort(), Store.LOG_SETS.slice().sort());
+});

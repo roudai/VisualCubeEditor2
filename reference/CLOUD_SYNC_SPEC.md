@@ -15,14 +15,14 @@ MegaminxImageEditor の `reference/CLOUD_SYNC_SPEC.md` を VisualCube Editor 用
   - PLL・OLL・COLL・ZBLL の練習の記録（`practice.log`。各最大 5000 件）は 1 文書（50 万文字未満）に入らないので、種類ごとの文書 `users/{uid}/apps/visualcube-editor-log-pll`・`-log-oll`・`-log-coll`・`-log-zbll`（同じ `{ json, savedAt }`）に分ける（`Store.toCloud`・`fromCloud`。Megaminx Image Editor 865ec44 と同じ仕組み）
     - 種類ごとの文書の `json` は `{ rows: [[日時, ケース, タイム（null＝解けなかった）, 判定（0 未習得・1 練習中・2 習得済み）, 1（ヒントを見たときだけ）], …] }`（新しい順。1 件 約 30 文字で 5000 件 約 16 万文字。48 万文字を超えるときは古い記録を捨てる）
     - ソルブの記録（`practice.full.log`。最大 5000 件）も、本体の余裕のために `-log-full` に分ける。`json` は `{ rows: [[日時, タイム, スクランブル（短い形。無ければ null）, ペナルティ（'+2'・'DNF'。無ければ付けない）], …] }`（1 件 約 45 文字で 5000 件 約 23 万文字。Megaminx Image Editor 1b04634 と同じ仕組み）
-    - LL の記録（`practice.ll.log`。最大 5000 件）も `-log-ll` に分ける。`json` は `{ rows: [[日時, タイム（DNF は null）, OLL の名前, PLL の名前], …] }`（1 件 約 30 文字で 5000 件 約 15 万文字）。本体に `llSplit: true` を付け、読むときは `llSplit` のときだけ `-log-ll` を読む（無ければ本体の記録）。Firestore のルールは変えなくてよい（`logDoc()` が `-log-ll` も許す。Megaminx Image Editor 976f502 と同じ仕組み）
+    - LL の記録（`practice.ll.log`。最大 5000 件）も `-log-ll` に分ける。`json` は `{ rows: [[日時, タイム（DNF は null）, OLL の名前, PLL の名前], …] }`（1 件 約 30 文字で 5000 件 約 15 万文字）。本体に `llSplit: true` を付け、読むときは `llSplit` のときだけ `-log-ll` を読む（無ければ本体の記録）。Firestore のルールの `logDoc()` に `ll` が入っている（Megaminx Image Editor 976f502 と同じ仕組み）
     - 本体の `json` は記録を抜いた snapshot（ソルブはインスペクションなどの設定だけ残す）に `logsSplit: true`・`fullSplit: true` を付けたもの。読むときは `logsSplit` があれば PLL・OLL・COLL・ZBLL の文書の記録を戻し、`fullSplit` があれば `-log-full` からソルブの記録を戻す（`-log-full` は `fullSplit` のときだけ読む）。無ければ（以前の形・古いページが書いた本体）本体の記録をそのまま使う
     - 書くときは、中身が変わった種類ごとの文書を先に書いてから本体を書く（1 回の練習で書くのは本体とその種類の文書だけ）
     - 種類ごとの文書に書けなかったとき（Firebase コンソールのルールが古いなど）は、記録を本体に入れた以前の形（PLL・OLL・COLL・ZBLL は合わせて、ソルブはそれぞれ最新 2000 件）で本体だけ書き、保存の状態はエラーにする（ほかの変更は失わない）
 - Firebase プロジェクト（`roudainet-cube-tools`）とアカウントは Megaminx Image Editor と共通。各アプリは `users/{uid}/apps/<アプリ名>` に保存し、互いの保存先はぶつからない
-  - ほかのアプリも同じ形（`{ json, savedAt }`）で保存すれば、`firestore.rules` は変えなくてよい
+  - ほかのアプリも同じ形（`{ json, savedAt }`）で保存する。アプリを増やしたら `firestore.rules` の `appIds()` と `logDoc()` に名前を足す
   - localStorage のキーの頭は `visualcube-editor:`（`Store.PREFIX`）。Megaminx Image Editor（`megaminx-image-editor:`）と同じドメインに置いても混ざらない
-- `firestore.rules`：本人の `users/{uid}/apps/{アプリ名}` だけ読み書きでき、中身は `json`（50万文字未満の文字列）と `savedAt` だけ（プロジェクト共通のルール）。作る・書き換えるのはルールの `appIds()` に書いたアプリ名（`megaminx-image-editor`・`visualcube-editor`）と、その練習の記録の文書 `<アプリ名>-log-<種類>`（種類は英小文字・数字の 1〜12 文字。`logDoc()`）だけ。種類を増やしてもルールは変えなくてよい。アプリを増やしたら `appIds()` と `logDoc()` の両方に名前を足して Firebase コンソールに貼り直す。
+- `firestore.rules`：本人の `users/{uid}/apps/{アプリ名}` だけ読み書きでき、中身は `json`（50万文字未満の文字列）と `savedAt` だけ（プロジェクト共通のルール）。作る・書き換えるのはルールの `appIds()` に書いたアプリ名（`megaminx-image-editor`・`visualcube-editor`）と、その練習の記録の文書 `<アプリ名>-log-<種類>`（`logDoc()`）だけ。種類は決めた名前だけを許す：VisualCube Editor は `pll`・`oll`・`coll`・`zbll`・`full`・`ll`（`Store.LOG_SETS`）、Megaminx Image Editor は `pll`・`oll`・`full`・`ll`（名前を決めておかないと、自分のアカウントの下に大きな文書をいくらでも作れてしまうため。Megaminx Image Editor のルールの変更に合わせた）。種類を増やしたら `Store.LOG_SETS` と `firestore.rules` の両方に足して Firebase コンソールに貼り直す（`test/store.test.js` で両方がそろっているかを確かめる）。アプリを増やしたら `appIds()` と `logDoc()` の両方に名前を足して Firebase コンソールに貼り直す。
   このリポジトリの `firestore.rules` は Megaminx Image Editor のものと同じ内容（どちらか片方を直したら、もう片方も同じ内容にする）
 
 ## 保存の窓口（`js/store.js`）
