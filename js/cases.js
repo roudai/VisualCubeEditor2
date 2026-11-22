@@ -342,6 +342,7 @@
   // 件数・バー・グループの「覚えた数 / 全体」を今の状態に合わせる（絞り込みはやり直さない。
   // 絞り込み中に状態を変えたカードがすぐ消えると落ち着かないので、チップを押したときに反映する）
   function updateSummary() {
+    updatePracticeLink();
     const n = counts(DATA);
     ['learned', 'learning'].forEach((s) => {
       const seg = document.querySelector(`#progressBox [data-segment="${s}"]`);
@@ -366,6 +367,22 @@
     });
   }
 
+  // 今の絞り込みのまま練習ページを開くボタン（習得状況を変えたときも直す。updateSummary からも呼ぶ）。
+  // 対象は絞り込みのチップを引き継ぐ。ただしチップが「すべて」でグループも選んでいないときは、未習得にする
+  // （とりあえず押したときに、習得済みまで混ぜた全ケースより、まだ覚えていないケースを練習するように。
+  // 練習ページを直接開いたときの既定とも同じ）。未習得が 1 つも無ければ「すべて」のまま
+  function updatePracticeLink() {
+    const practice = $('practiceLink');
+    if (!practice) return;
+    const picked = sections.filter((s) => chosen.has(s.key) && s.key !== 'all');
+    const target = filter === 'all' && !picked.length && DATA.some((c) => statusOf(c) === 'new') ? 'new' : filter;
+    const q = new URLSearchParams({ set: SET, filter: target });
+    // 選んだグループ（覚える順なら段階の番号）も渡す。空ならすべて
+    if (HAS_STAGES) q.set('order', byStage ? 'learn' : 'group');
+    q.set('groups', picked.map((s) => (byStage ? s.stage : s.key)).join(','));
+    practice.href = '/practice?' + q.toString();
+  }
+
   // 選んだ状態のカードだけを表示し、1枚も無いグループは見出しごと隠す
   function applyFilter() {
     document.querySelectorAll('#progressBox [data-order]').forEach((b) => {
@@ -382,16 +399,7 @@
     $('groupClear').disabled = !chosen.size;
     const total = DATA.length;
     I.set($('caseCount'), 'list.count', { n: total });
-    // 今の絞り込みのまま練習ページを開くボタン
-    const practice = $('practiceLink');
-    if (practice) {
-      const q = new URLSearchParams({ set: SET, filter: filter });
-      // 選んだグループ（覚える順なら段階の番号）も渡す。空ならすべて
-      if (HAS_STAGES) q.set('order', byStage ? 'learn' : 'group');
-      const picked = sections.filter((s) => chosen.has(s.key) && s.key !== 'all');
-      q.set('groups', picked.map((s) => (byStage ? s.stage : s.key)).join(','));
-      practice.href = '/practice?' + q.toString();
-    }
+    updatePracticeLink();
     const zip = $('downloadZip');
     if (!zip.disabled) {
       I.set(zip, 'list.download');
