@@ -953,6 +953,8 @@
       renderSettings();
       const result = $('practiceResult');
       result.replaceChildren(note('practice.undone'));
+      // 全画面のときはタイマーの下の行にも出す（結果の欄は隠れるため）
+      $('focusVerdict').replaceChildren(note('practice.undone'));
     };
     // 「練習中にする」：習得済みと判定されたけれど、練習中にしておきたいとき（揃っていなかった・まだ自信が無いなど）。
     // ケースとこの回の判定だけを練習中にし、タイムはそのまま残す。そのあとも「記録を取り消す」はできる。
@@ -1566,8 +1568,9 @@
   savePrefs({ set: prefs.set, filter: prefs.filter, thresholds: { pll: threshold('pll'), oll: threshold('oll'), coll: threshold('coll') } });
 
   // ---- 全画面（スクランブルとタイマーだけの画面）----
-  // iPhone の Safari は要素の Fullscreen API が使えないので、CSS でタイマーのカードを画面いっぱいに広げる（body.practice-focus）。
-  // Fullscreen API が使える端末では、ブラウザのバーも隠す（失敗しても CSS の全画面だけで動く）。保存はしない
+  // CSS でタイマーのカードをブラウザの中いっぱいに広げる（body.practice-focus）。保存はしない。
+  // ブラウザの全画面（Fullscreen API）は使わない：画面に出すものは少なくアドレスバーが残っても困らないうえ、
+  // Mac では別のデスクトップに切り替わってほかのウインドウも見えなくなり、iPhone の Safari ではもともと使えないため
   let focusOn = false;
   let focusScrollY = 0;
   function setFocus(on) {
@@ -1578,19 +1581,9 @@
     document.body.classList.toggle('practice-focus', on);
     button.setAttribute('aria-pressed', String(on));
     I.set(button, on ? 'practice.focusExit' : 'practice.focus', null, 'aria-label');
-    const root = document.documentElement;
-    if (on && root.requestFullscreen && !document.fullscreenElement) {
-      root.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
-    } else if (!on && document.fullscreenElement && document.exitFullscreen) {
-      document.exitFullscreen().catch(() => {});
-    }
     if (!on) window.scrollTo({ top: focusScrollY, behavior: 'instant' });
   }
   $('focusButton').addEventListener('click', () => setFocus(!focusOn));
-  // ブラウザの全画面から抜けた（Android の戻る・Esc など）ときは、こちらの全画面も閉じる
-  document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && focusOn) setFocus(false);
-  });
 
   // ---- 画面を消さない（Screen Wake Lock API）----
   // 両手でキューブを回している間は画面に触れないので、スマホの画面が暗くなって消え、止められなくなるのを防ぐ。
