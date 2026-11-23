@@ -1571,9 +1571,13 @@
   // CSS でタイマーのカードをブラウザの中いっぱいに広げる（body.practice-focus）。保存はしない。
   // ブラウザの全画面（Fullscreen API）は使わない：画面に出すものは少なくアドレスバーが残っても困らないうえ、
   // Mac では別のデスクトップに切り替わってほかのウインドウも見えなくなり、iPhone の Safari ではもともと使えないため
+  // 開いたら履歴を 1 つ足し（history.state.practiceFocus）、ブラウザの戻る（Android の戻るボタン・スワイプなど）で全画面だけを閉じる。
+  // × や Esc で閉じたときは、足した履歴を戻しておく（次の戻るでページを離れるように）
   let focusOn = false;
   let focusScrollY = 0;
-  function setFocus(on) {
+  const focusInHistory = () => !!(history.state && history.state.practiceFocus);
+  // fromHistory：戻る・進むで呼ばれたとき（履歴は動かさない）
+  function setFocus(on, fromHistory) {
     if (on === focusOn) return;
     focusOn = on;
     const button = $('focusButton');
@@ -1582,8 +1586,17 @@
     button.setAttribute('aria-pressed', String(on));
     I.set(button, on ? 'practice.focusExit' : 'practice.focus', null, 'aria-label');
     if (!on) window.scrollTo({ top: focusScrollY, behavior: 'instant' });
+    if (!fromHistory) {
+      if (on) history.pushState(Object.assign({}, history.state, { practiceFocus: true }), '');
+      else if (focusInHistory()) history.back();
+    }
   }
   $('focusButton').addEventListener('click', () => setFocus(!focusOn));
+  window.addEventListener('popstate', () => {
+    if (focusInHistory() !== focusOn) setFocus(focusInHistory(), true);
+  });
+  // 全画面のまま読み直した（同期による読み直しなど）ときは、全画面で開く（履歴は全画面のままなので、戻るで閉じられるように）
+  if (focusInHistory()) setFocus(true, true);
 
   // ---- 画面を消さない（Screen Wake Lock API）----
   // 両手でキューブを回している間は画面に触れないので、スマホの画面が暗くなって消え、止められなくなるのを防ぐ。
