@@ -262,6 +262,9 @@
       return;
     }
     box.append(field(byStage(prefs.set) ? 'practice.stages' : 'practice.groups', groupSummary()));
+    // グループを選ぶ欄は、押した「グループ」のすぐ下に置く（欄が縦に並ぶスマホで、対象・出題の下に離れて出ないように）。
+    // 欄が横に並ぶ広い画面（幅 576px 以上）では、CSS（order）で欄の並びの下に回す（css/practice.css の .practice-groups）
+    if (groupsOpen) box.append(groupPicker());
     const cases = inSelection(prefs.set);
     const count = (f) => (f === 'all' ? cases.length : cases.filter((c) => P.statusOf(prefs.set, c.name) === f).length);
     box.append(
@@ -289,7 +292,6 @@
         )
       )
     );
-    if (groupsOpen) box.append(groupPicker());
   }
 
   // スマホでたたんだときの 1 行：アイコン 対象 · 習得の目安 8.0秒 · 出題（グループを絞っていればそれも）。ソルブはインスペクション

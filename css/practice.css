@@ -268,6 +268,8 @@
   flex-basis: 100%;
   padding-top: .5rem;
   border-top: 1px dashed #e3e6ea;
+  /* 広い画面：欄の並び（1〜2 行）の下に回す。スマホは欄が縦に並ぶので、押した「グループ」のすぐ下（DOM の順。下の @media） */
+  order: 1;
 }
 /* OLL の 14 個が PC の幅で1〜2行に収まるよう小さめにする（設定の枠の内側は一覧ページより狭いので、一覧ページの .group-nav-btn より少し小さい） */
 .practice-group-chips {
@@ -930,6 +932,10 @@ body.practice-focus .practice-stage:is(.running, .inspecting) #hintButton {
   }
   .practice-settings:not(.open) {
     padding: .5rem .75rem;
+  }
+  /* グループを選ぶ欄は「グループ」のすぐ下（対象・習得の目安・出題の下に離れて出ないように。js/practice.js の renderSettings） */
+  .practice-groups {
+    order: 0;
   }
   /* 対象（未習得・練習中・習得済み・すべて ＋件数）が 1 行に収まるよう詰める */
   .practice-segment button {
