@@ -602,3 +602,14 @@ html {
     font-size: 16px;
   }
 }
+
+/* タッチの画面（マウスが無い）では、押したボタンに「マウスが乗っている」扱い（:hover）が残り、Bootstrap の枠だけのボタンが
+   塗られたままに見える（一覧のグループのボタンを押して選択を外しても、選んだ色のまま残るなど）。乗ったときの色を、ふだんの色にする。
+   選んでいる（.active）・押している間（:active）の色はそのまま */
+@media (hover: none) {
+  .btn[class*="btn-outline-"] {
+    --bs-btn-hover-color: var(--bs-btn-color);
+    --bs-btn-hover-bg: transparent;
+    --bs-btn-hover-border-color: var(--bs-btn-border-color);
+  }
+}
