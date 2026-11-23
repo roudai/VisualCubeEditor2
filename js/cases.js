@@ -368,14 +368,16 @@
   }
 
   // 今の絞り込みのまま練習ページを開くボタン（習得状況を変えたときも直す。updateSummary からも呼ぶ）。
-  // 対象は絞り込みのチップを引き継ぐ。ただしチップが「すべて」でグループも選んでいないときは、未習得にする
-  // （とりあえず押したときに、習得済みまで混ぜた全ケースより、まだ覚えていないケースを練習するように。
-  // 練習ページを直接開いたときの既定とも同じ）。未習得が 1 つも無ければ「すべて」のまま
+  // 対象は絞り込みのチップを引き継ぐ。ただしチップが「すべて」のときは、未習得にする（グループを選んでいてもいなくても。
+  // とりあえず押したときに、習得済みまで混ぜた全ケースより、まだ覚えていないケースから練習するように。
+  // 練習ページを直接開いたときの既定とも同じ。練習ページでは、未習得を解き終えると練習中 → 習得済みと対象が進む）。
+  // 選んだグループ（選んでいなければ全ケース）に未習得が 1 つも無ければ「すべて」のまま
   function updatePracticeLink() {
     const practice = $('practiceLink');
     if (!practice) return;
     const picked = sections.filter((s) => chosen.has(s.key) && s.key !== 'all');
-    const target = filter === 'all' && !picked.length && DATA.some((c) => statusOf(c) === 'new') ? 'new' : filter;
+    const cases = picked.length ? picked.flatMap((s) => s.cases) : DATA;
+    const target = filter === 'all' && cases.some((c) => statusOf(c) === 'new') ? 'new' : filter;
     const q = new URLSearchParams({ set: SET, filter: target });
     // 選んだグループ（覚える順なら段階の番号）も渡す。空ならすべて
     if (HAS_STAGES) q.set('order', byStage ? 'learn' : 'group');

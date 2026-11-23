@@ -568,6 +568,46 @@
   }
 
   // keepTime: 解き終わったとき（PLL / OLL / 通し）。タイムを 0.00 に戻さず、次のインスペクション・計測が始まるまで出したままにする
+  // 対象（未習得 → 練習中 → 習得済み）を、ケースのある次の状態に進める。進めたら true。
+  // 解いたあと（next(true)）に今の対象のケースが無くなったときだけ呼ぶ（自分で対象を選んだ直後・スキップでは進めない）。
+  // 戻る向き（取り消して未習得が戻ったなど）・「すべて」では切り替えない。進めたら画面の下に知らせる
+  const FILTER_FLOW = ['new', 'learning', 'learned'];
+  function advanceFilter() {
+    const from = prefs.filter;
+    const i = FILTER_FLOW.indexOf(from);
+    if (i < 0) return false;
+    const to = FILTER_FLOW.slice(i + 1).find((f) => inSelection(prefs.set).some((c) => P.statusOf(prefs.set, c.name) === f));
+    if (!to) return false;
+    savePrefs({ filter: to });
+    renderSettings();
+    notice('practice.filterAdvanced', { from: I.t('status.' + from), to: I.t('status.' + to) });
+    return true;
+  }
+  // 画面の下の短い知らせ（css/common.css の .site-toast。cloud-sync.js の知らせと同じ形）。× か 10 秒で閉じる。全画面でも見える
+  function notice(key, params) {
+    let box = $('siteToast');
+    if (!box) {
+      box = el('div', 'site-toast');
+      box.id = 'siteToast';
+      box.setAttribute('role', 'status');
+      document.body.append(box);
+    }
+    const text = el('div', 'site-toast-text');
+    I.set(text, key, params);
+    const close = el('button', 'site-toast-close', '×');
+    close.type = 'button';
+    I.set(close, 'account.toastClose', null, 'aria-label');
+    const hide = () => {
+      box.classList.remove('show');
+      if (box.contains(document.activeElement)) document.activeElement.blur(); // スペースキーが隠れた × を押さないように
+    };
+    close.addEventListener('click', hide);
+    box.replaceChildren(close, text);
+    requestAnimationFrame(() => box.classList.add('show'));
+    clearTimeout(box.hideTimer);
+    box.hideTimer = setTimeout(hide, 10000);
+  }
+
   function next(keepTime) {
     if (keepTime) {
       cancelAnimationFrame(frame);
@@ -593,7 +633,9 @@
     }
     const forced = forcedName ? DATA[prefs.set].find((x) => x.name === forcedName) : null;
     forcedName = null;
-    const list = forced ? [forced] : pool();
+    let list = forced ? [forced] : pool();
+    // 解き終わって対象のケースが無くなったときは、対象を次の状態に進める（未習得 → 練習中 → 習得済み）
+    if (!list.length && keepTime && !forced && advanceFilter()) list = pool();
     $('practiceEmpty').hidden = list.length > 0;
     $('timer').disabled = !list.length;
     $('dnfButton').disabled = !list.length;
