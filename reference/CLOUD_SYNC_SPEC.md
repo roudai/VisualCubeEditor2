@@ -119,7 +119,7 @@ VisualCube Editor を公開するときに足すこと：
 公開（`main` へのマージ）で自動的にサイトが更新される場合は、1・2 が済むまでマージしない（ログインのボタンは出るのに、ログインや保存が失敗する状態で公開されるため）。
 
 ## 使い方（`guide.html`、URL は `/guide`）
-- サイトの使い方（エディタ・PLL / OLL / COLL / ZBLL・練習・記録・保存とログイン・問い合わせ）を日本語・英語で書いたページ（言語の切り替えは `js/legal.js`。画像は入れず文章だけ）
+- サイトの使い方（エディタ・URL で開く（`?pll=`・`?oll=`・`?coll=`・`?case=`・`?alg=`。MegaminxImageEditor e82e50b）・PLL / OLL / COLL / ZBLL・練習・記録・保存とログイン・問い合わせ）を日本語・英語で書いたページ（言語の切り替えは `js/legal.js`。画像は入れず文章だけ）
   - 説明は短く、操作と結果だけを書く（細かい仕組み・理由・例外は書かない）。英語の版のボタン名は画面（i18n.js）の英語の文言に合わせる（MegaminxImageEditor 175a471）
   - VisualCube Editor だけのこと（COLL・ZBLL、パズルの種類などの変更、OLL の行の COLL、ZBLL の「OCLL ごと」、PLL の逆手順、ZIP はすべてのケース、アカウントは Megaminx Image Editor と共通）も短く書く
 - 「保存とログイン」に保存できる記録の量（PLL・OLL・COLL・ZBLL それぞれ最新 5000 件、ケースごとの最近のタイム各 10 回、ソルブ・LL それぞれ最新 5000 件。超えると古いものから消える）を短く書く（利用規約と同じ数。MegaminxImageEditor b4c03ed）
