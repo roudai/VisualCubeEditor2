@@ -39,6 +39,10 @@
 .practice-settings-text {
   flex: 1;
   min-width: 0;
+  /* 1 行に収め、入らなければ末尾を … で切る（押せば開いて全部見られる） */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .practice-settings-part {
   white-space: nowrap;

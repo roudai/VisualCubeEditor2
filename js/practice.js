@@ -294,7 +294,8 @@
     );
   }
 
-  // スマホでたたんだときの 1 行：アイコン 対象 · 習得の目安 8.0秒 · 出題（グループを絞っていればそれも）。ソルブはインスペクション
+  // スマホでたたんだときの 1 行：アイコン 練習中 · 目安 3.0秒 · 出題（グループを絞っていればそれも）。ソルブはインスペクション。
+  // 1 行に収めるため「対象」の語は付けず「習得の目安」は「目安」。それでも入らなければ末尾を … で切る（css/practice.css）
   function settingsSummary() {
     const button = el('button', 'practice-settings-summary');
     button.type = 'button';
@@ -309,8 +310,8 @@
     } else {
       const chosen = chosenGroups(prefs.set);
       if (chosen) parts.push(I.t('practice.groupsCount', { n: chosen.size }));
-      parts.push(I.t('practice.target') + ' ' + I.t(prefs.filter === 'all' ? 'list.filterAll' : 'status.' + prefs.filter));
-      parts.push(I.t('practice.threshold') + ' ' + I.t('practice.seconds', { n: threshold().toFixed(1) }));
+      parts.push(I.t(prefs.filter === 'all' ? 'list.filterAll' : 'status.' + prefs.filter));
+      parts.push(I.t('practice.thresholdShort') + ' ' + I.t('practice.seconds', { n: threshold().toFixed(1) }));
       parts.push(I.t(weighted() ? 'practice.pickWeak' : 'practice.pickRandom'));
     }
     const icon = el('span', 'practice-settings-icon');
@@ -318,7 +319,7 @@
     icon.innerHTML =
       '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">' +
       '<path d="M2 4h12M2 8h12M2 12h12"/><circle cx="5" cy="4" r="1.7" fill="#fbfbfc"/><circle cx="10.5" cy="8" r="1.7" fill="#fbfbfc"/><circle cx="6.5" cy="12" r="1.7" fill="#fbfbfc"/></svg>';
-    // 項目ごとに折り返さない（1 行に入らないときは項目の切れ目で折り返す）
+    // 1 行に入らないときは末尾を … で切る（css/practice.css の .practice-settings-text）
     const text = el('span', 'practice-settings-text');
     parts.forEach((part, i) => {
       if (i) text.append(' · ');
