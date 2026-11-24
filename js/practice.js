@@ -574,7 +574,7 @@
   // keepTime: 解き終わったとき（PLL / OLL / 通し）。タイムを 0.00 に戻さず、次のインスペクション・計測が始まるまで出したままにする
   // 対象（未習得 → 練習中 → 習得済み）を、ケースのある次の状態に進める。進めたら true。
   // 解いたあと（next(true)）に今の対象のケースが無くなったときだけ呼ぶ（自分で対象を選んだ直後・スキップでは進めない）。
-  // 戻る向き（取り消して未習得が戻ったなど）・「すべて」では切り替えない。進めたら画面の下に知らせる
+  // 戻る向き（取り消して未習得が戻ったなど）・「すべて」では切り替えない。進めたらタイマーのボタンのすぐ下に知らせる（notice）
   const FILTER_FLOW = ['new', 'learning', 'learned'];
   function advanceFilter() {
     const from = prefs.filter;
@@ -587,29 +587,49 @@
     notice('practice.filterAdvanced', { from: I.t('status.' + from), to: I.t('status.' + to) });
     return true;
   }
-  // 画面の下の短い知らせ（css/common.css の .site-toast。cloud-sync.js の知らせと同じ形）。× か 10 秒で閉じる。全画面でも見える
-  function notice(key, params) {
-    let box = $('siteToast');
-    if (!box) {
-      box = el('div', 'site-toast');
-      box.id = 'siteToast';
-      box.setAttribute('role', 'status');
-      document.body.append(box);
+  // 練習の知らせ（今は対象を進めた知らせだけ。css/practice.css の .practice-toast）。× か 10 秒か、次の計測を始めたら（setState）閉じる。
+  // タイマーのカードの、ボタン（スキップ・ヒント）のすぐ下に重ねて出す（どの画面の幅でも、全画面でも）。止めた直後に見ているところで、
+  // 高さ 0 の .practice-toast-anchor に置くので結果・最近の記録を押し下げない（出し入れで画面がずれない）。長いときは下に重なって伸びる。
+  // 「出せるケースがありません」が出ているときは、その文の下に出す（next で置き直す）。MegaminxImageEditor c1f37db
+  function placeToast(box) {
+    let anchor = $('practiceToastAnchor');
+    if (!anchor) {
+      anchor = el('div', 'practice-toast-anchor');
+      anchor.id = 'practiceToastAnchor';
     }
-    const text = el('div', 'site-toast-text');
+    const after = $('practiceEmpty').hidden ? document.querySelector('.practice-buttons') : $('practiceEmpty');
+    if (after.nextElementSibling !== anchor) after.after(anchor);
+    if (box.parentNode !== anchor) anchor.append(box);
+  }
+  function hideToast() {
+    const box = $('practiceToast');
+    if (!box) return;
+    clearTimeout(box.hideTimer);
+    box.classList.remove('show');
+    // × を押したあと、スペースキーが隠れた × を押してしまわないようにフォーカスを外す
+    if (box.contains(document.activeElement)) document.activeElement.blur();
+  }
+  function notice(key, params) {
+    let box = $('practiceToast');
+    if (!box) {
+      box = el('div', 'practice-toast');
+      box.id = 'practiceToast';
+      box.setAttribute('role', 'status');
+    }
+    placeToast(box);
+    const text = el('div', 'practice-toast-text');
     I.set(text, key, params);
-    const close = el('button', 'site-toast-close', '×');
+    const close = el('button', 'practice-toast-close', '×');
     close.type = 'button';
     I.set(close, 'account.toastClose', null, 'aria-label');
-    const hide = () => {
-      box.classList.remove('show');
-      if (box.contains(document.activeElement)) document.activeElement.blur(); // スペースキーが隠れた × を押さないように
-    };
-    close.addEventListener('click', hide);
+    close.addEventListener('click', hideToast);
     box.replaceChildren(close, text);
-    requestAnimationFrame(() => box.classList.add('show'));
+    // 出るときに少し大きくなって戻る（動きを減らす設定では動かさない。css/practice.css）
+    box.classList.remove('show');
+    void box.offsetWidth;
+    box.classList.add('show');
     clearTimeout(box.hideTimer);
-    box.hideTimer = setTimeout(hide, 10000);
+    box.hideTimer = setTimeout(hideToast, 10000);
   }
 
   function next(keepTime) {
@@ -641,6 +661,8 @@
     // 解き終わって対象のケースが無くなったときは、対象を次の状態に進める（未習得 → 練習中 → 習得済み）
     if (!list.length && keepTime && !forced && advanceFilter()) list = pool();
     $('practiceEmpty').hidden = list.length > 0;
+    const toastBox = $('practiceToast');
+    if (toastBox && toastBox.classList.contains('show')) placeToast(toastBox); // 「出せるケースがありません」と重ならないように
     $('timer').disabled = !list.length;
     $('dnfButton').disabled = !list.length;
     $('skipButton').disabled = !list.length;
@@ -811,8 +833,10 @@
   function setState(next) {
     state = next;
     // 一度スタートしたら、その種類の説明は見たことにする。計測中は隠すだけ（場所は残す）にして、止めたら行ごと消す
-    if (next === 'running' || next === 'inspecting') markTipSeen();
-    else renderTip();
+    if (next === 'running' || next === 'inspecting') {
+      markTipSeen();
+      hideToast(); // 知らせは次の計測を始めたら閉じる
+    } else renderTip();
     $('practiceStage').classList.toggle('running', next === 'running');
     $('practiceStage').classList.toggle('inspecting', next === 'inspecting');
     if (next !== 'inspecting') timerEl.classList.remove('warn8', 'warn12', 'over');
@@ -1503,7 +1527,8 @@
   // 画面ではタイマーのカード（スクランブル〜ボタンの上）のどこを押してもスタート（ソルブは長押しして離すとスタート）。
   // 計測中はどこをタップしても止まる。カードの中のボタン・リンクは、それぞれのボタンとして押す
   const stageEl = $('practiceStage');
-  const onTimerArea = (e) => stageEl.contains(e.target) && !e.target.closest('button:not(#timer), a, input, select, textarea');
+  // 重ねて出している知らせの上は押してもスタートしない（× で閉じる）
+  const onTimerArea = (e) => stageEl.contains(e.target) && !e.target.closest('button:not(#timer), a, input, select, textarea, .practice-toast');
   stageEl.addEventListener('pointerdown', (e) => {
     if (!onTimerArea(e) || e.button !== 0) return;
     e.preventDefault();
@@ -1597,6 +1622,7 @@
   // ヒントのボタンの文：出しているときは「ヒントを隠す」
   function showHint(shown) {
     if (!shown) $('practiceHintText').replaceChildren();
+    else hideToast(); // ヒントの文は知らせと同じところ（ボタンの下）に出るので、知らせは閉じる
     I.set($('hintButton'), shown ? 'practice.hintHide' : 'practice.hintButton');
     $('hintButton').setAttribute('aria-pressed', String(shown));
   }

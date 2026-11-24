@@ -972,3 +972,64 @@ body.practice-focus .practice-stage:is(.running, .inspecting) #hintButton {
 .practice-result .case-image svg {
   display: block;
 }
+
+/* 練習の知らせ（対象を進めたとき。js/practice.js の notice）。
+   タイマーのカードの、ボタンのすぐ下に重ねて出す（.practice-toast-anchor は高さ 0 で、ほかを押し下げない）。
+   長いときは下（結果の上の方）に重なって伸びる。色は画面の下の知らせ（css/common.css の .site-toast）と同じ控えめな青 */
+.practice-toast-anchor {
+  position: relative;
+  height: 0;
+}
+.practice-toast {
+  position: absolute;
+  left: 50%;
+  top: .4rem;
+  z-index: 1060;
+  width: max-content;
+  max-width: calc(100% + 1rem); /* カードの枠まで */
+  padding: .6rem 2rem .6rem 1rem;
+  border: 1px solid #cfe2ff;
+  border-radius: .75rem;
+  background: #f1f6ff;
+  color: #084298;
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .15);
+  font-size: .875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 1rem);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.practice-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+  animation: toast-pop-fixed .5s ease; /* css/common.css */
+}
+.practice-toast-close {
+  position: absolute;
+  top: .15rem;
+  right: .3rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #3d6fb6;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.practice-toast-close:hover {
+  background: rgba(0, 0, 0, .06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .practice-toast {
+    transition: none;
+  }
+  .practice-toast.show {
+    animation: none;
+  }
+}
