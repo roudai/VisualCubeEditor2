@@ -129,6 +129,7 @@ const app = Vue.createApp({
     },
     maskAlgList: ['x', "x'", 'x2', 'y', "y'", 'y2', 'z', "z'", 'z2'],
     drawFlag: true,
+    caret: null, // 入力欄の最後のカーソルの位置 { value, start, end }（rememberCaret。記号のボタンで入れる場所）
     lang: window.I18N.lang, // 今の言語（js/i18n.js）。切り替えると t() を使っている場所が描き直される
   }),
   created() {
@@ -346,16 +347,38 @@ const app = Vue.createApp({
       }
       e.target.value = this.imageSize // 範囲外を入れたときも、欄の表示を実際の値にそろえる
     },
+    // 入力欄のカーソルの位置（選んでいる範囲）を覚える。記号のボタンを押すと入力欄からフォーカスが外れるので、最後の位置を使う。
+    // value はそのときの手順：ケースを選ぶなどで手順が入れ替わったら、その位置は使わない（最後に足す）
+    rememberCaret() {
+      const input = document.getElementById('algorithm')
+      if (!input || document.activeElement !== input || input.selectionStart == null) return
+      this.caret = { value: input.value, start: input.selectionStart, end: input.selectionEnd }
+    },
+    // 記号のボタン：カーソルの位置に入れる（選んでいる範囲は置き換える。カーソルを入れていなければ最後に足す）。
+    // 記号の並べ方（' w ) 数字は前の記号に続ける、大きいキューブの層の数字は次の記号の前に付ける、など）は、カーソルより前を手順の終わりとみなして決める。
+    // 入れたあとは入力欄にフォーカスを戻さない（スマホでキーボードが出てボタンが隠れないように）。カーソルは入れた記号の後ろに進める
     addAlgorithm(text) {
-      if (this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
-        this.algorithm = this.algorithm + text
+      const value = this.algorithm
+      const at = this.caret && this.caret.value === value ? this.caret : { start: value.length, end: value.length }
+      let before = value.slice(0, at.start)
+      let after = value.slice(at.end)
+      if (this.cubeSize >= 6 && !isNaN(text) && (before.slice(-1) !== ' ' || before === '')) {
+        before = before + text
       } else if (text === "'" || text === 'w' || text === ')' || !isNaN(text)) {
-        this.algorithm = this.algorithm.trimEnd() + text + ' '
+        before = before.trimEnd() + text + ' '
       } else if (text === '(') {
-        this.algorithm = this.algorithm + text
+        before = before + text
       } else {
-        this.algorithm = this.algorithm + text + ' '
+        if (before && !/[\s(]$/.test(before)) before += ' ' // R| で U → R U（前の記号に続けない）
+        before = before + text + ' '
       }
+      // 後ろに続く手順との間の空白は 1 つに（R |U' で U → R U U'）
+      if (/\s$/.test(before)) after = after.replace(/^\s+/, '')
+      this.algorithm = before + after
+      const pos = before.length
+      this.caret = { value: this.algorithm, start: pos, end: pos }
+      const input = document.getElementById('algorithm')
+      if (input && document.activeElement === input) this.$nextTick(() => input.setSelectionRange(pos, pos))
     },
     resetState() {
       if (this.cubeSize === 6) {
@@ -984,6 +1007,12 @@ const app = Vue.createApp({
   mounted() {
     // 保存してある設定・URL パラメータ（js/editor-cases.js の created で反映済み）で描く
     this.drawCube()
+    // 手順の入力欄のカーソルの位置を覚える（記号のボタンで入れる場所。addAlgorithm）
+    const algInput = document.getElementById('algorithm')
+    if (algInput) {
+      ;['input', 'keyup', 'mouseup', 'touchend', 'select', 'focus', 'blur'].forEach((type) => algInput.addEventListener(type, () => this.rememberCaret()))
+      document.addEventListener('selectionchange', () => this.rememberCaret())
+    }
     // 上に残した画像の高さを CSS に渡す（入力欄までスクロールしたときに画像の下に隠れないように。css/common.css の scroll-padding-top）
     const preview = document.getElementById('editorPreview')
     if (preview && typeof ResizeObserver === 'function') {
