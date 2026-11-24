@@ -96,7 +96,7 @@
       <div id="app" v-cloak>
         <!-- 画像：下にスクロールしても画面の上に残す。表示は画面の高さの 35% まで（css/common.css の .editor-preview。描く大きさ・PNG は画像サイズのまま） -->
         <div id="editorPreview" class="editor-preview text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: 'calc(min(' + imageHeight + 'px, 35vh) + 30px)' }">
-          <!-- 色を直接指定・3x3・Plan 表示のときは、画像のステッカーを押して色を選べる（js/state-picker.js） -->
+          <!-- 色を直接指定・Plan 表示のときは、画像のステッカーを押して色を選べる（js/state-picker.js） -->
           <div id="visualcube" :class="{ pickable: canPickSticker }" @click="onPreviewClick"></div>
           {{ algorithm }}
         </div>

@@ -4,7 +4,7 @@ let drawToken = 0
 
 const app = Vue.createApp({
   // PLL・OLL の選択、自分の手順、Color Preset、Background、Download、設定の保存、URL パラメータ（js/editor-cases.js）
-  // 色を直接指定で、画像のステッカーを押して色を選ぶ（js/state-picker.js。3x3・Plan 表示だけ）
+  // 色を直接指定で、画像のステッカーを押して色を選ぶ（js/state-picker.js。Plan 表示だけ）
   mixins: [window.EditorCases, window.StatePicker],
   data: () => ({
     parameter: {},

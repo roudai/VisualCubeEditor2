@@ -475,7 +475,7 @@ html {
   height: auto;
   margin: 0 auto;
 }
-/* 色を直接指定・3x3・Plan 表示のときは、画像のステッカーを押して色を選べる（js/state-picker.js） */
+/* 色を直接指定・Plan 表示のときは、画像のステッカーを押して色を選べる（js/state-picker.js） */
 .editor-preview #visualcube.pickable img {
   cursor: pointer;
 }
