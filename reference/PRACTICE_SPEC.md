@@ -80,7 +80,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 ## 保存（`js/store.js` 経由。ログイン中はクラウドにも）
 - 習得状況：一覧と同じ `progress` を書き換える（`js/progress.js`。一覧と練習で共通）
 - `practice`：`{ set, filter, weighted（出題が苦手優先か。無ければ true、false はランダム）, thresholds: { pll: 秒, oll: 秒, coll: 秒 }（以前の共通の threshold があれば、無い種類の目安に使う）, groups: { pll: ["Edges only"], oll: [] }, stats: { 記録のページの表示 }, log: [日時付きの記録], times: { pll: { "Aa": [最近のタイム(秒) 新しい順 最大10件] }, oll: {…} }, full: { ソルブの設定と記録 } }`
-- URL `?set=oll&filter=new` で設定の初期値を指定できる（その値で保存し直す）。`&groups=Dot,Square` で出題するグループ、`&case=Aa` で最初の1問のケース
+- URL `?set=oll&filter=new` で設定の初期値を指定できる（その値で保存し直す）。`&groups=Dot,Square` で出題するグループ、`&case=Aa` で最初の1問のケース。URL の指定はリンクから来たその 1 回だけ使い、使ったらアドレスバーから消す（`history.replaceState`。全画面の履歴の状態は引き継ぐ）。残すと、ソルブに切り替える・対象が進む・グループを選び直すなどのあとに再読み込みしたとき、URL の指定に戻ってしまうため。再読み込みでは保存してある今の設定で開く（MegaminxImageEditor 70556c4）
 
 ## ほかのページ
 - 全ページのナビバーに「練習 / Practice」
@@ -89,7 +89,7 @@ MegaminxImageEditor の `reference/PRACTICE_SPEC.md` を VisualCube Editor（3x3
 
 ## 記録（`stats.html`・`js/stats.js`・`css/stats.css`）
 - 判定のたびに `practice.log` に `{ at: 日時(ms), set, name, sec(null=解けなかった), status, hint }` を足す（新しい順、PLL・OLL・COLL・ZBLL それぞれ最大 5000 件（ある種類をたくさん練習しても、ほかの種類の記録は押し出されない）。「記録を取り消す」でその1件も消す）。集計は `js/progress.js` の `addLog`・`summarize`・`daily`・`perCase`
-- ナビバーの「記録 / Stats」、練習ページの見出しの「記録」（スマホなど 768px 未満。`/stats?set=oll` のように今の種類を渡す）から開く
+- ナビバーの「記録 / Stats」、練習ページの見出しの「記録」（スマホなど 768px 未満。`/stats?set=oll` のように今の種類を渡す）から開く。記録のページは URL の種類で開き（表示の設定として保存する）、使ったらアドレスバーから消す（種類を切り替えて再読み込みしたときに戻らないように）
 - 種類（PLL / OLL / COLL / ZBLL / LL / ソルブ）・期間（7日間 / 30日間 / 全期間）で絞る（`practice.stats` に保存）。種類は練習ページと共通（`practice.set`）で、練習と記録を行き来しても選んでいた種類のまま開く（どちらのページで変えても、もう一方に引き継ぐ）
   - 置き場所：見出しは練習ページと同じ「練習 記録」の切り替え（記録が濃い字の h1、練習は今の種類の練習を開く薄い字のリンク。768px 以上はナビバーから行き来できるのでリンクを隠す。`.page-switch`）。その横に種類の切り替え（`#statsControls`。練習ページの種類と同じ場所。見出しの行の並びは両ページ共通の `.page-head`）。スマホ（幅 576px 未満）は切り替えのボタンを練習ページと同じ大きさ（左右の余白 .45rem・文字 .78rem）に詰める。種類が 6 つあるので、見出しと同じ行に入るのは日本語は 375px 以上、英語は 412px 以上で、それより狭いと種類だけが次の行に回る（練習ページも同じ）。英語の種類名は、広い画面（576px 以上）は「Full solve」、スマホ（576px 未満）は「Solve」（`practice.full`・`practice.fullShort`。ボタンに両方を入れて `.label-wide`・`.label-narrow` で出し分ける。練習ページも同じ。移植元はどの幅でも「Full solve」だが、VCE2 は種類が 6 つあり、スマホで「Full solve」にすると 412px でも次の行に回るため）。期間の 3 つのボタン（「7日間 / 30日間 / 全期間」、英語は「7 days / 30 days / All time」。`#statsPeriod`）はどの幅でも見出しの行に置かず、その下・集計のカードの上に左寄せで置く（期間はその下のカード・グラフ・表だけを絞ることが見て分かるように。頭に選択が 2 つ並ばないように）。種類・期間を切り替えてもカードの位置は変わらない。768px 未満は両ページの見出しの字の大きさ（1.1rem）をそろえる
 - 集計のカード：練習回数、平均（とベスト）、解けなかった回数、習得済みの数（今の習得状況）。カードの高さはそろえる（スマホの 2 列で段が分かれても、下の小さい字の無いカードだけ低くならないように。`grid-auto-rows: 1fr`）。スマホ（幅 576px 未満）は小さくする：2 列のまま、ラベルを左・数字を右に横に並べ、小さい字（ベスト・現在など）は数字の下に右寄せ。狭くてもラベルの方を折り返し、数字は 1 行のまま

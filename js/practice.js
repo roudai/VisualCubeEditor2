@@ -553,6 +553,10 @@
 
   // ?case=Aa で開いたときは、最初の1問だけそのケースを出す（記録のページから「このケースを練習」）
   let forcedName = params.get('case');
+  // URL の指定（?set=…&filter=…&order=…&groups=…&case=…）は、リンクから来たその 1 回だけ使う。使ったら（上で保存済み）アドレスバーから消す。
+  // 残しておくと、ソルブに切り替える・対象が進む・グループを選び直すなどのあとに再読み込みしたとき、URL の指定に戻ってしまうため。
+  // 全画面の履歴（history.state）は引き継ぐ。MegaminxImageEditor 70556c4
+  if (location.search && history.replaceState) history.replaceState(history.state, '', location.pathname + location.hash);
 
   // 出題の重み：出題が「苦手優先」（既定）なら、どの対象でも苦手なケースほど出やすくする（順番ではなく確率に差をつける）。
   // 苦手の度合いは記録のページの苦手順と同じ（直近 10 回の平均。解けなかった回は目安の 2 倍。回数の少ないケースは全体の平均に寄せる）。
