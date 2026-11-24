@@ -13,7 +13,7 @@
 //   （COLL を選んでいる間に手で Stage Mask を変えたら、それ以降は触らない）
 //   選んでいる間は手順の欄を書き換えても選択を外さず、その手順を自分の手順として保存できる（custom-algs.js。確認は case-check.js）
 //   パズルの種類を 3x3 以外に変えると選択を外す
-// 手順の確認（3x3 のときだけ）: js/cube-state.js で読めない記号・括弧の対応をその場で調べ、欄の下にエラーを出す。
+// 手順の確認（3x3 のときだけ）: js/cube-state.js で読めない記号・括弧の対応をその場で調べ、保存のメッセージの行（#myAlgMessage）にエラーを出す。
 //   描画に渡す手順（main.js の drawCube が呼ぶ algForDraw）は括弧と繰り返しを展開したもの。
 //   case は手順中の持ち替え（x y z・2層回し・中層回し）で完成後の向きが変わっても揃ったとみなす（センターを元の位置に戻す）
 // Color Preset（standard / oll / custom）、Background（Transparent / Opaque）、Download と File Name
@@ -55,9 +55,12 @@
     }),
 
     computed: {
-      // 自分の手順のメッセージ（今の言語で作る。出している間に言語を切り替えても訳し直す）
+      // 自分の手順のメッセージ（今の言語で作る。出している間に言語を切り替えても訳し直す）。
+      // 手順が読めないときは、そのエラーをこの行に出す（入力欄のすぐ下に出すと、入力の途中（R ( など）で出たり消えたりして下が上下するため）。
+      // 読めるようになったらエラーは消え、手で書き換えたので保存のメッセージも消えている（algorithm の監視）
       myAlgText() {
         void this.lang;
+        if (this.algError) return this.algError;
         return this.myAlgMessage.make ? this.myAlgMessage.make() : '';
       },
       // 自分の手順を既定データに重ねたもの

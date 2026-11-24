@@ -261,10 +261,9 @@
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('y')">y</button>
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('z')">z</button>
           </div>
-          <div class="input-group has-validation form-inline mb-1" v-show="!showFacelets">
+          <div class="input-group form-inline mb-1" v-show="!showFacelets">
             <input type="text" class="form-control" :class="{ 'is-invalid': algError }" id="algorithm" v-model="algorithm" autocomplete="off" autocapitalize="off" spellcheck="false" @keydown.enter="saveMyAlg" />
             <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithmAndCase">{{ t('editor.clear') }}</button>
-            <div class="invalid-feedback" id="algError">{{ algError }}</div>
           </div>
           <!-- 選んでいるケースの手順の状態と、自分の手順の保存（ケースを選んでいるときだけ中身を出す） -->
           <div class="case-alg-bar d-flex align-items-center justify-content-between gap-2" id="caseAlgBar" :class="{ 'is-empty': !selectedCase }" v-show="!showFacelets">
@@ -278,9 +277,10 @@
               <button class="btn btn-sm btn-outline-secondary" type="button" id="myAlgReset" :disabled="!caseIsCustom" @click="resetMyAlg">{{ t('myAlg.resetToDefault') }}</button>
             </div>
           </div>
-          <div class="my-alg-message small d-flex align-items-center gap-2 mb-2" id="myAlgMessage" :class="myAlgMessage.kind === 'error' ? 'text-danger' : 'text-success'" aria-live="polite" v-show="!showFacelets">
+          <!-- 保存のメッセージ。手順が読めないときのエラーもここに出す（高さはいつも確保。入力欄の下に出すと、入力の途中で出たり消えたりして下が上下するため） -->
+          <div class="my-alg-message small d-flex align-items-center gap-2 mb-2" id="myAlgMessage" :class="algError || myAlgMessage.kind === 'error' ? 'text-danger' : 'text-success'" aria-live="polite" v-show="!showFacelets">
             <span class="text-truncate" :title="myAlgText">{{ myAlgText }}</span>
-            <button type="button" class="btn btn-link btn-sm p-0 flex-none my-alg-undo" v-if="myAlgMessage.undo" @click="myAlgMessage.undo()">{{ t('myAlg.undo') }}</button>
+            <button type="button" class="btn btn-link btn-sm p-0 flex-none my-alg-undo" v-if="myAlgMessage.undo && !algError" @click="myAlgMessage.undo()">{{ t('myAlg.undo') }}</button>
           </div>
 
           <div v-show="showFacelets">
