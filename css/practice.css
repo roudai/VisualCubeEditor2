@@ -548,9 +548,17 @@ body.practice-focus .practice-stage-top {
 body.practice-focus .practice-stage-bottom {
   align-self: start;
 }
-/* PLL・OLL・COLL・ZBLL・LL のスクランブルは少し大きく（ソルブは幅いっぱいなので今の大きさのまま） */
-body.practice-focus .practice-scramble:not(.full) {
+/* スクランブルは少し大きく（ソルブも同じ大きさ。20 手前後なので、幅を広げて 2 行に収める） */
+body.practice-focus .practice-scramble {
   font-size: clamp(1.25rem, 3.4vw, 1.9rem);
+}
+body.practice-focus .practice-scramble.full {
+  max-width: 48rem;
+}
+/* ソルブはケース名・グループの行が無く上の塊が小さいので、タイマーに寄せず、タイマーより上の余白の真ん中に置く（窮屈にならないように。
+   MegaminxImageEditor 7f25c4a） */
+body.practice-focus.practice-full .practice-stage-top {
+  align-self: center;
 }
 body.practice-focus .practice-timer {
   font-size: clamp(4.5rem, 22vw, 10rem);
