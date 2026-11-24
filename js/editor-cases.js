@@ -19,7 +19,8 @@
 // Color Preset（standard / oll / custom）、Background（Transparent / Opaque）、Download と File Name
 // 設定の保存: 配色（Color Preset・面の色・OLL を選ぶ前の配色・最後のカスタム配色）・画像サイズ・Cube Color・背景色・背景を
 //   store.js の 'settings' に保存し、次に開いたときに戻す（ログイン中はクラウドにも）。
-//   手順・種類・PLL/OLL の選択・ファイル名・パズルの種類・表示・マスク・回転・矢印は保存しない
+//   手順・種類・PLL/OLL の選択・ファイル名・パズルの種類・表示・マスク・回転・矢印はずっとは保存しない
+//   （再読み込みしたときだけ戻す：sessionStorage の 'visualcube-editor:editor-session'。下の「再読み込みで今の状態に戻す」）
 // URL パラメータ: ?alg=R U R' U' / ?case=R U R' U' / ?pll=Aa / ?oll=27 / ?coll=21-1（?pll → ?oll → ?coll → ?case → ?alg の順に優先）
 (function () {
   'use strict';
@@ -37,6 +38,34 @@
   const squash = (text) => String(text).replace(/\s+/g, ' ').trim();
   const validScheme = (scheme) => !!scheme && typeof scheme === 'object' && M.FACES.every((face) => HEX.test(scheme[face]));
   const sameScheme = (a, b) => M.FACES.every((face) => a[face] === b[face]);
+
+  // ---- 再読み込みで今の状態に戻す ----
+  // 手順・種類・選んでいるケース（書き換え中の手順も）・ファイル名・パズルの種類・表示・マスク・矢印・回転・距離・透明度・色を直接指定した色を、
+  // ページを離れるときに覚えておき、再読み込み（と戻る・進むでこのページに戻ったとき）だけ戻す。新しく開いたとき・一覧などのリンクから来たときは
+  // URL の指定（無ければ初期表示）。再読み込みは URL も同じなので、URL の指定より覚えた状態を優先する（?pll=T で開いて書き換えたあとも、書き換えた手順に戻る）。
+  // タブを閉じれば消え、ほかの端末・クラウドには送らない（ずっと保存すると、開くたびに前の手順が出て一覧から来たときと混ざるため）
+  const SESSION_KEY = 'visualcube-editor:editor-session';
+  const SESSION_FIELDS = ['algorithm', 'algtype', 'caseTab', 'fileName', 'cubeSize', 'cubeView', 'stageMask', 'maskAlg', 'arrows',
+    'rotateAxis1', 'rotateAxis2', 'rotateAxis3', 'rotateAngle1', 'rotateAngle2', 'rotateAngle3', 'dist', 'cubeOpacity', 'stickerOpacity', 'maskColor'];
+  const SESSION_CHECK = {
+    algtype: (v) => ['case', 'alg', 'state'].includes(v),
+    caseTab: (v) => v === 'pll' || v === 'oll',
+    cubeSize: (v) => Number.isInteger(v) && v >= 1 && v <= 17,
+    cubeView: (v) => v === 'normal' || v === 'plan',
+    maskColor: (v) => HEX.test(v),
+  };
+  const FACELET_KEYS = [];
+  for (let n = 1; n <= 6; n++) ['U', 'R', 'F', 'D', 'L', 'B'].forEach((face) => FACELET_KEYS.push('facelets' + face + n));
+  function readSession() {
+    const nav = window.performance && performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+    if (!nav || (nav.type !== 'reload' && nav.type !== 'back_forward')) return null;
+    try {
+      const s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+      return s && typeof s === 'object' && typeof s.algorithm === 'string' && SESSION_CHECK.algtype(s.algtype) ? s : null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   window.EditorCases = {
     data: () => ({
@@ -172,29 +201,14 @@
 
     created() {
       this.loadSettings();
-      const params = new URLSearchParams(location.search);
-      const urlPll = params.has('pll') ? this.findCaseByName('pll', params.get('pll')) : null;
-      const urlOll = params.has('oll') ? this.findCaseByName('oll', params.get('oll')) : null;
-      const urlColl = params.has('coll') ? this.findCaseByName('coll', params.get('coll')) : null;
-      if (urlPll) this.selectCase('pll', urlPll);
-      else if (urlOll) this.selectCase('oll', urlOll);
-      else if (urlColl) this.selectCase('coll', urlColl);
-      else if (params.has('case')) {
-        this.algorithm = params.get('case');
-        this.algtype = 'case';
-        // ZBLL 一覧から（?zbll=名前&case=手順）：ほかの一覧から開いたときと同じく 3x3・Plan・PLL と同じ配色（OLL の配色・COLL のマスクは外す）
-        if (params.has('zbll')) {
-          const name = String(params.get('zbll')).replace(/[^\w\-+=/ ]/g, '').replace(/[/ ]/g, '_');
-          this.cubeSize = 3;
-          this.cubeView = 'plan';
-          this.applySetScheme('zbll');
-          this.applySetMask(null);
-          if (name) this.fileName = `zbll-${name}.png`;
-        }
-      } else if (params.has('alg')) {
-        this.algorithm = params.get('alg');
-        this.algtype = 'alg';
-      }
+      // 再読み込み・戻る・進むで戻ってきたときは、離れる前の状態に戻す（URL の指定より優先）
+      const session = readSession();
+      if (session) this.restoreSession(session);
+      else this.applyUrlParams();
+      window.addEventListener('pagehide', () => this.saveSession());
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') this.saveSession();
+      });
       // 上で戻した設定をそのまま保存し直さない（スマホで画像サイズを画面に合わせて小さくしたときなど）
       this.$nextTick(() => {
         this.settingsReady = true;
@@ -202,6 +216,76 @@
     },
 
     methods: {
+      // URL パラメータ（?pll= → ?oll= → ?coll= → ?case= → ?alg= の順に優先）
+      applyUrlParams() {
+        const params = new URLSearchParams(location.search);
+        const urlPll = params.has('pll') ? this.findCaseByName('pll', params.get('pll')) : null;
+        const urlOll = params.has('oll') ? this.findCaseByName('oll', params.get('oll')) : null;
+        const urlColl = params.has('coll') ? this.findCaseByName('coll', params.get('coll')) : null;
+        if (urlPll) this.selectCase('pll', urlPll);
+        else if (urlOll) this.selectCase('oll', urlOll);
+        else if (urlColl) this.selectCase('coll', urlColl);
+        else if (params.has('case')) {
+          this.algorithm = params.get('case');
+          this.algtype = 'case';
+          // ZBLL 一覧から（?zbll=名前&case=手順）：ほかの一覧から開いたときと同じく 3x3・Plan・PLL と同じ配色（OLL の配色・COLL のマスクは外す）
+          if (params.has('zbll')) {
+            const name = String(params.get('zbll')).replace(/[^\w\-+=/ ]/g, '').replace(/[/ ]/g, '_');
+            this.cubeSize = 3;
+            this.cubeView = 'plan';
+            this.applySetScheme('zbll');
+            this.applySetMask(null);
+            if (name) this.fileName = `zbll-${name}.png`;
+          }
+        } else if (params.has('alg')) {
+          this.algorithm = params.get('alg');
+          this.algtype = 'alg';
+        }
+      },
+
+      // ---- 再読み込みで今の状態に戻す（sessionStorage。そのタブの中だけ）----
+      // ページを離れるとき（pagehide・見えなくなったとき）に覚える。配色・画像サイズなどは settings でずっと保存しているので、ここでは扱わない
+      saveSession() {
+        const sel = this.selectedCase;
+        const session = { case: sel ? { key: sel.key, name: sel.c.name } : null, collMaskSet: this.collMaskSet, facelets: {} };
+        SESSION_FIELDS.forEach((field) => {
+          session[field] = this[field];
+        });
+        session.cubeSize = Number(this.cubeSize); // 入力欄から入ると文字列のことがある
+        FACELET_KEYS.forEach((key) => {
+          session.facelets[key] = this[key].slice();
+        });
+        try {
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        } catch (e) {
+          // 保存できない環境（プライベートモードなど）では何もしない
+        }
+      },
+      // 覚えた状態に戻す（created から。合わない値は無視して初期値のまま）
+      restoreSession(s) {
+        const c = s.case && SET_KEYS.includes(s.case.key) ? this.findCaseByName(s.case.key, s.case.name) : null;
+        if (c) this.selectCase(s.case.key, c); // ケース・配色・マスク（このあと覚えた値で上書きする）
+        SESSION_FIELDS.forEach((field) => {
+          const value = s[field];
+          const ok = SESSION_CHECK[field] ? SESSION_CHECK[field](value) : typeof value === 'string' || Number.isFinite(value);
+          if (ok && field !== 'algorithm') this[field] = value;
+        });
+        if (c && typeof s.collMaskSet === 'boolean') this.collMaskSet = s.collMaskSet;
+        const facelets = s.facelets && typeof s.facelets === 'object' ? s.facelets : {};
+        FACELET_KEYS.forEach((key) => {
+          const list = facelets[key];
+          if (Array.isArray(list) && list.length === this[key].length && list.every((v) => Object.prototype.hasOwnProperty.call(this.cubeStateList, v))) {
+            this[key] = list.slice();
+          }
+        });
+        // 手順は、種類を変えたときの監視（選んでいるケースの手順を入れ直す）のあとに戻す
+        this.$nextTick(() => {
+          if (typeof s.algorithm === 'string') this.algorithm = s.algorithm;
+          this.setMyAlgMessage('');
+          this.drawCube();
+        });
+      },
+
       // ---- PLL・OLL の選択 ----
       caseGroups(key) {
         const notes = NOTES[key] || {};
