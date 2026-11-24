@@ -58,6 +58,7 @@
       // エディタにもともとある項目（index.html の #app の中。{{ t('…') }} で使う）
       'editor.showParameter': 'Show parameters',
       'editor.puzzleType': 'Puzzle type',
+      'editor.stickerPicker': 'Sticker color',
       'editor.stateLegendN': 'n : a blank face (gray)',
       'editor.stateLegendO': "o : an 'oriented' face (silver)",
       'editor.stateLegendT': 't : a transparent face (cube color)',
@@ -450,6 +451,7 @@
       'editor.navAria': '{set} の前後へ移動',
       'editor.showParameter': 'パラメータを表示',
       'editor.puzzleType': 'パズルの種類',
+      'editor.stickerPicker': 'ステッカーの色',
       'editor.stateLegendN': 'n : 空白の面（グレー）',
       'editor.stateLegendO': 'o : 向きが合っている面（シルバー）',
       'editor.stateLegendT': 't : 透明な面（キューブの色）',

@@ -96,8 +96,31 @@
       <div id="app" v-cloak>
         <!-- 画像：下にスクロールしても画面の上に残す。表示は画面の高さの 35% まで（css/common.css の .editor-preview。描く大きさ・PNG は画像サイズのまま） -->
         <div id="editorPreview" class="editor-preview text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: 'calc(min(' + imageHeight + 'px, 35vh) + 30px)' }">
-          <div id="visualcube"></div>
+          <!-- 色を直接指定・3x3・Plan 表示のときは、画像のステッカーを押して色を選べる（js/state-picker.js） -->
+          <div id="visualcube" :class="{ pickable: canPickSticker }" @click="onPreviewClick"></div>
           {{ algorithm }}
+        </div>
+        <!-- 画像のステッカーを押したときに出す色のパレット（js/state-picker.js） -->
+        <div
+          v-if="picker"
+          id="stickerPicker"
+          class="sticker-picker"
+          role="group"
+          :aria-label="t('editor.stickerPicker')"
+          :style="{ left: picker.left + 'px', top: picker.top + 'px' }"
+        >
+          <button
+            v-for="c in pickerColors"
+            :key="c.key"
+            type="button"
+            class="sticker-picker-color"
+            :class="{ selected: c.key === pickerValue, transparent: c.key === 't' }"
+            :style="c.key === 't' ? null : { backgroundColor: c.color }"
+            :title="c.key"
+            :aria-label="c.key"
+            :aria-pressed="String(c.key === pickerValue)"
+            @click="choosePickerColor(c.key)"
+          >{{ c.key }}</button>
         </div>
         <p>
           <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">{{ t('editor.showParameter') }}</button>
@@ -802,6 +825,8 @@
     <script src="js/case-check.js"></script>
     <script src="js/custom-algs.js"></script>
     <script src="js/editor-cases.js"></script>
+    <script src="js/plan-hit.js"></script>
+    <script src="js/state-picker.js"></script>
     <script src="js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.min.js" integrity="sha384-89aa4glufciPv46aKltztWQEmk+Tu9W2RhzXr6VcnUUEub7F8+06RcL2RYLCOHUq" crossorigin="anonymous"></script>
     <script src="js/firebase-config.js"></script>

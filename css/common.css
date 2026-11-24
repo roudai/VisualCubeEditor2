@@ -475,6 +475,43 @@ html {
   height: auto;
   margin: 0 auto;
 }
+/* 色を直接指定・3x3・Plan 表示のときは、画像のステッカーを押して色を選べる（js/state-picker.js） */
+.editor-preview #visualcube.pickable img {
+  cursor: pointer;
+}
+/* 画像のステッカーを押したときの色のパレット。押した位置の下に出す（画面に固定。スクロールしたら閉じる）。
+   上に残す画像（sticky-top：1020）より上に */
+.sticker-picker {
+  position: fixed;
+  z-index: 1025;
+  display: grid;
+  grid-template-columns: repeat(5, 32px);
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #dee2e6;
+  border-radius: .5rem;
+  background: #fff;
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+}
+.sticker-picker-color {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, .35);
+  border-radius: .25rem;
+  color: #000;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1;
+  text-shadow: 0 0 2px #fff;
+}
+.sticker-picker-color.transparent {
+  background: repeating-conic-gradient(#ddd 0 25%, #fff 0 50%) 0 0 / 10px 10px;
+}
+.sticker-picker-color.selected {
+  outline: 3px solid #0d6efd;
+  outline-offset: 1px;
+}
 /* 入力欄にフォーカスしたときなどのスクロールで、上に残した画像の下に隠れないように（高さは js/main.js の mounted が入れる） */
 html {
   scroll-padding-top: calc(var(--editor-preview-height, 0px) + .5rem); /* 画像のすぐ下にくっつかないよう少し空ける */
