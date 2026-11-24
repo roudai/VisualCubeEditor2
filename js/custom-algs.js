@@ -6,7 +6,8 @@
  *                                 { ok: true, alg, setup, notes }（既定と同じ手順なら isDefault: true）または
  *                                 { ok: false, code, params, error } を返す
  *                                   （error は英語の文。画面では code・params を i18n.js で訳す。notes は 'stripped' など）
- *                                   - 表記を整え（全角の記号を半角に、Rw → r など）、最後の AUF・持ち替え（x y z）は外す（notes で知らせる）
+ *                                   - 表記を整え（全角の記号を半角に、Rw → r など）、無駄な手順をまとめ（R R' は消し、R R は R2 に。CubeState.simplifyAlg）、
+ *                                     最後の AUF・持ち替え（x y z）は外す（どちらも notes で知らせる：'simplified'・'stripped'）
  *                                   - setup は既定の setup の前後に AUF を付け直したもの（js/case-check.js の fitSetup）
  *                                   - 解けなければ、実際に解けるケースを data から探してエラーに添える
  *   get(set, name) / save(set, name, { alg, setup }) / reset(set, name)   localStorage の読み書き
@@ -41,14 +42,18 @@
 
   function validate(set, c, input, data) {
     // 表記を整える（全角の記号を半角に、Rw → r。大文字・小文字は別の回し方なので変えない）
-    const raw = M.canonicalAlg(C.convert(String(input || ''))).replace(/\s+/g, ' ').trim();
-    if (!raw) return { ok: false, code: 'empty', error: 'Enter an algorithm.' };
+    const written = M.canonicalAlg(C.convert(String(input || ''))).replace(/\s+/g, ' ').trim();
+    if (!written) return { ok: false, code: 'empty', error: 'Enter an algorithm.' };
+    let simple;
     try {
-      M.parseAlg(raw);
+      simple = M.simplifyAlg(written);
     } catch (e) {
       return { ok: false, code: 'parse', error: e.message };
     }
     const notes = [];
+    // 無駄な手順をまとめる（R R' は消し、R R は R2 に）。最後の AUF を外すより先にする（… U U' はまとめで消える）
+    const raw = simple.alg;
+    if (simple.changed) notes.push('simplified'); // 画面では i18n.js の myAlg.simplified
     // 先頭の括弧の無い U は前の AUF なので、既定データと同じく括弧で書く（例：U2 R U … → (U2) R U …）
     const body = stripTail(raw);
     const alg = body.replace(/^U(2'|'2|2|')?(?=\s)/, (m) => `(${m})`);

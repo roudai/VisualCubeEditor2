@@ -271,3 +271,19 @@ test('pllAfter：PLL のスクランブルに OLL のスクランブルをつな
     verify(s, c.alg, r, c.name);
   });
 });
+
+test('自分の手順：無駄な手順をまとめてから確かめる（最後の AUF を外すより先）', () => {
+  const c = pll('T');
+  const r = CA.validate('pll', c, `(U) R R' ${c.alg}`, PLL);
+  assert.ok(r.ok);
+  assert.deepEqual(r.notes, ['simplified']);
+  assert.ok(!/R R'/.test(r.alg));
+  // まとめて既定と同じなら既定
+  const same = CA.validate('pll', c, `R R' ${c.alg}`, PLL);
+  assert.equal(same.isDefault, true);
+  assert.deepEqual(same.notes, ['simplified']);
+  // … U U' はまとめで消える（「最後の AUF を外しました」ではない）
+  const tail = CA.validate('oll', oll('27'), `(U2) ${oll('27').alg} U U'`, OLL);
+  assert.ok(tail.ok);
+  assert.deepEqual(tail.notes, ['simplified']);
+});

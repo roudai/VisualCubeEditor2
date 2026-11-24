@@ -269,3 +269,24 @@ test('OLL用マスク：U 以外をグレーにする', () => {
   assert.equal(c.ucolor.filter((x) => x === mask.U).length, 6);
   assert.equal(c.scolor.filter((x) => x === mask.U).length, 3);
 });
+
+test('simplifyAlg：続けて並んだ同じ記号をまとめる（R R\' は消し、R R は R2 に）', () => {
+  const S = (alg) => M.simplifyAlg(alg);
+  assert.deepEqual(S("R R'"), { alg: '', changed: true });
+  assert.deepEqual(S('R R'), { alg: 'R2', changed: true });
+  assert.deepEqual(S('R2 R'), { alg: "R'", changed: true });
+  assert.deepEqual(S("R U U' R'"), { alg: '', changed: true }); // 消えたあとに並んだ同じ記号もまとめる
+  assert.deepEqual(S("R U U' R2 F"), { alg: "R' F", changed: true });
+  assert.deepEqual(S('R4 U'), { alg: 'U', changed: true });
+  assert.deepEqual(S('y y2'), { alg: "y'", changed: true });
+  assert.deepEqual(S('Rw r'), { alg: 'r2', changed: true }); // Rw は r
+  // まとめないもの
+  assert.deepEqual(S("R r R' L R"), { alg: "R r R' L R", changed: false }); // 大文字・小文字は別、向かい合う面をはさんだものも
+  assert.deepEqual(S("R3  U2'"), { alg: "R3 U2'", changed: false }); // 書いたまま（空白はそろえる）
+  assert.deepEqual(S("(R U) U' R'"), { alg: "(R U) U' R'", changed: false }); // 括弧はまたがない
+  assert.deepEqual(S("(U) (R U R' U')2 F"), { alg: "(U) (R U R' U')2 F", changed: false });
+  // 括弧の中もまとめ、空になった括弧は回数ごと消す
+  assert.deepEqual(S("(R R')2 U (F F)'"), { alg: "U (F2)'", changed: true });
+  assert.throws(() => S('R ('), /Missing closing parenthesis/);
+  assert.throws(() => S('R X'), /Invalid move/);
+});

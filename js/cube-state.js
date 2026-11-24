@@ -14,6 +14,7 @@
  *   ( ... )  = グループ。直後に回数（例: (R U R' U')2）や ' （逆手順）を付けられる
  *   全角アポストロフィ ’ や全角括弧（）、区切りのカンマも可
  *   大文字・小文字は区別する（R と r は別の回し方）
+ *   simplifyAlg(alg) で、続けて並んだ同じ記号をまとめた手順にできる（R R' は消し、R R は R2 に。自分の手順を保存するとき）
  *
  * 状態は長さ 54 の配列。並びは面 U, R, F, D, L, B の順に 9 枚ずつで、各面は外側から見て左上から右へ・上から下へ
  * （U は B を上に、D は F を上にして見る。R・F・L・B は U を上にして見る）。値はその位置にある色の面名。
@@ -202,6 +203,70 @@
     return seq(0);
   }
 
+  /**
+   * 無駄な手順をまとめる。戻り値 { alg, changed }（changed：何かまとめた・消したか）
+   *   - 同じ深さで続けて並んだ同じ記号（r と R は別。x y z・M E S も）を足し合わせる（R R → R2、R2 R → R'）。合計 0 回（R R'・R4）は消す。
+   *     スタックで処理するので、消えたあとに並んだ同じ記号もまとめる（R U U' R' → 空）
+   *   - 向かい合う面をはさんだもの（R L R）はまとめない。括弧はまたがない（(R U) U' はそのまま）。中身が空になった括弧は回数ごと消す
+   *   - まとめなかった記号は書いたまま（R3 単独も変えない）。表記は canonicalAlg（Rw → r）、空白は 1 つにそろえる
+   * 読めない手順は parseAlg と同じエラーを投げる
+   */
+  function simplifyAlg(alg) {
+    parseAlg(alg); // 読めない手順は同じエラーにする
+    const src = canonicalAlg(alg);
+    let pos = 0;
+    let changed = false;
+
+    // 1 つの深さを読み、まとめた項目の列を返す。項目は { face, turns, text } か { group: 文字列 }
+    function seq() {
+      const out = [];
+      for (;;) {
+        while (src[pos] === ' ') pos++;
+        if (pos >= src.length) return out;
+        const ch = src[pos];
+        if (ch === ')') {
+          pos++;
+          return out;
+        }
+        if (ch === '(') {
+          const start = pos;
+          pos++;
+          const inner = seq();
+          const a = readAmount(src, pos, start);
+          const suffix = src.slice(pos, a.end);
+          pos = a.end;
+          if (!inner.length) {
+            changed = true; // 中身が空になった括弧は消す
+            continue;
+          }
+          out.push({ group: '(' + inner.map(text).join(' ') + ')' + suffix });
+          continue;
+        }
+        FACE_RE.lastIndex = pos;
+        const fm = FACE_RE.exec(src);
+        const a = readAmount(src, pos + fm[0].length, pos);
+        const face = canonicalFace(fm[0]);
+        const n = a.prime ? -a.n : a.n;
+        const turns = ((n % 4) + 4) % 4;
+        const written = face + src.slice(pos + fm[0].length, a.end);
+        pos = a.end;
+        const top = out[out.length - 1];
+        if (top && top.face === face) {
+          changed = true;
+          const sum = (top.turns + turns) % 4;
+          if (sum === 0) out.pop();
+          else Object.assign(top, { turns: sum, text: face + SUFFIX[sum] });
+        } else if (turns === 0) {
+          changed = true; // R4 など、回さないのと同じ
+        } else {
+          out.push({ face: face, turns: turns, text: written });
+        }
+      }
+    }
+    const text = (item) => item.group || item.text;
+    return { alg: seq().map(text).join(' '), changed: changed };
+  }
+
   /** [{face, turns}] を括弧の無い手順文字列にする（回数 0 の記号は省く）。例: [{R,1},{U,3},{r,2}] → "R U' r2" */
   function stringify(moves) {
     return moves
@@ -348,6 +413,7 @@
     solved: solved,
     parseAlg: parseAlg,
     canonicalAlg: canonicalAlg,
+    simplifyAlg: simplifyAlg,
     stringify: stringify,
     flatten: flatten,
     invertMoves: invertMoves,

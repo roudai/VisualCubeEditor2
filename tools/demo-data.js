@@ -17,7 +17,7 @@ const W = require('../js/wca-scramble.js');
 const DAY = 24 * 60 * 60 * 1000;
 // 習得の目安（秒）。種類ごと（移植元の PLL 8・OLL 5 を、このテストデータの速さ 1.2〜6.5 秒に合わせて読み替えた）
 const THRESHOLDS = { pll: 3, oll: 2, coll: 3, zbll: 3 };
-const VERSION = 4; // 2：COLL・ZBLL の記録を入れた。3：記録のページを通しで開くよう practice.set を full に。4：どの種類も最近まで記録があるようにした（通しが 12 日前で終わっていた）
+const VERSION = 5; // 2：COLL・ZBLL の記録を入れた。3：記録のページを通しで開くよう practice.set を full に。4：どの種類も最近まで記録があるようにした（通しが 12 日前で終わっていた）。5：最大のデータの自分の手順を「(U) ＋既定」に（R R' は保存のときにまとめられて既定と同じになるため）
 
 // 種を固定した乱数（mulberry32）
 function rng(seed) {
@@ -126,7 +126,8 @@ function build(opts) {
 //   - 記録：PLL・OLL・COLL・ZBLL それぞれ 5000 件（Progress.addLog の上限）、ソルブ・LL それぞれ 5000 件（FULL_LOG_MAX・LL_LOG_MAX）。
 //     過去 400 日、毎日練習したことにする（今日まで続いている）
 //   - 習得状況：すべて習得済み。最近のタイムは全ケース 10 件ずつ
-//   - 自分の手順：PLL・OLL・COLL の全ケース（既定の手順の前に R R' を足したもの。CustomAlgs.validate を通した形。ZBLL は自分の手順を持たない）
+//   - 自分の手順：PLL・OLL・COLL の全ケース（既定の手順の前に AUF (U) を足したもの。CustomAlgs.validate を通した形。ZBLL は自分の手順を持たない。
+//     R R' のような打ち消し合う手順はまとめて既定と同じになるので使わない）
 //   - ソルブのスクランブルは 1 つ作るのに 30ms ほどかかり、5000 件では数分かかるので、scramblePool 個（既定 300）を作って使い回す
 const MAX_DAYS = 400;
 
@@ -224,7 +225,7 @@ function buildMax(opts) {
   ['pll', 'oll', 'coll'].forEach((set) => {
     customAlgs[set] = {};
     SETS[set].forEach((c) => {
-      const v = CA.validate(set, c, "R R' " + c.alg, SETS[set]);
+      const v = CA.validate(set, c, '(U) ' + c.alg, SETS[set]);
       if (v.ok && !v.isDefault) customAlgs[set][c.name] = { alg: v.alg, setup: v.setup };
     });
   });
