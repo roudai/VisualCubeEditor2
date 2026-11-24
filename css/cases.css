@@ -369,10 +369,11 @@
   padding-left: .6rem;
   border-left: 2px solid #dee2e6;
 }
-/* 全部覚えたグループのジャンプボタン */
+/* 全部覚えたグループのジャンプボタン：緑の枠と文字。color・border-color を直接決めず Bootstrap のボタンの色（--bs-btn-*）にする
+   （タッチの画面で押したあとに残る :hover の色は、ふだんの色＝この緑を使う。css/common.css の (hover: none)） */
 .group-nav-complete {
-  border-color: var(--status-learned-soft);
-  color: var(--status-learned);
+  --bs-btn-color: var(--status-learned);
+  --bs-btn-border-color: var(--status-learned-soft);
 }
 
 /* ケースの画像（cube-draw.js が中に svg を入れる）：カードの幅に合わせて縮む（最大 120px。js/cases.js の IMAGE_SIZE）。
