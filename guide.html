@@ -46,6 +46,26 @@
         font-size: 0.925rem;
         line-height: 1.75;
       }
+      /* LL を覚えるおすすめの流れ：使い方の最初に、目立つ囲みで出す（MegaminxImageEditor 533b51a・c2a55ec） */
+      .guide-tip {
+        margin-top: 1.5rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid #b6d4fe;
+        border-left: 4px solid #0d6efd;
+        border-radius: 0.5rem;
+        background: #f1f7ff;
+      }
+      .policy .guide-tip h2 {
+        margin-top: 0;
+        color: #0a58ca;
+      }
+      .guide-tip ol {
+        margin-bottom: 0;
+        padding-left: 1.4rem;
+      }
+      .guide-tip ol li + li {
+        margin-top: 0.25rem;
+      }
     </style>
     <title>How to Use - VisualCube Editor 3.0</title>
   </head>
@@ -87,6 +107,18 @@
             <li><a href="/practice">練習</a>：タイマーでケースを解く。ソルブ（最初から最後まで 1 回解く）も練習できる</li>
             <li><a href="/stats">記録</a>：タイムの推移や、苦手なケースを見る</li>
           </ul>
+
+          <section class="guide-tip">
+            <h2>💡 LL を覚えるおすすめの流れ</h2>
+            <ol>
+              <li><a href="/pll">PLL</a>（または <a href="/oll">OLL</a>）の一覧を「覚える順」にして、これから覚えたいグループを選びます。</li>
+              <li>「練習する」を押すと練習のページが開き、選んだグループの<strong>未習得</strong>のケースから出題されます。</li>
+              <li>「習得の目安」（練習のページの設定。最初は PLL 3 秒・OLL 2 秒）以内に解けたケースは<strong>習得済み</strong>、超えたケースは<strong>練習中</strong>になります。</li>
+              <li>未習得を一通り解き終えると、対象が自動で<strong>練習中</strong>（目安に届かなかったケース）→ <strong>習得済み</strong>（覚えたケースの復習）と進みます。設定の出題が「苦手優先」なら、時間がかかる・解けなかったケースほど多く出ます。</li>
+              <li>グループのケースがすべて<strong>習得済み</strong>になったら、一覧に戻って次のグループを選び、同じように練習します。</li>
+              <li>練習のページで <strong>LL</strong> を選ぶと、習得済みの OLL と PLL を組み合わせて、OLL から完成までを通して練習することもできます。</li>
+            </ol>
+          </section>
 
           <h2>エディタ</h2>
           <ul>
@@ -165,6 +197,18 @@
             <li><a href="/practice">Practice</a>: solve cases with a timer, or practice full solves</li>
             <li><a href="/stats">Stats</a>: see how your times change and which cases are slowest</li>
           </ul>
+
+          <section class="guide-tip">
+            <h2>💡 Recommended steps for learning LL</h2>
+            <ol>
+              <li>Open the <a href="/pll">PLL</a> (or <a href="/oll">OLL</a>) list, switch to "By learning order", and pick the stage (group) you want to learn next.</li>
+              <li>Click "Practice". The practice page opens and starts with the <strong>To learn</strong> cases in the stage you picked.</li>
+              <li>Cases you solve within the "Learned within" time (a setting on the practice page; 3 s for PLL and 2 s for OLL at first) become <strong>Learned</strong>; slower ones become <strong>Learning</strong>.</li>
+              <li>Once you have gone through every To learn case, practice moves on automatically to <strong>Learning</strong> (the cases you missed) and then <strong>Learned</strong> (a review of the ones you know). With the Case order setting on "Weak cases first", slower or unsolved cases come up more often.</li>
+              <li>When every case in the stage is <strong>Learned</strong>, go back to the list, pick the next stage, and repeat.</li>
+              <li>You can also choose <strong>LL</strong> on the practice page: it combines your learned OLL and PLL cases, so you go from OLL all the way to a solved cube.</li>
+            </ol>
+          </section>
 
           <h2>Editor</h2>
           <ul>
