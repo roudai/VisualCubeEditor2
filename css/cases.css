@@ -1,0 +1,413 @@
+/* 一覧ページ（pll.html / oll.html）の見た目。処理は js/cases.js */
+:root {
+  --status-learning: #f0ad00;
+  --status-learning-soft: rgba(240, 173, 0, .55);
+  --status-learned: #198754;
+  --status-learned-soft: rgba(25, 135, 84, .45);
+  --status-new: #ced4da;
+}
+
+/* ---- カード ---- */
+.case-card {
+  position: relative;
+  container-type: inline-size; /* カードの幅で名前の行の並びを変える（下の @container） */
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+.case-card:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+}
+.case-card[data-status="learning"] {
+  border-color: var(--status-learning-soft);
+}
+.case-card[data-status="learned"] {
+  border-color: var(--status-learned-soft);
+  background-color: rgba(25, 135, 84, .04);
+}
+.case-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 名前の行：ケース名をカードの左右の真ん中に（左右の列は同じ幅。左にカスタムの札、右に逆手順） */
+.case-name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: baseline;
+}
+.case-name-side {
+  white-space: nowrap;
+}
+.case-name-side.left {
+  text-align: right;
+}
+.case-name-side.left .custom-tag {
+  margin: 0 .35rem 0 0;
+}
+.case-name-side.right {
+  text-align: left;
+}
+/* カードが狭いとき（スマホの 1 行 3 枚・広い画面の 1 行 6 枚など）は、カスタムの札が名前の左の列に入りきらず名前に重なるので、
+   名前の下の行の真ん中に出す（名前は真ん中のまま。逆手順は名前の右のまま。カードの角に出すと画像に重なる）。
+   とても狭い画面で逆手順を名前の下の行に出すとき（下の @media）は、その下の行にする */
+@container (max-width: 170px) {
+  .case-name-text {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .case-name-side.right {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .case-name-side.left {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    text-align: center;
+  }
+  .case-name-side.left .custom-tag {
+    margin: 0;
+  }
+}
+/* 逆手順のケース（PLL）：名前の右に薄い字で「⇄ Ub」 */
+.case-inverse {
+  margin-left: .3rem;
+  color: #868e96;
+  font-size: .75rem;
+  font-weight: 400;
+}
+/* 自分の手順のケースの印 */
+.custom-tag {
+  margin-left: .35rem;
+  padding: .05rem .4rem;
+  border-radius: 50rem;
+  background-color: rgba(13, 110, 253, .1);
+  color: #0a58ca;
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  vertical-align: 2px;
+}
+
+/* ---- 右上の覚えた度バッジ（タップで 未着手 → 練習中 → 覚えた） ---- */
+.status-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  width: 32px; /* 押せる範囲。見た目の丸は ::before */
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.status-badge::before {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--status-new);
+  background: #fff;
+  transition: background-color .2s ease, border-color .2s ease, transform .2s ease;
+}
+.status-badge:hover::before {
+  border-color: #adb5bd;
+  transform: scale(1.08);
+}
+.status-badge:focus-visible {
+  outline: none;
+}
+.status-badge:focus-visible::before {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.status-badge svg {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.status-badge[data-status="learning"]::before {
+  background: var(--status-learning);
+  border-color: var(--status-learning);
+}
+.status-badge[data-status="learned"]::before {
+  background: var(--status-learned);
+  border-color: var(--status-learned);
+}
+.status-badge[data-status="learning"] .icon-learning,
+.status-badge[data-status="learned"] .icon-learned {
+  opacity: 1;
+}
+.status-badge .icon-learning {
+  color: #5c4300;
+}
+.status-badge .icon-learned {
+  color: #fff;
+}
+.status-badge.pop::before {
+  animation: status-pop .28s ease;
+}
+@keyframes status-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-badge.pop::before { animation: none; }
+}
+
+/* スマホ（1 行 3 枚）：カードの中を詰め、文字とバッジを小さくする */
+@media (max-width: 575.98px) {
+  .case-card .card-body {
+    padding: .35rem .3rem .45rem !important;
+  }
+  .case-card .card-body .fw-bold {
+    font-size: .85rem;
+  }
+  .case-inverse {
+    margin-left: .2rem;
+    font-size: .68rem;
+  }
+  .case-card .card-body .font-monospace {
+    font-size: .66rem;
+    line-height: 1.35;
+  }
+  .case-image {
+    margin-top: .4rem !important;
+  }
+  .status-badge {
+    top: 1px;
+    right: 1px;
+    width: 28px;
+    height: 28px;
+  }
+  .status-badge::before {
+    width: 18px;
+    height: 18px;
+  }
+  .status-badge svg {
+    width: 11px;
+    height: 11px;
+  }
+}
+/* とても狭い画面（幅 340px 未満）：名前の右に入らないので、逆手順は名前の下の行の真ん中に */
+@media (max-width: 339.98px) {
+  .case-name-side.right {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    text-align: center;
+  }
+  .case-name-side.right .case-inverse {
+    margin-left: 0;
+  }
+}
+
+/* ---- 上部の進み具合 ---- */
+.progress-summary .progress-stacked {
+  height: 8px;
+  background-color: #e9ecef;
+}
+.progress-summary .progress-bar {
+  transition: width .35s ease;
+}
+.progress-summary .bar-learned {
+  background-color: var(--status-learned);
+}
+.progress-summary .bar-learning {
+  background-color: var(--status-learning);
+}
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: .3rem;
+  vertical-align: 1px;
+}
+.legend-dot.learned { background: var(--status-learned); }
+.legend-dot.learning { background: var(--status-learning); }
+.legend-dot.new { background: var(--status-new); }
+
+/* 並びの切り替え（グループ順 / 覚える順。覚える順のデータがあるときだけ出る）：セグメント型 */
+.scope-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 50rem;
+  background-color: #eef0f3;
+}
+.scope-option {
+  border: 0;
+  border-radius: 50rem;
+  padding: .3rem .95rem;
+  background: transparent;
+  color: #495057;
+  font-size: .875rem;
+  font-weight: 500;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.scope-option:hover {
+  color: #212529;
+}
+.scope-option.active {
+  background-color: #fff;
+  color: #212529;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+}
+.scope-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.scope-count {
+  margin-left: .4rem;
+  font-size: .75rem;
+  opacity: .55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 絞り込みチップ */
+.filter-chips .btn {
+  border-radius: 50rem;
+  padding: .15rem .45rem;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+.filter-chips .chip-count {
+  margin-left: .25rem;
+  opacity: .65;
+  font-variant-numeric: tabular-nums;
+}
+.filter-chips .legend-dot {
+  margin-right: .25rem;
+}
+/* スマホ（幅 576px 未満）：4 つのボタンが 1 行に収まるよう、余白・文字・点を少し小さくする（色の点を足した分） */
+@media (max-width: 575.98px) {
+  .filter-chips .btn {
+    padding: .15rem .35rem;
+    font-size: .72rem;
+  }
+  .filter-chips .legend-dot {
+    width: 6px;
+    height: 6px;
+    margin-right: .2rem;
+  }
+  .filter-chips .chip-count {
+    margin-left: .2rem;
+  }
+}
+
+/* すべて未習得に戻す（目立たせない。押すと確認のバーを出す） */
+.reset-progress {
+  color: #6c757d;
+  font-size: .78rem;
+  text-decoration: none;
+}
+.reset-progress:hover,
+.reset-progress:focus-visible {
+  color: #212529;
+}
+.reset-progress:disabled {
+  visibility: hidden;
+}
+/* ZIP でダウンロードの確認（パソコンのみ） */
+.zip-confirm {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .5rem;
+  font-size: .82rem;
+}
+.zip-confirm[hidden] {
+  display: none !important;
+}
+.zip-confirm-note {
+  flex-basis: 100%;
+  color: #6c757d;
+  font-size: .75rem;
+}
+.reset-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .5rem;
+  font-size: .82rem;
+}
+.reset-bar[hidden] {
+  display: none;
+}
+.reset-confirm {
+  color: #b02a37;
+  font-weight: 500;
+}
+.reset-bar .btn-link {
+  font-size: .82rem;
+  text-decoration: none;
+}
+
+/* グループ見出しの「覚えた数 / 全体」 */
+.group-count {
+  font-size: .8rem;
+  font-weight: normal;
+  color: #6c757d;
+  font-variant-numeric: tabular-nums;
+}
+.group-count.complete {
+  color: var(--status-learned);
+}
+/* OLL の番号順：見出し・グループのボタン・「選択を解除」を出さない（d-flex の display より hidden を優先） */
+.group-nav-foot[hidden],
+#caseList section > h2[hidden] {
+  display: none !important;
+}
+/* グループ（覚える順なら段階）のボタン：OLL の 13 段階が PC の幅で1行に収まるよう小さめにする */
+/* 1〜2 文字（PLL・OLL の段階の U・T・A〜M、COLL・ZBLL の H・Pi など）は同じ幅にそろえる（min-width は 2 文字が入る幅）。
+   それより長い名前（Edges only・Anti-Sune など）は中身の幅 */
+.group-nav-btn {
+  min-width: 1.7rem;
+  margin: 0 .15rem .2rem 0;
+  padding: .15rem .22rem;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+/* スマホ（幅 576px 未満）：そろえる幅を少し狭く。
+   2 文字の名前がある並び（COLL・ZBLL の Pi。js/cases.js の .two-char）は 2 文字が入る幅にそろえる */
+@media (max-width: 575.98px) {
+  .group-nav-btn {
+    min-width: 1.4rem;
+    margin-right: .1rem;
+  }
+  .two-char .group-nav-btn {
+    min-width: 1.55rem;
+  }
+}
+/* 2段のグループのボタン（ZBLL：上の段が OCLL、下の段が選んだ OCLL の小グループ） */
+.group-nav-children {
+  margin: .1rem 0 .2rem;
+  padding-left: .6rem;
+  border-left: 2px solid #dee2e6;
+}
+/* 全部覚えたグループのジャンプボタン：緑の枠と文字。color・border-color を直接決めず Bootstrap のボタンの色（--bs-btn-*）にする
+   （タッチの画面で押したあとに残る :hover の色は、ふだんの色＝この緑を使う。css/common.css の (hover: none)） */
+.group-nav-complete {
+  --bs-btn-color: var(--status-learned);
+  --bs-btn-border-color: var(--status-learned-soft);
+}
+
+/* ケースの画像（cube-draw.js が中に svg を入れる）：カードの幅に合わせて縮む（最大 120px。js/cases.js の IMAGE_SIZE）。
+   svg は width・height の属性が 120 なので、CSS で幅いっぱいにして正方形のまま縮める */
+.case-image {
+  width: calc(100% - 1rem);
+  max-width: 120px;
+  aspect-ratio: 1;
+}
+.case-image svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

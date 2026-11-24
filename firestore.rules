@@ -1,0 +1,32 @@
+rules_version = '2';
+// Firebase プロジェクト共通のルール（Megaminx Image Editor・VisualCube Editor など、同じプロジェクトのアプリで使う）。
+// このファイルは MegaminxImageEditor と VisualCubeEditor2 の両方のリポジトリに同じ内容で置いている（片方を変えたらもう片方も変える）。
+// Firebase コンソール → Firestore Database → ルール にこの内容を貼り付けて公開する。
+// 各アプリは users/{uid}/apps/{appId} の1文書に { json: 文字列, savedAt: 時刻 } を保存する
+// （例：users/{uid}/apps/megaminx-image-editor）。本人の文書だけを読み書き・削除できる。
+// 作る・書き換えるのは appIds() に書いたアプリ名と、その練習の記録の文書（下の logDoc）だけ
+// （名前を変えて文書をいくらでも作られないように）。アプリを増やしたら appIds() と logDoc() の両方に名前を足して貼り直す。
+// 読む・削除するのはどの名前でもよい（アカウントのデータ削除で全部消せるように）。
+// 練習の記録は 1 文書（json 50 万文字未満）に入らないので、種類ごとの文書 <アプリ名>-log-<種類> に分けて保存する
+// （例：megaminx-image-editor-log-pll）。Megaminx Image Editor の種類は pll・oll・full・ll だけ（js/store.js の LOG_SETS）。
+// VisualCube Editor の種類は pll・oll・coll・zbll・full・ll だけ（VisualCubeEditor2 の js/store.js の LOG_SETS）。
+// 名前を決めておかないと、自分のアカウントの下に大きな文書をいくらでも作れてしまうので、種類を増やしたらここにも足して貼り直す。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function appIds() {
+      return ['megaminx-image-editor', 'visualcube-editor'];
+    }
+    function logDoc(appId) {
+      return appId.matches('megaminx-image-editor-log-(pll|oll|full|ll)')
+        || appId.matches('visualcube-editor-log-(pll|oll|coll|zbll|full|ll)');
+    }
+    match /users/{userId}/apps/{appId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && (appId in appIds() || logDoc(appId))
+        && request.resource.data.keys().hasOnly(['json', 'savedAt'])
+        && request.resource.data.json is string
+        && request.resource.data.json.size() < 500000;
+    }
+  }
+}

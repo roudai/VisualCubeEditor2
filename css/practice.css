@@ -1,0 +1,1043 @@
+/* 練習ページ（practice.html）。処理は js/practice.js */
+:root {
+  --practice-learned: #198754;
+  --practice-learning: #b07d00;
+}
+
+/* ---- 設定 ---- */
+.practice-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.25rem;
+  align-items: center;
+  padding: .65rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: .75rem;
+  background: #fbfbfc;
+}
+/* スマホでたたんだときの 1 行（js/practice.js の settingsSummary）。広い画面では出さない */
+.practice-settings-summary {
+  display: none;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #495057;
+  font-size: .8rem;
+  text-align: left;
+}
+.practice-settings-icon {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+  color: #6c757d;
+}
+/* 1 行に入らないときは項目の切れ目で折り返す（「…」で切ると、英語では出題などの設定が見えなくなるため） */
+.practice-settings-text {
+  flex: 1;
+  min-width: 0;
+  /* 1 行に収め、入らなければ末尾を … で切る（押せば開いて全部見られる） */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.practice-settings-part {
+  white-space: nowrap;
+}
+.practice-settings-caret {
+  flex: none;
+  color: #6c757d;
+  font-size: .7rem;
+}
+.practice-settings-summary:focus-visible {
+  outline: none;
+  border-radius: .35rem;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.practice-field {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.practice-field-label {
+  color: #6c757d;
+  font-size: .78rem;
+}
+.practice-segment {
+  display: inline-flex;
+  flex-wrap: wrap; /* 狭い画面では折り返す（横にはみ出さないように） */
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 50rem;
+  background-color: #eef0f3;
+}
+.practice-segment button {
+  border: 0;
+  border-radius: 50rem;
+  padding: .2rem .75rem;
+  background: transparent;
+  color: #495057;
+  font-size: .82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.practice-segment button.active {
+  background-color: #fff;
+  color: #212529;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+}
+.practice-segment button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.practice-segment .count {
+  margin-left: .3rem;
+  font-size: .72rem;
+  opacity: .55;
+  font-variant-numeric: tabular-nums;
+}
+/* 習得の目安：−［スライドバー（目盛り）］＋ 8秒 */
+.practice-threshold {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  /* ラベルと同じ行に収める（狭い画面では折り返して幅いっぱい）。移植元は 19rem（2〜20 秒）。1〜10 秒で刻みが半分なので短くし、
+     グループを選んで要約が最大幅（12rem）になっても、広い画面で設定の 4 つの欄が 1 行に収まるようにする */
+  width: 16rem;
+  max-width: 100%;
+}
+.practice-threshold-track {
+  position: relative;
+  flex: 1;
+  min-width: 8rem;
+  padding-bottom: .9rem; /* 目盛りの文字のぶん */
+}
+.practice-threshold-range {
+  --fill: 0%;
+  display: block;
+  width: 100%;
+  height: 1.25rem;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.practice-threshold-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #212529 var(--fill), #dee2e6 var(--fill));
+}
+.practice-threshold-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #dee2e6;
+}
+.practice-threshold-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: #212529;
+}
+.practice-threshold-range::-webkit-slider-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: calc(2px - .55rem);
+  border: 2px solid #212529;
+  border-radius: 50%;
+  background: #fff;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.practice-threshold-range::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  box-sizing: border-box;
+  border: 2px solid #212529;
+  border-radius: 50%;
+  background: #fff;
+}
+.practice-threshold-range:focus-visible {
+  outline: none;
+}
+.practice-threshold-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.practice-threshold-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+/* 目盛り：つまみの中心が端から半分（.55rem）内側を動くので、そのぶん内側に置く */
+.practice-threshold-scale {
+  position: absolute;
+  right: .55rem;
+  bottom: 0;
+  left: .55rem;
+  height: .9rem;
+  pointer-events: none;
+}
+.practice-threshold-tick {
+  position: absolute;
+  top: 0;
+  color: #adb5bd;
+  font-size: .65rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+}
+.practice-threshold-tick::before {
+  content: '';
+  position: absolute;
+  top: -.3rem;
+  left: 50%;
+  width: 1px;
+  height: .2rem;
+  background: #ced4da;
+}
+.practice-threshold-step {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  margin-bottom: .9rem; /* スライドバーの高さにそろえる */
+  border: 1px solid #dee2e6;
+  border-radius: 50%;
+  background: #fff;
+  color: #212529;
+  line-height: 0;
+}
+.practice-threshold-step svg {
+  display: block;
+}
+.practice-threshold-step:hover:not(:disabled) {
+  background: #f1f3f5;
+}
+.practice-threshold-step:disabled {
+  color: #ced4da;
+  cursor: default;
+}
+.practice-threshold-step:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .35);
+}
+.practice-threshold-value {
+  display: inline-flex;
+  flex: none;
+  align-items: baseline;
+  min-width: 3.6rem; /* 「20.0秒」が入る幅。秒数が変わってもスライドバーの長さが変わらないように */
+  /* 「−」「＋」はスライドバーに合わせて上げるが、秒数はラベル（習得の目安・出題など）と同じ高さにする */
+  font-size: .9rem;
+  font-weight: 600;
+}
+/* 数字は左寄せで「＋」のすぐ右。小数 1 桁・等幅の数字なので、2.0〜9.5 のあいだは「秒」の位置が動かない */
+.practice-threshold-num {
+  font-variant-numeric: tabular-nums;
+}
+.practice-threshold-unit {
+  margin-left: .1rem;
+}
+
+/* グループの絞り込み */
+.practice-groups-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  max-width: 12rem; /* 長いときは「…」で切る（全部は title）。英語でも広い画面で設定の 4 つの欄が 1 行に収まる幅 */
+  padding: .2rem .7rem;
+  border: 1px solid #dee2e6;
+  border-radius: 50rem;
+  background: #fff;
+  color: #212529;
+  font-size: .82rem;
+}
+.practice-groups-toggle > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.practice-groups-toggle[aria-expanded="true"] {
+  border-color: #adb5bd;
+}
+.practice-groups-caret {
+  color: #6c757d;
+  font-size: .7rem;
+}
+.practice-groups {
+  flex-basis: 100%;
+  padding-top: .5rem;
+  border-top: 1px dashed #e3e6ea;
+  /* 広い画面：欄の並び（1〜2 行）の下に回す。スマホは欄が縦に並ぶので、押した「グループ」のすぐ下（DOM の順。下の @media） */
+  order: 1;
+}
+/* OLL の 14 個が PC の幅で1〜2行に収まるよう小さめにする（設定の枠の内側は一覧ページより狭いので、一覧ページの .group-nav-btn より少し小さい） */
+.practice-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .2rem .15rem;
+}
+.practice-group-chip {
+  min-width: 1.6rem; /* 1〜2 文字（U・T、A〜M、H・Pi など）は同じ幅にそろえる */
+  font-variant-numeric: tabular-nums;
+  padding: .15rem .2rem;
+  border: 1px solid #dee2e6;
+  border-radius: .45rem;
+  background: #fff;
+  color: #495057;
+  font-size: .75rem;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.practice-group-chip:hover {
+  border-color: #adb5bd;
+}
+.practice-group-chip.active {
+  border-color: #0d6efd;
+  background: #0d6efd;
+  color: #fff;
+}
+/* 2段（ZBLL）：下の段は選んだ OCLL の小グループ */
+.practice-group-children {
+  margin-top: .3rem;
+  padding-left: .5rem;
+  border-left: 2px solid #dee2e6;
+}
+.practice-groups-clear {
+  padding: 0;
+  font-size: .75rem;
+  text-decoration: none;
+}
+
+/* ---- 出題とタイマー ---- */
+.practice-stage {
+  /* カード全体がタイマーの押す範囲（js/practice.js）。カードの上ではスクロール・文字選択・長押しのメニューを出さない */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+  padding: 1.5rem 1rem 1.25rem;
+  border: 1px solid #e9ecef;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .05);
+  text-align: center;
+}
+.practice-label {
+  color: #adb5bd;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.practice-scramble {
+  /* 行数の分の高さをいつも取る（長さの違うスクランブルでタイマーの位置が上下しないように）。
+     広い画面はどの種類も 2 行まで、スマホは 3 行になることがある（PLL・OLL・COLL・ソルブ）ので 3 行分（下の @media） */
+  min-height: 3em; /* line-height 1.5 × 2 行 */
+  margin: .35rem auto 0;
+  max-width: 44rem;
+  font-family: var(--bs-font-monospace);
+  font-size: clamp(1.05rem, 2.6vw, 1.5rem);
+  line-height: 1.5;
+  word-spacing: .15em;
+}
+.practice-timer {
+  display: block;
+  width: 100%;
+  margin: .5rem 0 .25rem;
+  padding: .5rem 0;
+  border: 0;
+  background: none;
+  color: #212529;
+  font-size: clamp(3.5rem, 14vw, 6.5rem);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: color .1s ease;
+}
+.practice-timer.warn8 {
+  color: #b07d00;
+}
+.practice-timer.warn12 {
+  color: #d9480f;
+}
+.practice-timer.over {
+  color: #dc3545;
+}
+/* 止めた直後（2 秒）：まだスタートしないあいだは目立つ赤（「待って」の合図） */
+.practice-timer.cooldown {
+  color: #dc3545;
+}
+/* 通し：長押し中（赤）→ 準備完了（緑）。離すとスタート。インスペクションの色より優先 */
+.practice-timer.holding {
+  color: #dc3545;
+}
+.practice-timer.ready {
+  color: #198754;
+}
+.practice-timer:focus-visible {
+  outline: none;
+}
+.practice-hint {
+  color: #6c757d;
+  font-size: .78rem;
+}
+/* 操作の説明（Tips）：頭に小さな札、右に ×（一度スタートするまでだけ出す） */
+.practice-tip-label {
+  display: inline-block;
+  margin-right: .4rem;
+  padding: 0 .4rem;
+  border-radius: .3rem;
+  background: #fff3cd;
+  color: #7a5600;
+  font-size: .7rem;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+.practice-tip-close {
+  margin-left: .3rem;
+  padding: 0 .3rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #adb5bd;
+  font-size: .95rem;
+  line-height: 1;
+}
+.practice-tip-close:hover {
+  background: #f1f3f5;
+  color: #6c757d;
+}
+.practice-stage.running .practice-timer {
+  color: #0d6efd;
+}
+/* 計測中もスクランブルは出したまま（説明だけ隠す） */
+.practice-stage.running .practice-hint {
+  visibility: hidden;
+}
+/* PLL / OLL：解き終わったケースの名前（タイマーのすぐ上）。空のときも1行分の高さを取っておき、
+   出し入れでタイマーの位置が動かないようにする。その分タイマーの上の余白を詰める */
+.practice-solved {
+  height: 1.5rem;
+  margin-top: .35rem;
+  overflow: hidden;
+  color: #6c757d;
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.practice-stage-top + .practice-timer {
+  margin-top: 0;
+  padding-top: .15rem;
+}
+.practice-full .practice-solved {
+  display: none;
+}
+.practice-full .practice-stage-top + .practice-timer {
+  margin-top: .5rem;
+  padding-top: .5rem;
+}
+.practice-hint-text {
+  min-height: 1.6em;
+  margin-top: .5rem;
+  font-size: .9rem;
+}
+.practice-hint-name {
+  margin-right: .5rem;
+  font-weight: 600;
+}
+.practice-hint-moves {
+  font-family: var(--bs-font-monospace);
+}
+/* ボタンは状態で出し分ける。行の高さはいつも取っておき、入れ替わってもタイマーなどが動かないようにする
+   スタート前（止めたあとも）：スキップ・ヒント / 計測中：解けなかった・ヒント・中止 / インスペクション中（通し）：中止 */
+.practice-buttons {
+  min-height: calc(1.5em + .5rem + 2px); /* btn-sm の高さ */
+}
+/* キーボードのショートカットをボタンに添える（例「スキップ (S)」）。マウスが使える画面だけ（スマホでは出さない） */
+@media (hover: hover) and (pointer: fine) {
+  .practice-buttons button[data-key]::after {
+    content: " (" attr(data-key) ")";
+    opacity: .6;
+    font-size: .85em;
+  }
+}
+#dnfButton,
+#cancelButton,
+.practice-stage.running #skipButton,
+.practice-stage.inspecting #skipButton,
+.practice-stage.inspecting #hintButton {
+  display: none;
+}
+body:not(.practice-full) .practice-stage.running #dnfButton,
+.practice-stage.running #cancelButton,
+.practice-stage.inspecting #cancelButton {
+  display: inline-block;
+}
+.practice-stage button:not(.practice-timer) {
+  touch-action: manipulation;
+}
+.practice-empty {
+  margin-top: 1rem;
+  color: #6c757d;
+}
+
+/* ---- 全画面（スクランブルとタイマーだけの画面。js/practice.js の setFocus）---- */
+.practice-stage {
+  position: relative;
+}
+.practice-focus-button {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #adb5bd;
+}
+.practice-focus-button:hover {
+  background: #f1f3f5;
+  color: #495057;
+}
+.practice-focus-button .focus-close,
+body.practice-focus .practice-focus-button .focus-open {
+  display: none;
+}
+body.practice-focus .practice-focus-button .focus-close {
+  display: block;
+}
+.practice-focus-verdict {
+  display: none;
+}
+body.practice-focus {
+  overflow: hidden;
+}
+body.practice-focus .practice-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 1040; /* 知らせ（.site-toast）はこの上に出る */
+  /* タイマーを画面の真ん中に置き、上（スクランブル・ケース名）と下（判定・ボタンなど）の塊をその上下に寄せる */
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 !important;
+  padding: 3rem 1rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+body.practice-focus .practice-stage-top {
+  align-self: end;
+}
+body.practice-focus .practice-stage-bottom {
+  align-self: start;
+}
+/* スクランブルは少し大きく（ソルブも同じ大きさ。20 手前後なので、幅を広げて 2 行に収める） */
+body.practice-focus .practice-scramble {
+  font-size: clamp(1.25rem, 3.4vw, 1.9rem);
+}
+body.practice-focus .practice-scramble.full {
+  max-width: 48rem;
+}
+/* ソルブはケース名・グループの行が無く上の塊が小さいので、タイマーに寄せず、タイマーより上の余白の真ん中に置く（窮屈にならないように。
+   MegaminxImageEditor 7f25c4a） */
+body.practice-focus.practice-full .practice-stage-top {
+  align-self: center;
+}
+body.practice-focus .practice-timer {
+  font-size: clamp(4.5rem, 22vw, 10rem);
+}
+body.practice-focus .practice-focus-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: .25rem .75rem;
+  min-height: 1.6em; /* 出し入れでボタンが動かないように */
+}
+/* 全画面で計測中（インスペクション中も）：タイマーだけ。解けなかった・中止は画面の下の端に小さく薄く残す */
+body.practice-focus .practice-stage:is(.running, .inspecting) :is(.practice-label, .practice-scramble, .practice-solved, .practice-hint, .practice-hint-text, .practice-focus-verdict, .practice-focus-button) {
+  visibility: hidden;
+}
+body.practice-focus .practice-stage:is(.running, .inspecting) .practice-buttons {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.25rem;
+  opacity: .55;
+}
+body.practice-focus .practice-stage:is(.running, .inspecting) #hintButton {
+  display: none;
+}
+
+/* ---- 通し ---- */
+.practice-scramble.full {
+  max-width: 36rem; /* 20 手前後。広い画面でも 1〜2 行に収める */
+}
+/* 通しでは「解けなかった」「スキップ」「ヒント」は出さない（DNF は結果の OK / +2 / DNF で付ける）。「中止」は出す */
+.practice-full #hintButton,
+.practice-full #dnfButton,
+.practice-full #skipButton,
+.practice-full #practiceHintText {
+  display: none;
+}
+/* ---- LL ---- */
+/* LL ではヒントを出さない（OLL と PLL の 2 つを解くので、ヒントの形が合わない） */
+.practice-ll #hintButton,
+.practice-ll #practiceHintText {
+  display: none;
+}
+/* スクランブルが長い（35 手くらい）ので、広い画面でも 3 行分の高さを取る */
+.practice-scramble.ll {
+  min-height: 4.5em;
+}
+/* 結果の OLL → PLL（入らなければ折り返す） */
+.practice-ll-cases {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem .75rem;
+}
+.practice-ll-case {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+  text-align: left;
+}
+.practice-ll-case .case-image {
+  flex: none;
+}
+.practice-ll-case-text {
+  min-width: 0;
+}
+.practice-ll-arrow {
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* 結果のスクランブル（1 行約 41 文字・折り返さない）。スマホの幅にも収まるよう画面の幅に合わせて小さくする。
+   .practice-case-alg（.85rem）より後に書かれていても負けないよう、2 つのクラスで指定する */
+.practice-case-alg.practice-full-scramble {
+  text-align: left; /* スマホでは結果が中央寄せになるが、スクランブルは行の頭をそろえる */
+  white-space: pre-line;
+  color: #6c757d;
+  font-size: min(.75rem, 2.7vw);
+}
+/* ソルブの ao5・ao12 など：広い画面は「今」と「ベスト」の 2 行（列をそろえる）、スマホは 1 枚の表（js/practice.js の renderFullStats） */
+.practice-stat-chips {
+  display: grid;
+  grid-template-columns: auto repeat(4, auto);
+  justify-content: start;
+  row-gap: .4rem;
+  max-width: 100%;
+}
+.practice-stat-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  column-gap: 1.5rem;
+  padding: .35rem 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: .6rem;
+  background: #fff;
+}
+.practice-stat-row-head {
+  min-width: 3em;
+  color: #6c757d;
+  font-size: .78rem;
+  font-weight: 600;
+}
+/* 数字の欄は「1:00.00」が入る幅をいつも取る（まだ出ていない「–」のときも、記録が増えても幅が変わらないように） */
+.practice-stat-row .practice-stat-value {
+  display: inline-block;
+  min-width: 6.2ch;
+}
+.practice-stat-row .practice-stat-value.empty {
+  text-align: center;
+}
+/* 576〜767px：1 行に収まるよう間隔を詰める */
+@media (max-width: 767.98px) {
+  .practice-stat-row {
+    column-gap: .7rem;
+    padding: .35rem .75rem;
+  }
+}
+.practice-full-card {
+  display: none;
+  padding: .5rem .75rem;
+  border: 1px solid #e9ecef;
+  border-radius: .6rem;
+  background: #fff;
+}
+@media (max-width: 575.98px) {
+  .practice-stat-chips {
+    display: none;
+  }
+  .practice-full-card {
+    display: block;
+  }
+}
+.practice-full-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.practice-full-table th {
+  color: #6c757d;
+  font-size: .72rem;
+  font-weight: 500;
+}
+.practice-full-table thead th {
+  padding-bottom: .1rem;
+  text-align: right;
+}
+.practice-full-table th[scope="row"] {
+  width: 3.75rem; /* 行の見出し（今・ベスト / Current・Best）。残りを 3 列で均等に分ける */
+  text-align: left;
+}
+.practice-full-table td {
+  padding: .1rem 0;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.practice-full-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .25rem .5rem;
+  margin-top: .4rem;
+  padding-top: .4rem;
+  border-top: 1px solid #f1f3f5;
+  font-size: .85rem;
+}
+.practice-full-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .35rem;
+}
+.practice-full-dot {
+  color: #ced4da;
+}
+.practice-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .4rem;
+  white-space: nowrap;
+}
+.practice-stat-label {
+  color: #6c757d;
+  font-size: .72rem;
+}
+.practice-stat-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- 結果 ---- */
+.practice-result {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 1rem;
+  background: #fbfbfc;
+  animation: practice-in .2s ease-out;
+}
+.practice-result[hidden] {
+  display: none;
+}
+@keyframes practice-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .practice-result { animation: none; }
+}
+.practice-result .case-image {
+  flex: none;
+}
+.practice-result-body {
+  min-width: 0;
+}
+.practice-result-time {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.practice-verdict {
+  font-size: .9rem;
+}
+.practice-verdict.learned {
+  color: var(--practice-learned);
+}
+.practice-verdict.learning {
+  color: var(--practice-learning);
+}
+.practice-case-name {
+  font-weight: 600;
+}
+.practice-case-alg {
+  font-family: var(--bs-font-monospace);
+  font-size: .85rem;
+  word-break: break-word;
+}
+.practice-case-scramble {
+  color: #6c757d;
+  word-break: break-word;
+}
+/* スクランブルは解法の手順（.practice-case-alg の .85rem）より少しだけ小さく */
+.practice-case-scramble .practice-case-alg {
+  font-size: .8rem;
+}
+.practice-case-scramble-label {
+  color: #6c757d;
+  font-size: .78rem;
+}
+.practice-case-stats {
+  color: #6c757d;
+  font-size: .78rem;
+}
+.practice-result-actions {
+  display: inline-flex;
+  gap: .75rem;
+  white-space: nowrap;
+}
+.practice-undo {
+  padding: 0;
+  border: 0;
+  font-size: .85rem;
+  text-decoration: none;
+}
+
+/* ---- 最近の記録 ---- */
+.practice-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  padding: 0;
+  list-style: none;
+}
+.practice-history li {
+  padding: .15rem .6rem;
+  border-radius: 50rem;
+  background: #f1f3f5;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+/* ソルブ：タイムだけなので、丸を同じ幅にして格子にそろえる（「1:33.46+」が入る幅。折り返しても列がそろう）。
+   スマホは行いっぱいに均等に広げる（右に半端な隙間を残さない） */
+.practice-history.full {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 4.7rem);
+}
+.practice-history.full li {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+}
+@media (max-width: 575.98px) {
+  .practice-history.full {
+    grid-template-columns: repeat(auto-fill, minmax(4.7rem, 1fr));
+  }
+}
+/* チップはボタン（押すとケースを下に出す）。見た目は丸い札のまま */
+.practice-history-chip {
+  padding: .15rem .6rem;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+.practice-history li:has(> .practice-history-chip) {
+  padding: 0;
+}
+.practice-history-chip[aria-expanded="true"] {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+/* 押したチップのケース：画像・名前・習得状況・手順・その回のタイム・最近のベスト／平均・エディタで開く */
+.practice-history-detail {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  margin-top: .6rem;
+  padding: .75rem 2.2rem .75rem .75rem;
+  border: 1px solid #e9ecef;
+  border-radius: .75rem;
+  background: #fff;
+}
+.practice-history-detail[hidden] {
+  display: none;
+}
+.practice-history-detail .case-image {
+  flex: none;
+}
+.practice-history-close {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  width: .6em;
+  height: .6em;
+}
+.practice-history-status {
+  padding: .05rem .5rem;
+  border-radius: 50rem;
+  background: #f1f3f5;
+  color: #495057;
+  font-size: .72rem;
+}
+.practice-history-status.learned {
+  background: rgba(25, 135, 84, .1);
+  color: #146c43;
+}
+.practice-history-status.learning {
+  background: rgba(240, 173, 0, .14);
+  color: #7a5a00;
+}
+.practice-history-editor {
+  display: inline-block;
+  margin-top: .35rem;
+}
+.practice-history li.learned {
+  background: rgba(25, 135, 84, .1);
+  color: #146c43;
+}
+.practice-history li.learning {
+  background: rgba(240, 173, 0, .14);
+  color: #7a5a00;
+}
+
+@media (max-width: 575.98px) {
+  .practice-settings {
+    padding: .65rem .75rem;
+  }
+  /* 設定は 1 行の要約にたたむ（押すと開く）。開いているときは要約が見出しになる */
+  .practice-settings-summary {
+    display: flex;
+  }
+  .practice-scramble {
+    min-height: 4.5em; /* line-height 1.5 × 3 行（ZBLL は 2 行までだが、種類を切り替えてもタイマーの位置がそろうよう同じにする） */
+  }
+  .practice-settings:not(.open) > :not(.practice-settings-summary) {
+    display: none;
+  }
+  .practice-settings:not(.open) {
+    padding: .5rem .75rem;
+  }
+  /* グループを選ぶ欄は「グループ」のすぐ下（対象・習得の目安・出題の下に離れて出ないように。js/practice.js の renderSettings） */
+  .practice-groups {
+    order: 0;
+  }
+  /* 対象（未習得・練習中・習得済み・すべて ＋件数）が 1 行に収まるよう詰める */
+  .practice-segment button {
+    padding: .2rem .45rem;
+    font-size: .78rem;
+  }
+  .practice-segment .count {
+    margin-left: .2rem;
+    font-size: .68rem;
+  }
+  /* それでも折り返すときに角の丸みで崩れて見えないように */
+  .practice-segment {
+    border-radius: 1rem;
+  }
+  .practice-result {
+    flex-direction: column;
+    text-align: center;
+  }
+  /* LL のスクランブルは 4 行になることがある（3x3 は 31〜41 手で、360px 幅では 5 行になることがあったので、字を少し小さくして 4 行に収める） */
+  .practice-scramble.ll {
+    min-height: 6em;
+    font-size: clamp(.95rem, 2.6vw, 1.5rem);
+  }
+  .practice-ll-cases {
+    justify-content: center;
+  }
+}
+
+/* ケースの画像（cube-draw.js が中に svg を入れる） */
+.practice-result .case-image svg {
+  display: block;
+}
+
+/* 練習の知らせ（対象を進めたとき。js/practice.js の notice）。
+   タイマーのカードの、ボタンのすぐ下に重ねて出す（.practice-toast-anchor は高さ 0 で、ほかを押し下げない）。
+   長いときは下（結果の上の方）に重なって伸びる。色は画面の下の知らせ（css/common.css の .site-toast）と同じ控えめな青 */
+.practice-toast-anchor {
+  position: relative;
+  height: 0;
+}
+.practice-toast {
+  position: absolute;
+  left: 50%;
+  top: .4rem;
+  z-index: 1060;
+  width: max-content;
+  max-width: calc(100% + 1rem); /* カードの枠まで */
+  padding: .6rem 2rem .6rem 1rem;
+  border: 1px solid #cfe2ff;
+  border-radius: .75rem;
+  background: #f1f6ff;
+  color: #084298;
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .15);
+  font-size: .875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 1rem);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.practice-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+  animation: toast-pop-fixed .5s ease; /* css/common.css */
+}
+.practice-toast-close {
+  position: absolute;
+  top: .15rem;
+  right: .3rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #3d6fb6;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.practice-toast-close:hover {
+  background: rgba(0, 0, 0, .06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .practice-toast {
+    transition: none;
+  }
+  .practice-toast.show {
+    animation: none;
+  }
+}

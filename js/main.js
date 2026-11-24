@@ -1,8 +1,15 @@
+// 描き直しの管理：最後に描いたパラメータ（同じなら描き直さない）と、描画の通し番号（古い描画の結果を捨てる）
+let lastDrawn = null
+let drawToken = 0
+
 const app = Vue.createApp({
+  // PLL・OLL の選択、自分の手順、Color Preset、Background、Download、設定の保存、URL パラメータ（js/editor-cases.js）
+  // 色を直接指定で、画像のステッカーを押して色を選ぶ（js/state-picker.js。Plan 表示だけ）
+  mixins: [window.EditorCases, window.StatePicker],
   data: () => ({
     parameter: {},
     imageHeight: 128,
-    algtype: 'alg',
+    algtype: 'case', // 初期値は「この手順で揃う状態」（PLL・OLL のケースを選ぶとこれになり、ケースの画像もこの形。?alg= で開いたときは js/editor-cases.js が alg にする）
     algorithm: '',
     algorithm3: false,
     algorithm4: false,
@@ -59,6 +66,7 @@ const app = Vue.createApp({
     arrows: '',
     cubeSize: 3,
     imageSize: 128,
+    imageMin: 100, // Megaminx Image Editor と同じ最小
     imageMax: Math.min(Math.round((window.innerWidth * 0.8) / 100, 0) * 100, 1000),
     cubeView: 'normal',
     stageMask: '',
@@ -121,16 +129,37 @@ const app = Vue.createApp({
     },
     maskAlgList: ['x', "x'", 'x2', 'y', "y'", 'y2', 'z', "z'", 'z2'],
     drawFlag: true,
+    caret: null, // 入力欄の最後のカーソルの位置 { value, start, end }（rememberCaret。記号のボタンで入れる場所）
+    lang: window.I18N.lang, // 今の言語（js/i18n.js）。切り替えると t() を使っている場所が描き直される
   }),
+  created() {
+    window.I18N.onChange((lang) => {
+      this.lang = lang
+    })
+  },
   methods: {
+    // 訳した文（js/i18n.js）。テンプレートでは {{ t('editor.algorithm') }} のように使う
+    t: function (key, params) {
+      return this.lang ? window.I18N.t(key, params) : key
+    },
     drawCube: function () {
+      const element = document.getElementById('visualcube')
+      if (!element) return // まだ画面に無い（created の中から呼ばれたとき）。mounted で描く
       this.imageHeight = this.imageSize
-      if (this.algorithm) {
+      // 描画に渡す手順。3x3 では括弧と繰り返しを展開したもの（js/editor-cases.js の algForDraw）。
+      // 読めない手順（null）のときは、欄の下にエラーを出したまま前の画像を残す。
+      // まだ1枚も描いていない（?alg= に読めない手順を入れて開いた）ときは、手順なしで描く
+      let algorithm = this.algorithm && this.algtype !== 'state' ? this.algForDraw() : ''
+      if (algorithm === null) {
+        if (lastDrawn !== null) return
+        algorithm = ''
+      }
+      if (algorithm) {
         if (this.algtype === 'alg') {
-          this.parameter.algorithm = this.algorithm.trim()
+          this.parameter.algorithm = algorithm
           delete this.parameter.case
         } else if (this.algtype === 'case') {
-          this.parameter.case = this.algorithm.trim()
+          this.parameter.case = algorithm
           delete this.parameter.algorithm
         }
       } else {
@@ -280,31 +309,76 @@ const app = Vue.createApp({
           [this.axisEnum(this.rotateAxis3), this.rotateAngle3],
         ]
       }
-      this.backgroundColor === '#ffffff' ? delete this.parameter.backgroundColor : (this.parameter.backgroundColor = this.backgroundColor)
+      // 背景：Transparent（既定）なら塗らない、Opaque なら Background Color で塗る
+      this.background === 'n' ? (this.parameter.backgroundColor = this.backgroundColor) : delete this.parameter.backgroundColor
       this.cubeColor === '#000000' ? delete this.parameter.cubeColor : (this.parameter.cubeColor = this.cubeColor)
       this.maskColor === '#404040' ? delete this.parameter.maskColor : (this.parameter.maskColor = this.maskColor)
       this.cubeOpacity === 100 ? delete this.parameter.cubeOpacity : (this.parameter.cubeOpacity = this.cubeOpacity)
       this.stickerOpacity === 100 ? delete this.parameter.stickerOpacity : (this.parameter.stickerOpacity = this.stickerOpacity)
       this.dist === 5 ? delete this.parameter.dist : (this.parameter.dist = this.dist)
 
-      const element = document.getElementById('visualcube')
+      // 同じ内容なら描き直さない。新しい画像は別の場所で作り、できあがってから差し替える
+      // （続けて呼ばれても、古い画像が残ったり、画像が2枚並んだりしないように。最後に呼んだものだけを出す）
+      const key = JSON.stringify(this.parameter)
+      if (key === lastDrawn) return
+      lastDrawn = key
+      const token = ++drawToken
       const SRVisualizer = window['sr-visualizer']
-      element.removeChild(element.lastElementChild)
-      SRVisualizer.cubePNG(element, this.parameter)
+      const holder = document.createElement('div')
+      SRVisualizer.cubePNG(holder, this.parameter)
+      // cubePNG は setTimeout の中で img を足し、そのあと画像を読み込む
+      setTimeout(() => {
+        const img = holder.querySelector('img')
+        if (!img) return
+        img.addEventListener('load', () => {
+          if (token === drawToken) element.replaceChildren(img)
+        })
+      })
     },
+    // 画像サイズの「リセット」：既定の 128 に戻す（上限が 128 より小さい画面では上限）
     resetSize() {
-      this.imageSize = 128
+      this.imageSize = Math.max(this.imageMin, Math.min(128, this.imageMax))
     },
-    addAlgorithm(text) {
-      if (this.cubeSize >= 6 && !isNaN(text) && (this.algorithm.slice(-1) !== ' ' || this.algorithm === '')) {
-        this.algorithm = this.algorithm + text
-      } else if (text === "'" || text === 'w' || text === ')' || !isNaN(text)) {
-        this.algorithm = this.algorithm.trimEnd() + text + ' '
-      } else if (text === '(') {
-        this.algorithm = this.algorithm + text
-      } else {
-        this.algorithm = this.algorithm + text + ' '
+    // 画像サイズの入力欄を確定したとき：整数に丸めて imageMin〜imageMax に収める。空・数でないときは今の値に戻す
+    onImageSizeChange(e) {
+      const n = Math.round(Number(e.target.value))
+      if (e.target.value !== '' && Number.isFinite(n)) {
+        this.imageSize = Math.max(this.imageMin, Math.min(this.imageMax, n))
       }
+      e.target.value = this.imageSize // 範囲外を入れたときも、欄の表示を実際の値にそろえる
+    },
+    // 入力欄のカーソルの位置（選んでいる範囲）を覚える。記号のボタンを押すと入力欄からフォーカスが外れるので、最後の位置を使う。
+    // value はそのときの手順：ケースを選ぶなどで手順が入れ替わったら、その位置は使わない（最後に足す）
+    rememberCaret() {
+      const input = document.getElementById('algorithm')
+      if (!input || document.activeElement !== input || input.selectionStart == null) return
+      this.caret = { value: input.value, start: input.selectionStart, end: input.selectionEnd }
+    },
+    // 記号のボタン：カーソルの位置に入れる（選んでいる範囲は置き換える。カーソルを入れていなければ最後に足す）。
+    // 記号の並べ方（' w ) 数字は前の記号に続ける、大きいキューブの層の数字は次の記号の前に付ける、など）は、カーソルより前を手順の終わりとみなして決める。
+    // 入れたあとは入力欄にフォーカスを戻さない（スマホでキーボードが出てボタンが隠れないように）。カーソルは入れた記号の後ろに進める
+    addAlgorithm(text) {
+      const value = this.algorithm
+      const at = this.caret && this.caret.value === value ? this.caret : { start: value.length, end: value.length }
+      let before = value.slice(0, at.start)
+      let after = value.slice(at.end)
+      if (this.cubeSize >= 6 && !isNaN(text) && (before.slice(-1) !== ' ' || before === '')) {
+        before = before + text
+      } else if (text === "'" || text === 'w' || text === ')' || !isNaN(text)) {
+        before = before.trimEnd() + text + ' '
+      } else if (text === '(') {
+        before = before + text
+      } else {
+        if (before && !/[\s(]$/.test(before)) before += ' ' // R| で U → R U（前の記号に続けない）
+        before = before + text + ' '
+      }
+      // 後ろに続く手順との間の空白は 1 つに（R |U' で U → R U U'）
+      if (/\s$/.test(before)) after = after.replace(/^\s+/, '')
+      this.algorithm = before + after
+      const pos = before.length
+      this.caret = { value: this.algorithm, start: pos, end: pos }
+      const input = document.getElementById('algorithm')
+      if (input && document.activeElement === input) this.$nextTick(() => input.setSelectionRange(pos, pos))
     },
     resetState() {
       if (this.cubeSize === 6) {
@@ -931,9 +1005,21 @@ const app = Vue.createApp({
     }, 100),
   },
   mounted() {
-    let SRVisualizer = window['sr-visualizer']
-    let element = document.getElementById('visualcube')
-    SRVisualizer.cubePNG(element)
+    // 保存してある設定・URL パラメータ（js/editor-cases.js の created で反映済み）で描く
+    this.drawCube()
+    // 手順の入力欄のカーソルの位置を覚える（記号のボタンで入れる場所。addAlgorithm）
+    const algInput = document.getElementById('algorithm')
+    if (algInput) {
+      ;['input', 'keyup', 'mouseup', 'touchend', 'select', 'focus', 'blur'].forEach((type) => algInput.addEventListener(type, () => this.rememberCaret()))
+      document.addEventListener('selectionchange', () => this.rememberCaret())
+    }
+    // 上に残した画像の高さを CSS に渡す（入力欄までスクロールしたときに画像の下に隠れないように。css/common.css の scroll-padding-top）
+    const preview = document.getElementById('editorPreview')
+    if (preview && typeof ResizeObserver === 'function') {
+      new ResizeObserver(() => {
+        document.documentElement.style.setProperty('--editor-preview-height', Math.ceil(preview.getBoundingClientRect().height) + 'px')
+      }).observe(preview)
+    }
   },
   updated() {
     this.drawFlag = true

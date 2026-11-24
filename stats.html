@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja" data-i18n-title-page="title.stats">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-yEPZ7jP9S0QKiUQ0m3jjsO4ProIW7wvR9gXkI7JOGa2XVsw53Yke2bsdkBbjmmiX"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
+    />
+    <script>
+      // JS で中身を作り終えるまで見せない（英語の仮の文字・空の一覧が一瞬出てちらつくのを防ぐ。css/common.css の html.booting）。
+      // body の最後のスクリプトを全部実行したあと（DOMContentLoaded）に見せる。極端に遅いときも 3 秒で見せる
+      document.documentElement.classList.add('booting');
+      (function () {
+        var show = function () { document.documentElement.classList.remove('booting'); };
+        document.addEventListener('DOMContentLoaded', show);
+        setTimeout(show, 3000);
+      })();
+    </script>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/stats.css" />
+    <link rel="shortcut icon" href="favicon/icon.ico" />
+    <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="favicon/android-chrome-192×192.png" />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LP5F7RVYQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'G-2LP5F7RVYQ')
+    </script>
+    <title>Stats - VisualCube Editor 3.0</title>
+  </head>
+  <body style="visibility: hidden" onLoad="document.body.style.visibility='visible'">
+    <div class="container pb-5">
+      <nav class="navbar bg-light site-nav">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="/">VisualCube Editor 3.0</a>
+          <!-- 右側：広い画面では 言語・アカウント・ページへのリンク・GitHub を1行に並べる。
+               スマホではアカウントとメニューのボタンだけを出し、言語とリンクはメニューの中に入れる（js/navbar.js） -->
+          <div class="nav-right">
+            <span id="accountBox"></span>
+            <button type="button" class="nav-toggle" id="navToggle" aria-controls="navMenu" aria-expanded="false" data-i18n-aria-label="nav.menu" aria-label="Menu">
+              <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            </button>
+            <div class="nav-menu" id="navMenu">
+              <span id="langSwitch"></span>
+              <a href="/" class="nav-link-item" data-i18n="nav.editor">Editor</a>
+              <a href="/pll" class="nav-link-item" data-i18n="nav.pllList">PLL</a>
+              <a href="/oll" class="nav-link-item" data-i18n="nav.ollList">OLL</a>
+              <a href="/practice" class="nav-link-item" data-i18n="nav.practice">Practice</a>
+              <a href="/stats" class="nav-link-item" data-i18n="nav.stats" aria-current="page">Stats</a>
+              <a href="https://github.com/roudai/VisualCubeEditor2" class="nav-link-item nav-github" aria-label="GitHub">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+
+      <div class="page-head stats-head mt-3 mb-3">
+        <!-- 練習と記録の切り替え（見出し）。今のページは h1、もう一方は薄い字のリンク（両ページとも「練習 → 記録」の順。css/common.css）。
+             ナビバーのリンクが並ぶ広い画面（768px 以上）ではリンクを隠し、今のページの見出しだけにする。
+             リンクには今の種類（?set=）を js/{practice,stats}.js が入れる -->
+        <div class="page-switch">
+          <a href="/practice" id="pageSwitchLink" class="h4 m-0 page-switch-link" data-i18n="practice.heading">Practice</a>
+          <h1 class="h4 m-0" data-i18n="stats.heading" aria-current="page">Stats</h1>
+        </div>
+        <!-- 種類：PLL / OLL / COLL / ZBLL / LL / ソルブ（js/stats.js が作る。練習ページの種類と同じ場所）。期間は下の行 -->
+        <div id="statsControls" class="stats-controls"></div>
+      </div>
+
+      <!-- 期間：7日間 / 30日間 / 全期間（js/stats.js が作る）。見出しの行に置かず、カードの上に置き、
+           ここから下（カード・グラフ・表）だけを絞ることが見て分かるようにする -->
+      <div id="statsPeriod" class="stats-period mb-3"></div>
+
+      <section id="statsCards" class="stats-cards"></section>
+
+      <section class="stats-panel mt-3">
+        <!-- 見出しの行：切り替えが見出しを兼ねる（見出しの文字は読み上げ用に見えない形で残す。文言は js/stats.js が切り替える） -->
+        <div class="stats-panel-head">
+          <h2 class="stats-title visually-hidden" id="statsChartTitle" data-i18n="stats.trend">Times</h2>
+          <!-- グラフ：推移（折れ線） / 分布（棒グラフ）の切り替え（js/stats.js） -->
+          <div id="statsChartTabs"></div>
+        </div>
+        <div id="statsChart" class="stats-chart"></div>
+      </section>
+
+      <!-- 表のパネル。期間内に記録が無いときはパネルごと隠す（「まだ記録がありません。」はグラフの側だけ。js/stats.js） -->
+      <section id="statsTablePanel" class="stats-panel mt-3">
+        <!-- 見出しの行：PLL・OLL・COLL・ZBLL は「ケースごと / 記録の一覧」の切り替えが見出しを兼ね（見出しの文字は読み上げ用に見えない形で残す）、
+             ケースごとのときは同じ行の右端に並べ替え。ソルブ・LL は切り替えが無いので見出し「記録の一覧」を見せる（js/stats.js） -->
+        <div class="stats-panel-head">
+          <h2 class="stats-title" id="statsTableTitle" data-i18n="stats.byCase">By case</h2>
+          <div id="statsTableTabs"></div>
+          <!-- ケースごとの表の並び：苦手順 / グループ順 / 覚える順（広い画面はボタン、スマホはプルダウン。js/stats.js） -->
+          <div id="statsSort" class="stats-sort-bar" hidden></div>
+        </div>
+        <!-- 記録の一覧のページ送り（js/stats.js）。50 件は画面に収まらないので、表の下ではなく頭に置く（移ったらそのページの 1 件目から読めるように） -->
+        <div id="statsPager" class="stats-pager" hidden></div>
+        <!-- 記録の一覧の削除（選んだ記録をまとめて削除。確認・元に戻す。js/stats.js） -->
+        <div id="statsDeleteBar" class="stats-delete-bar" hidden></div>
+        <div class="table-responsive">
+          <table id="statsTable" class="table table-sm align-middle stats-table mb-0">
+            <thead id="statsHead"></thead>
+            <tbody id="statsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <script src="js/store.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="library/srVisualizer.min.js"></script>
+    <script src="js/cube-state.js"></script>
+    <script src="js/cube-draw.js"></script>
+    <script src="js/pll-data.js"></script>
+    <script src="js/oll-data.js"></script>
+    <script src="js/coll-data.js"></script>
+    <script src="js/zbll-data.js"></script>
+    <script src="js/case-sections.js"></script>
+    <script src="js/case-check.js"></script>
+    <script src="js/custom-algs.js"></script>
+    <script src="js/progress.js"></script>
+    <script src="js/cube-solver.js"></script>
+    <script src="js/wca-scramble.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script type="module" src="js/cloud-sync.js"></script>
+  </body>
+</html>

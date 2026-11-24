@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-i18n-title-page="title.editor">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -12,6 +12,17 @@
       media="print"
       onload="this.media='all'"
     />
+    <script>
+      // JS で中身を作り終えるまで見せない（英語の仮の文字・空の一覧が一瞬出てちらつくのを防ぐ。css/common.css の html.booting）。
+      // body の最後のスクリプトを全部実行したあと（DOMContentLoaded）に見せる。極端に遅いときも 3 秒で見せる
+      document.documentElement.classList.add('booting');
+      (function () {
+        var show = function () { document.documentElement.classList.remove('booting'); };
+        document.addEventListener('DOMContentLoaded', show);
+        setTimeout(show, 3000);
+      })();
+    </script>
+    <link rel="stylesheet" href="css/common.css" />
     <link rel="shortcut icon" href="favicon/icon.ico" />
     <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
     <link rel="icon" type="image/png" href="favicon/android-chrome-192×192.png" />
@@ -30,43 +41,116 @@
       [v-cloak] {
         display: none;
       }
+      /* 選んでいるケースの行（js/editor-cases.js）。高さはいつも確保し、ケースを選んでいないときは中身を隠す */
+      .case-alg-bar {
+        min-height: 31px;
+      }
+      .case-alg-bar.is-empty > * {
+        visibility: hidden;
+      }
+      .flex-none {
+        flex: none;
+      }
+      .my-alg-message {
+        min-height: 1.5em;
+        line-height: 1.5;
+      }
+      .my-alg-undo {
+        border: 0;
+        font-size: inherit;
+        line-height: inherit;
+        vertical-align: baseline;
+        text-decoration: none;
+      }
     </style>
-    <title>VisualCube Editor 2.0</title>
+    <title>VisualCube Editor 3.0</title>
   </head>
   <body style="visibility: hidden" onLoad="document.body.style.visibility='visible'">
     <div class="container">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <nav class="navbar bg-light site-nav">
         <div class="container-fluid">
-          <a class="navbar-brand">VisualCube Editor 2.0</a>
-          <span class="navbar-text">
-            <a href="https://github.com/roudai/VisualCubeEditor2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-                <path
-                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-                />
-              </svg>
-            </a>
-          </span>
+          <a class="navbar-brand" href="/">VisualCube Editor 3.0</a>
+          <!-- 右側：広い画面では 言語・アカウント・ページへのリンク・GitHub を1行に並べる。
+               スマホではアカウントとメニューのボタンだけを出し、言語とリンクはメニューの中に入れる（js/navbar.js） -->
+          <div class="nav-right">
+            <span id="accountBox"></span>
+            <button type="button" class="nav-toggle" id="navToggle" aria-controls="navMenu" aria-expanded="false" data-i18n-aria-label="nav.menu" aria-label="Menu">
+              <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            </button>
+            <div class="nav-menu" id="navMenu">
+              <span id="langSwitch"></span>
+              <a href="/" class="nav-link-item" data-i18n="nav.editor" aria-current="page">Editor</a>
+              <a href="/pll" class="nav-link-item" data-i18n="nav.pllList">PLL</a>
+              <a href="/oll" class="nav-link-item" data-i18n="nav.ollList">OLL</a>
+              <a href="/practice" class="nav-link-item" data-i18n="nav.practice">Practice</a>
+              <a href="/stats" class="nav-link-item" data-i18n="nav.stats">Stats</a>
+              <a href="https://github.com/roudai/VisualCubeEditor2" class="nav-link-item nav-github" aria-label="GitHub">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
+              </a>
+            </div>
+          </div>
         </div>
       </nav>
-      <b-container class="d-flex justify-content-end text-muted small">presented by&nbsp;<a href="https://roudai.net" style="text-decoration: none">roudai.net</a></b-container>
+      <div class="d-flex justify-content-end text-muted small">presented by&nbsp;<a href="https://roudai.net" style="text-decoration: none">roudai.net</a></div>
 
       <div id="app" v-cloak>
-        <div class="text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: imageHeight + 30 + 'px' }">
-          <div id="visualcube"></div>
+        <!-- 画像：下にスクロールしても画面の上に残す。表示は画面の高さの 35% まで（css/common.css の .editor-preview。描く大きさ・PNG は画像サイズのまま） -->
+        <div id="editorPreview" class="editor-preview text-center bg-white sticky-top border-bottom mb-2" v-bind:style="{ height: 'calc(min(' + imageHeight + 'px, 35vh) + 30px)' }">
+          <!-- 色を直接指定・Plan 表示のときは、画像のステッカーを押して色を選べる（js/state-picker.js） -->
+          <div id="visualcube" :class="{ pickable: canPickSticker }" @click="onPreviewClick"></div>
           {{ algorithm }}
         </div>
-
+        <!-- 画像のステッカーを押したときに出す色のパレット（js/state-picker.js） -->
+        <div
+          v-if="picker"
+          id="stickerPicker"
+          class="sticker-picker"
+          role="group"
+          :aria-label="t('editor.stickerPicker')"
+          :style="{ left: picker.left + 'px', top: picker.top + 'px' }"
+        >
+          <button
+            v-for="c in pickerColors"
+            :key="c.key"
+            type="button"
+            class="sticker-picker-color"
+            :class="{ selected: c.key === pickerValue, transparent: c.key === 't' }"
+            :style="c.key === 't' ? null : { backgroundColor: c.color }"
+            :title="c.key"
+            :aria-label="c.key"
+            :aria-pressed="String(c.key === pickerValue)"
+            @click="choosePickerColor(c.key)"
+          >{{ c.key }}</button>
+        </div>
         <p>
-          <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">Show Parameter</button>
+          <button class="btn btn-outline-info btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">{{ t('editor.showParameter') }}</button>
         </p>
         <div class="collapse" id="collapseExample">
           <div class="card card-body">{{ parameter }}</div>
         </div>
 
+        <!-- File Name の横にダウンロード（設定を決めてから押す並び）。広い画面（md 以上）ではファイル名と画像サイズを横に並べる -->
+        <div class="row g-2 mb-2">
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="fileName">{{ t('editor.fileName') }}</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="fileName" v-model="fileName" autocomplete="off" spellcheck="false" />
+              <button class="btn btn-outline-secondary" type="button" id="downloadImage" @click="downloadImage">{{ t('editor.download') }}</button>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="imageSize">{{ t('editor.imageSize') }}</label>
+            <!-- Megaminx Image Editor と同じ数値の入力欄。確定（Enter・欄を離れる・↑↓）で反映する（js/main.js の onImageSizeChange）。「リセット」で 128 に戻す -->
+            <div class="input-group">
+              <input type="number" class="form-control" id="imageSize" :min="imageMin" :max="imageMax" step="1" :value="imageSize" @change="onImageSizeChange" />
+              <button class="btn btn-outline-secondary" type="button" id="imageSizeReset" @click="resetSize">{{ t('common.reset') }}</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Puzzle Type -->
         <div class="mb-2">
-          <label class="form-label" for="cubeSize">Puzzle Type</label>
+          <label class="form-label" for="cubeSize">{{ t('editor.puzzleType') }}</label>
           <div class="input-group">
             <input type="text" inputmode="numeric" pattern="\d*" maxlength="2" class="form-control" id="cubeSize" v-model.number="cubeSize" />
             <button class="btn btn-outline-secondary" type="button" @click="cubeSize = decrementNumber(cubeSize,1,1)">-</button>
@@ -74,42 +158,75 @@
           </div>
         </div>
 
-        <!-- Size of generated image -->
-        <div class="mb-2">
-          <label class="form-label" for="imageSize">Size of generated image</label>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="input-group">
-                <input type="text" class="form-control" id="imageSize" v-model.number="imageSize" disabled />
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,10)">-10</button>
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = decrementNumber(imageSize,1,1)">-1</button>
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,imageMax,1)">+1</button>
-                <button class="btn btn-outline-secondary" type="button" @click="imageSize = incrementNumber(imageSize,imageMax,10)">+10</button>
-                <button type="submit" class="btn btn-outline-secondary" @click="resetSize">Reset</button>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <input type="range" class="form-range" min="1" v-bind:max="imageMax" step="1" id="imageSize" v-model="imageSize" />
-            </div>
-          </div>
-        </div>
-
         <!-- Algorithm -->
         <div class="mb-2">
           <div>
-            <label class="form-label" for="algorithm">Algorithm</label>
+            <label class="form-label" for="algorithm">{{ t('editor.algorithm') }}</label>
           </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio1" value="alg" v-model="algtype" />
-            <label class="form-check-label" for="algorithmRadio1">Algorithm to apply</label>
+          <!-- 手順の扱い：広い画面はラジオボタン、スマホ（幅 576px 未満）はプルダウン（3 つ目だけ 2 行目に落ちて崩れるため）。
+               どちらも同じ algtype（v-model）を変える。初期値は先頭の「この手順で揃う状態」
+               （PLL・OLL のケースを選ぶとこれになり、ケースの画像はこの形で作るため。js/main.js） -->
+          <div class="d-none d-sm-block mb-2">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype" />
+              <label class="form-check-label" for="algorithmRadio2">{{ t('editor.typeCase') }}</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio1" value="alg" v-model="algtype" />
+              <label class="form-check-label" for="algorithmRadio1">{{ t('editor.typeAlg') }}</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled" />
+              <label class="form-check-label" for="algorithmRadio3">{{ t('editor.typeState') }}</label>
+            </div>
           </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio2" value="case" v-model="algtype" />
-            <label class="form-check-label" for="algorithmRadio2">Algorithm to solve case</label>
-          </div>
-          <div class="form-check form-check-inline mb-2">
-            <input class="form-check-input" type="radio" name="algorithmRadioOptions" id="algorithmRadio3" value="state" v-model="algtype" v-bind:disabled="algorithmDisabled" />
-            <label class="form-check-label" for="algorithmRadio3">Defines the cube state</label>
+          <select id="algorithmTypeSelect" class="form-select d-sm-none mb-2" v-model="algtype" :aria-label="t('editor.typeAria')">
+            <option value="case">{{ t('editor.typeCase') }}</option>
+            <option value="alg">{{ t('editor.typeAlg') }}</option>
+            <option value="state" :disabled="algorithmDisabled">{{ t('editor.typeState') }}</option>
+          </select>
+          <!-- PLL・OLL・COLL のケースを選ぶ。[PLL | OLL] の切り替えで種類を選び、その種類のグループ（OLL は OLL / COLL のグループ）とケースだけを出す
+               （js/editor-cases.js の caseTab。選ぶと 3x3・Plan 表示になる）。広い画面は 1 行、スマホは「切り替え・グループ」「ケース・前へ・次へ」の 2 行。
+               グループのプルダウンの初期表示「-- PLL --」「-- OLL --」がラベルを兼ねる（読み上げの名前は aria-label） -->
+          <div class="row g-2 mb-2 align-items-center" v-show="!showFacelets">
+            <div class="col-auto">
+              <div class="btn-group" role="group" :aria-label="t('editor.setAria')">
+                <input type="radio" class="btn-check" name="caseTab" id="caseTabPll" value="pll" autocomplete="off" v-model="caseTab" />
+                <label class="btn btn-outline-secondary" for="caseTabPll">PLL</label>
+                <input type="radio" class="btn-check" name="caseTab" id="caseTabOll" value="oll" autocomplete="off" v-model="caseTab" />
+                <label class="btn btn-outline-secondary" for="caseTabOll">OLL</label>
+              </div>
+            </div>
+            <div class="col col-md-4">
+              <select class="form-select" id="pllGroup" v-show="caseTab === 'pll'" :aria-label="t('editor.groupAria', { set: 'PLL' })" @change="onCaseGroupChange('pll', $event.target.value)">
+                <option value="" :selected="!caseSel.pll.group">-- PLL --</option>
+                <option v-for="g in caseGroups('pll')" :key="g.value" :value="g.value" :selected="g.value === caseSel.pll.group">{{ g.label }}</option>
+              </select>
+              <!-- OLL・COLL：1つ目で種類（OLL / COLL のグループ）、2つ目でケース（OLL は番号順 1〜57） -->
+              <select class="form-select" id="ollGroup" v-show="caseTab === 'oll'" :aria-label="t('editor.groupAria', { set: 'OLL / COLL' })" @change="onOllKindChange($event.target.value)">
+                <option value="" :selected="!ollKind">-- OLL --</option>
+                <option v-for="k in ollKinds" :key="k.value" :value="k.value" :selected="k.value === ollKind">{{ k.label }}</option>
+              </select>
+            </div>
+            <div class="w-100 d-md-none"></div>
+            <div class="col col-md-3">
+              <select class="form-select" id="pllCase" v-show="caseTab === 'pll'" :aria-label="t('editor.caseAria', { set: 'PLL' })" :disabled="!caseSel.pll.group" @change="onCaseChange('pll', $event.target.value)">
+                <option v-for="c in casesInGroup('pll')" :key="c.name" :value="c.name" :selected="c.name === caseSel.pll.name">{{ c.name }}</option>
+              </select>
+              <select class="form-select" id="ollCase" v-show="caseTab === 'oll'" :aria-label="t('editor.caseAria', { set: 'OLL / COLL' })" :disabled="!ollKind" @change="onOllCaseChange($event.target.value)">
+                <option v-for="c in ollKindCases" :key="c.name" :value="c.name" :selected="c.name === ollKindCase">{{ c.name }}</option>
+              </select>
+            </div>
+            <div class="col-auto">
+              <div class="btn-group" role="group" v-show="caseTab === 'pll'" :aria-label="t('editor.navAria', { set: 'PLL' })">
+                <button class="btn btn-outline-secondary" type="button" id="pllPrev" @click="stepCase('pll', -1)">{{ t('common.prev') }}</button>
+                <button class="btn btn-outline-secondary" type="button" id="pllNext" @click="stepCase('pll', 1)">{{ t('common.next') }}</button>
+              </div>
+              <div class="btn-group" role="group" v-show="caseTab === 'oll'" :aria-label="t('editor.navAria', { set: 'OLL / COLL' })">
+                <button class="btn btn-outline-secondary" type="button" id="ollPrev" @click="stepOll(-1)">{{ t('common.prev') }}</button>
+                <button class="btn btn-outline-secondary" type="button" id="ollNext" @click="stepOll(1)">{{ t('common.next') }}</button>
+              </div>
+            </div>
           </div>
           <div class="input-group form-inline mb-2" v-show="!showFacelets">
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('U')">U</button>
@@ -144,9 +261,26 @@
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('y')">y</button>
             <button class="btn btn-outline-secondary btn-sm" type="button" @click="addAlgorithm('z')">z</button>
           </div>
-          <div class="input-group form-inline mb-2" v-show="!showFacelets">
-            <input type="text" class="form-control" id="algorithm" v-model="algorithm" />
-            <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithm">Clear</button>
+          <div class="input-group form-inline mb-1" v-show="!showFacelets">
+            <input type="text" class="form-control" :class="{ 'is-invalid': algError }" id="algorithm" v-model="algorithm" autocomplete="off" autocapitalize="off" spellcheck="false" @keydown.enter="saveMyAlg" />
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="clearAlgorithm" @click="clearAlgorithmAndCase">{{ t('editor.clear') }}</button>
+          </div>
+          <!-- 選んでいるケースの手順の状態と、自分の手順の保存（ケースを選んでいるときだけ中身を出す） -->
+          <div class="case-alg-bar d-flex align-items-center justify-content-between gap-2" id="caseAlgBar" :class="{ 'is-empty': !selectedCase }" v-show="!showFacelets">
+            <div class="d-flex align-items-center gap-2 small text-truncate">
+              <span class="fw-semibold" id="caseAlgName">{{ selectedCase ? selectedCase.c.name : '' }}</span>
+              <span class="badge rounded-pill fw-normal" id="caseAlgBadge" :class="caseIsCustom ? 'text-bg-success' : 'text-bg-secondary'">{{ t(caseIsCustom ? 'myAlg.custom' : 'myAlg.default') }}</span>
+              <span class="text-warning-emphasis" id="caseAlgEdited" v-show="caseEdited">{{ t('myAlg.edited') }}</span>
+            </div>
+            <div class="d-flex gap-1 flex-none">
+              <button class="btn btn-sm btn-outline-primary" type="button" id="myAlgSave" :disabled="!caseEdited" :title="algtype === 'case' ? null : t('myAlg.caseOnly')" @click="saveMyAlg">{{ t('myAlg.save') }}</button>
+              <button class="btn btn-sm btn-outline-secondary" type="button" id="myAlgReset" :disabled="!caseIsCustom" @click="resetMyAlg">{{ t('myAlg.resetToDefault') }}</button>
+            </div>
+          </div>
+          <!-- 保存のメッセージ。手順が読めないときのエラーもここに出す（高さはいつも確保。入力欄の下に出すと、入力の途中で出たり消えたりして下が上下するため） -->
+          <div class="my-alg-message small d-flex align-items-center gap-2 mb-2" id="myAlgMessage" :class="algError || myAlgMessage.kind === 'error' ? 'text-danger' : 'text-success'" aria-live="polite" v-show="!showFacelets">
+            <span class="text-truncate" :title="myAlgText">{{ myAlgText }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0 flex-none my-alg-undo" v-if="myAlgMessage.undo && !algError" @click="myAlgMessage.undo()">{{ t('myAlg.undo') }}</button>
           </div>
 
           <div v-show="showFacelets">
@@ -390,20 +524,20 @@
                 </div>
               </div>
             </div>
-            <button class="btn btn-outline-secondary btn-sm" type="button" id="resetState" @click="resetState">Reset</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="resetState" @click="resetState">{{ t('common.reset') }}</button>
             <p class="ms-3">
-              n : a blank face (gray) <br />
-              o : an 'oriented' face (silver) <br />
-              t : a transparent face (cube color)
+              {{ t('editor.stateLegendN') }} <br />
+              {{ t('editor.stateLegendO') }} <br />
+              {{ t('editor.stateLegendT') }}
             </p>
           </div>
         </div>
 
         <!-- Arrow Definition -->
         <div class="mb-2">
-          <label class="form-label" for="arrows">Arrow Definition</label>
+          <label class="form-label" for="arrows">{{ t('editor.arrows') }}</label>
           <div class="input-group form-inline">
-            <label class="me-1 mb-1" for="arrowFace">Face</label>
+            <label class="me-1 mb-1" for="arrowFace">{{ t('editor.arrowFace') }}</label>
             <select class="me-2 mb-1" id="arrowFace" v-model="arrowFace">
               <option value="U">U</option>
               <option value="R">R</option>
@@ -412,54 +546,54 @@
               <option value="L">L</option>
               <option value="B">B</option>
             </select>
-            <label class="me-1 mb-1" for="arrowFrom">From</label>
+            <label class="me-1 mb-1" for="arrowFrom">{{ t('editor.arrowFrom') }}</label>
             <select class="me-2 mb-1" id="arrowForm" v-model="arrowFrom">
               <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
             </select>
-            <label class="me-1 mb-1" for="arrowTo">To</label>
+            <label class="me-1 mb-1" for="arrowTo">{{ t('editor.arrowTo') }}</label>
             <select class="me-2 mb-1" id="arrowTo" v-model="arrowTo">
               <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
             </select>
-            <label class="me-1 mb-1" for="arrowPass">Pass</label>
+            <label class="me-1 mb-1" for="arrowPass">{{ t('editor.arrowPass') }}</label>
             <select class="me-2 mb-1" id="arrowPass" v-model="arrowPass">
               <option v-for="n in arrowNumber" v-bind:value="n - 1">{{ n - 1 }}</option>
             </select>
           </div>
 
           <div class="input-group form-inline mb-2">
-            <label class="me-1 mb-1" for="arrowScale">Scale</label>
+            <label class="me-1 mb-1" for="arrowScale">{{ t('editor.arrowScale') }}</label>
             <select class="me-2 mb-2" id="arrowScale" v-model="arrowScale">
               <option v-for="n in 9" v-bind:value="n">{{ n }}</option>
             </select>
-            <label class="me-1 mb-1" for="arrowInfluence">Influence</label>
+            <label class="me-1 mb-1" for="arrowInfluence">{{ t('editor.arrowInfluence') }}</label>
             <select class="me-2 mb-2" id="arrowInfluence" v-model="arrowInfluence">
               <option v-for="n in 9" v-bind:value="n">{{ n }}</option>
             </select>
-            <label class="me-1 mb-1" for="arrowColor">Color</label>
+            <label class="me-1 mb-1" for="arrowColor">{{ t('editor.arrowColor') }}</label>
             <input class="me-3 mb-1" type="color" id="arrowColor" v-model="arrowColor" />
 
-            <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" id="addArrow" @click="addArrow">Add</button>
-            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" id="resetArrow" @click="resetArrow">Reset</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm me-1 mb-1" id="addArrow" @click="addArrow">{{ t('editor.add') }}</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" id="resetArrow" @click="resetArrow">{{ t('common.reset') }}</button>
           </div>
 
           <div class="input-group form-inline mb-2">
             <input type="text" class="form-control" id="arrows" v-model="arrows" />
-            <button class="btn btn-outline-secondary btn-sm" type="button" id="clearArrows" @click="clearArrows">Clear</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="clearArrows" @click="clearArrows">{{ t('editor.clear') }}</button>
           </div>
         </div>
 
         <!-- Special View -->
         <div class="mb-2">
           <div>
-            <label class="form-label" for="specialView">Special View</label>
+            <label class="form-label" for="specialView">{{ t('editor.specialView') }}</label>
           </div>
           <div class="form-check form-check-inline">
             <input class="form-check-input" type="radio" name="viewRadioOptions" id="viewRadio1" value="normal" v-model="cubeView" />
-            <label class="form-check-label" for="viewRadio1">Normal</label>
+            <label class="form-check-label" for="viewRadio1">{{ t('editor.viewNormal') }}</label>
           </div>
           <div class="form-check form-check-inline mb-2">
             <input class="form-check-input" type="radio" name="viewRadioOptions" id="viewRadio2" value="plan" v-model="cubeView" />
-            <label class="form-check-label" for="viewRadio2">Plan</label>
+            <label class="form-check-label" for="viewRadio2">{{ t('editor.viewPlan') }}</label>
           </div>
         </div>
 
@@ -467,7 +601,7 @@
         <div class="mb-2">
           <div class="row">
             <div class="col-8">
-              <label class="form-label" for="stageMask">Stage Mask</label>
+              <label class="form-label" for="stageMask">{{ t('editor.stageMask') }}</label>
               <select class="form-select" id="stageMask" v-model="stageMask">
                 <option value=""></option>
                 <option v-for="(value, name) in stageMaskList" v-bind:value="value">{{ name }}</option>
@@ -486,45 +620,57 @@
         <!-- Color Schemes -->
         <div class="mb-2">
           <div>
-            <label class="form-label" for="viewportRot ations">Color Schemes</label>
+            <label class="form-label" for="viewportRot ations">{{ t('editor.colorSchemes') }}</label>
+          </div>
+          <div class="row g-2 mb-2 align-items-center">
+            <div class="col-12 col-md-auto">
+              <label class="col-form-label" for="colorPreset">{{ t('editor.colorPreset') }}</label>
+            </div>
+            <div class="col-12 col-md-4">
+              <select class="form-select" id="colorPreset" v-model="colorPreset" @change="onPresetChange">
+                <option value="standard">{{ t('editor.presetStandard') }}</option>
+                <option value="oll">{{ t('editor.presetOll') }}</option>
+                <option value="custom">{{ t('editor.presetCustom') }}</option>
+              </select>
+            </div>
           </div>
           <div class="input-group form-inline">
-            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateX">x</button>
-            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateY">y</button>
-            <button type="submit" class="btn btn-outline-secondary btn-sm me-2 mb-1" @click="rotateZ">z</button>
-            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="resetColor">Reset</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateScheme('x')">x</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="rotateScheme('y')">y</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm me-2 mb-1" @click="rotateScheme('z')">z</button>
+            <button type="submit" class="btn btn-outline-secondary btn-sm mb-1" @click="resetScheme">{{ t('common.reset') }}</button>
           </div>
           <div class="row">
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceU">U</label>
-              <input type="color" class="form-control" id="faceU" v-model="faceU" />
+              <input type="color" class="form-control" id="faceU" v-model="faceU" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceR">R</label>
-              <input type="color" class="form-control" id="faceR" v-model="faceR" />
+              <input type="color" class="form-control" id="faceR" v-model="faceR" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceF">F</label>
-              <input type="color" class="form-control" id="faceF" v-model="faceF" />
+              <input type="color" class="form-control" id="faceF" v-model="faceF" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceD">D</label>
-              <input type="color" class="form-control" id="faceD" v-model="faceD" />
+              <input type="color" class="form-control" id="faceD" v-model="faceD" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceL">L</label>
-              <input type="color" class="form-control" id="faceL" v-model="faceL" />
+              <input type="color" class="form-control" id="faceL" v-model="faceL" @input="onFaceColorInput" />
             </div>
             <div class="col-md-6 col-lg-2">
               <label class="form-label" for="faceB">B</label>
-              <input type="color" class="form-control" id="faceB" v-model="faceB" />
+              <input type="color" class="form-control" id="faceB" v-model="faceB" @input="onFaceColorInput" />
             </div>
           </div>
         </div>
 
         <!-- Rotation Sequence -->
         <div class="mb-2">
-          <label class="form-label" for="rotation">Rotation Sequence</label>
+          <label class="form-label" for="rotation">{{ t('editor.rotation') }}</label>
           <div class="row">
             <div class="col-md-2">
               <select class="form-select" id="rotateAxis1" v-model="rotateAxis1">
@@ -538,7 +684,7 @@
                 <input type="text" class="form-control" id="rotateAngle1" v-model.number="rotateAngle1" disabled />
                 <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle1,-180,1)">-</button>
                 <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle1,180,1)">+</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle1" @click="restRotateAngle1">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle1" @click="restRotateAngle1">{{ t('common.reset') }}</button>
               </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
@@ -557,7 +703,7 @@
                 <input type="text" class="form-control" id="rotateAngle2" v-model.number="rotateAngle2" disabled />
                 <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = decrementNumber(rotateAngle2,-180,1)">-</button>
                 <button class="btn btn-outline-secondary" type="button" @click="rotateAngle2 = incrementNumber(rotateAngle2,180,1)">+</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle2" @click="restRotateAngle2">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle2" @click="restRotateAngle2">{{ t('common.reset') }}</button>
               </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
@@ -576,7 +722,7 @@
                 <input type="text" class="form-control" id="rotateAngle3" v-model.number="rotateAngle3" disabled />
                 <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = decrementNumber(rotateAngle3,-180,1)">-</button>
                 <button class="btn btn-outline-secondary" type="button" @click="rotateAngle1 = incrementNumber(rotateAngle3,180,1)">+</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle3" @click="restRotateAngle3">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="restRotateAngle3" @click="restRotateAngle3">{{ t('common.reset') }}</button>
               </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
@@ -589,24 +735,31 @@
         <div class="mb-2">
           <div class="row">
             <div class="col-xs-12 col-md-4">
-              <label class="form-label" for="backgroundColor">Background Color of image</label>
-              <div class="input-group form-inline mb-2">
-                <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor" />
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetBackground" @click="resetBackground">Reset</button>
+              <!-- 背景：透明 / 色を指定 の 1 つにまとめ、色を指定のときだけ色とリセットを出す（保存の形は今までどおり bg と bgColor） -->
+              <label class="form-label" for="background">{{ t('editor.background') }}</label>
+              <div class="d-flex gap-2 mb-2">
+                <select class="form-select w-auto" id="background" v-model="background">
+                  <option value="y">{{ t('editor.transparent') }}</option>
+                  <option value="n">{{ t('editor.opaque') }}</option>
+                </select>
+                <div class="input-group form-inline" v-show="background === 'n'">
+                  <input type="color" class="form-control" id="backgroundColor" v-model="backgroundColor" :aria-label="t('editor.bgColor')" />
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="resetBackground" @click="resetBackground">{{ t('common.reset') }}</button>
+                </div>
               </div>
             </div>
             <div class="col-xs-12 col-md-4">
-              <label class="form-label" for="cubeColor">Cube Color</label>
+              <label class="form-label" for="cubeColor">{{ t('editor.cubeColor') }}</label>
               <div class="input-group form-inline mb-2">
                 <input type="color" class="form-control" id="cubeColor" v-model="cubeColor" />
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetCubecolor" @click="resetCubecolor">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetCubecolor" @click="resetCubecolor">{{ t('common.reset') }}</button>
               </div>
             </div>
             <div class="col-xs-12 col-md-4">
-              <label class="form-label" for="maskColor">Mask Color</label>
+              <label class="form-label" for="maskColor">{{ t('editor.maskColor') }}</label>
               <div class="input-group form-inline mb-2">
                 <input type="color" class="form-control" id="maskColor" v-model="maskColor" />
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetMaskcolor" @click="resetMaskcolor">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetMaskcolor" @click="resetMaskcolor">{{ t('common.reset') }}</button>
               </div>
             </div>
           </div>
@@ -615,37 +768,37 @@
         <!-- Cube Opacity / Sticker Opacity / Projection Distance -->
         <div class="mb-5">
           <div class="row">
-            <label class="form-label" for="cubeOpacity">Cube Opacity</label>
+            <label class="form-label" for="cubeOpacity">{{ t('editor.cubeOpacity') }}</label>
             <div class="col-md-6">
               <div class="input-group">
                 <input type="text" class="form-control" id="cubeOpacity" v-model.number="cubeOpacity" disabled />
                 <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = decrementNumber(cubeOpacity,0,1)">-</button>
                 <button class="btn btn-outline-secondary" type="button" @click="cubeOpacity = incrementNumber(cubeOpacity,100,1)">+</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetCubeOpacity" @click="restCubeOpacity">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetCubeOpacity" @click="restCubeOpacity">{{ t('common.reset') }}</button>
               </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
               <input type="range" class="form-range" min="0" max="100" step="1" id="cubeOpacity" v-model="cubeOpacity" />
             </div>
-            <label class="form-label" for="stickerOpacity">Sticker Opacity</label>
+            <label class="form-label" for="stickerOpacity">{{ t('editor.stickerOpacity') }}</label>
             <div class="col-md-6">
               <div class="input-group">
                 <input type="text" class="form-control" id="stickerOpacity" v-model.number="stickerOpacity" disabled />
                 <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = decrementNumber(stickerOpacity,0,1)">-</button>
                 <button class="btn btn-outline-secondary" type="button" @click="stickerOpacity = incrementNumber(stickerOpacity,100,1)">+</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetStickerOpacity" @click="resetStickerOpacity">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetStickerOpacity" @click="resetStickerOpacity">{{ t('common.reset') }}</button>
               </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
               <input type="range" class="form-range" min="0" max="100" step="1" id="stickerOpacity" v-model="stickerOpacity" />
             </div>
-            <label class="form-label" for="dist">Projection Distance</label>
+            <label class="form-label" for="dist">{{ t('editor.dist') }}</label>
             <div class="col-md-6">
               <div class="input-group">
                 <input type="text" class="form-control" id="dist" v-model.number="dist" disabled />
                 <button class="btn btn-outline-secondary" type="button" @click="dist = decrementNumber(dist,1,1)">-</button>
                 <button class="btn btn-outline-secondary" type="button" @click="dist = incrementNumber(dist,100,1)">+</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetDist" @click="resetDist">Reset</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetDist" @click="resetDist">{{ t('common.reset') }}</button>
               </div>
             </div>
             <div class="col-md-6 d-flex align-items-center">
@@ -656,10 +809,27 @@
       </div>
     </div>
 
+    <script src="js/store.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/navbar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script src="library/srVisualizer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@3.5.45/dist/vue.global.prod.js"></script>
+    <script src="js/cube-state.js"></script>
+    <script src="js/pll-data.js"></script>
+    <script src="js/oll-data.js"></script>
+    <script src="js/coll-data.js"></script>
+    <script src="js/pll-groups.js"></script>
+    <script src="js/oll-groups.js"></script>
+    <script src="js/coll-groups.js"></script>
+    <script src="js/case-check.js"></script>
+    <script src="js/custom-algs.js"></script>
+    <script src="js/editor-cases.js"></script>
+    <script src="js/plan-hit.js"></script>
+    <script src="js/state-picker.js"></script>
     <script src="js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.min.js" integrity="sha384-89aa4glufciPv46aKltztWQEmk+Tu9W2RhzXr6VcnUUEub7F8+06RcL2RYLCOHUq" crossorigin="anonymous"></script>
+    <script src="js/firebase-config.js"></script>
+    <script type="module" src="js/cloud-sync.js"></script>
   </body>
 </html>

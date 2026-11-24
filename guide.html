@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja" data-i18n-title-page="title.guide">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-yEPZ7jP9S0QKiUQ0m3jjsO4ProIW7wvR9gXkI7JOGa2XVsw53Yke2bsdkBbjmmiX"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
+    />
+    <script>
+      // JS で中身を作り終えるまで見せない（英語の仮の文字・空の一覧が一瞬出てちらつくのを防ぐ。css/common.css の html.booting）。
+      // body の最後のスクリプトを全部実行したあと（DOMContentLoaded）に見せる。極端に遅いときも 3 秒で見せる
+      document.documentElement.classList.add('booting');
+      (function () {
+        var show = function () { document.documentElement.classList.remove('booting'); };
+        document.addEventListener('DOMContentLoaded', show);
+        setTimeout(show, 3000);
+      })();
+    </script>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="shortcut icon" href="favicon/icon.ico" />
+    <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="favicon/android-chrome-192×192.png" />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LP5F7RVYQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'G-2LP5F7RVYQ')
+    </script>
+    <style>
+      .policy h2 {
+        font-size: 1.05rem;
+        margin-top: 1.75rem;
+      }
+      .policy p,
+      .policy li {
+        font-size: 0.925rem;
+        line-height: 1.75;
+      }
+      /* LL を覚えるおすすめの流れ：使い方の最初に、目立つ囲みで出す（MegaminxImageEditor 533b51a・c2a55ec） */
+      .guide-tip {
+        margin-top: 1.5rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid #b6d4fe;
+        border-left: 4px solid #0d6efd;
+        border-radius: 0.5rem;
+        background: #f1f7ff;
+      }
+      .policy .guide-tip h2 {
+        margin-top: 0;
+        color: #0a58ca;
+      }
+      .guide-tip ol {
+        margin-bottom: 0;
+        padding-left: 1.4rem;
+      }
+      .guide-tip ol li + li {
+        margin-top: 0.25rem;
+      }
+    </style>
+    <title>How to Use - VisualCube Editor 3.0</title>
+  </head>
+  <body style="visibility: hidden" onLoad="document.body.style.visibility='visible'">
+    <div class="container pb-5">
+      <nav class="navbar bg-light site-nav">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="/">VisualCube Editor 3.0</a>
+          <!-- 右側：広い画面では 言語・アカウント・ページへのリンク・GitHub を1行に並べる。
+               スマホではアカウントとメニューのボタンだけを出し、言語とリンクはメニューの中に入れる（js/navbar.js） -->
+          <div class="nav-right">
+            <span id="accountBox"></span>
+            <button type="button" class="nav-toggle" id="navToggle" aria-controls="navMenu" aria-expanded="false" data-i18n-aria-label="nav.menu" aria-label="Menu">
+              <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 5.5h14M3 10h14M3 14.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            </button>
+            <div class="nav-menu" id="navMenu">
+              <span id="langSwitch"></span>
+              <a href="/" class="nav-link-item" data-i18n="nav.editor">Editor</a>
+              <a href="/pll" class="nav-link-item" data-i18n="nav.pllList">PLL</a>
+              <a href="/oll" class="nav-link-item" data-i18n="nav.ollList">OLL</a>
+              <a href="/practice" class="nav-link-item" data-i18n="nav.practice">Practice</a>
+              <a href="/stats" class="nav-link-item" data-i18n="nav.stats">Stats</a>
+              <a href="https://github.com/roudai/VisualCubeEditor2" class="nav-link-item nav-github" aria-label="GitHub">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" /></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main class="policy mx-auto" style="max-width: 46rem">
+        <!-- 日本語 -->
+        <article lang="ja" data-lang-block="ja">
+          <h1 class="h4 mt-4">使い方</h1>
+          <p>VisualCube Editor は、ルービックキューブの画像を作り、PLL・OLL・COLL・ZBLL を覚えて練習するためのサイトです。</p>
+          <ul>
+            <li><a href="/">エディタ</a>：手順や色から画像を作る</li>
+            <li><a href="/pll">PLL</a>・<a href="/oll">OLL</a>・<a href="/coll">COLL</a>・<a href="/zbll">ZBLL</a>：すべてのケースを一覧で見て、習得状況をつける</li>
+            <li><a href="/practice">練習</a>：タイマーでケースを解く。ソルブ（最初から最後まで 1 回解く）も練習できる</li>
+            <li><a href="/stats">記録</a>：タイムの推移や、苦手なケースを見る</li>
+          </ul>
+
+          <section class="guide-tip">
+            <h2>💡 LL を覚えるおすすめの流れ</h2>
+            <ol>
+              <li><a href="/pll">PLL</a>（または <a href="/oll">OLL</a>）の一覧を「覚える順」にして、これから覚えたいグループを選びます。</li>
+              <li>「練習する」を押すと練習のページが開き、選んだグループの<strong>未習得</strong>のケースから出題されます。</li>
+              <li>「習得の目安」（練習のページの設定。最初は PLL 3 秒・OLL 2 秒）以内に解けたケースは<strong>習得済み</strong>、超えたケースは<strong>練習中</strong>になります。</li>
+              <li>未習得を一通り解き終えると、対象が自動で<strong>練習中</strong>（目安に届かなかったケース）→ <strong>習得済み</strong>（覚えたケースの復習）と進みます。設定の出題が「苦手優先」なら、時間がかかる・解けなかったケースほど多く出ます。</li>
+              <li>グループのケースがすべて<strong>習得済み</strong>になったら、一覧に戻って次のグループを選び、同じように練習します。</li>
+              <li>練習のページで <strong>LL</strong> を選ぶと、習得済みの OLL と PLL を組み合わせて、OLL から完成までを通して練習することもできます。</li>
+            </ol>
+          </section>
+
+          <h2>エディタ</h2>
+          <ul>
+            <li>「手順」に回転記号を入れると、画像に反映されます。下のボタンでも入れられます。</li>
+            <li>手順の扱いは「この手順で揃う状態」（最初はこれ）「手順を回した状態」「色を直接指定」から選べます。</li>
+            <li>「色を直接指定」では、下のプルダウンで色を選べます。Plan 表示では、上の画像のステッカーを押しても選べます。</li>
+            <li>パズルの種類（1x1x1〜17x17x17）・表示・矢印・透明度なども変えられます。</li>
+            <li>「PLL」「OLL」で種類を切り替えてケースを選ぶと、その手順が入ります（OLL では COLL も選べます）。「‹ 前へ」「次へ ›」で順に見られます。</li>
+            <li>ケースを選んだまま手順を書き換えて「保存」すると、自分の手順になります（「この手順で揃う状態」のとき）。「既定に戻す」で元に戻ります。</li>
+            <li>色や画像サイズを決めて、「ダウンロード」で PNG を保存します。</li>
+          </ul>
+
+          <h2>URL で開く</h2>
+          <p>エディタは、URL の後ろにパラメーターを付けると、決まった状態で開けます。</p>
+          <ul>
+            <li><a href="/?pll=Aa"><code>?pll=Aa</code></a>・<a href="/?oll=27"><code>?oll=27</code></a>・<a href="/?coll=21-1"><code>?coll=21-1</code></a>：そのケースを選んだ状態で開く</li>
+            <li><a href="/?case=RUR'U'"><code>?case=RUR'U'</code></a>：その手順を「この手順で揃う状態」で入れて開く</li>
+            <li><a href="/?alg=RUR'U'"><code>?alg=RUR'U'</code></a>：その手順を「手順を回した状態」で入れて開く</li>
+          </ul>
+
+          <h2>PLL・OLL・COLL・ZBLL</h2>
+          <ul>
+            <li>画像を押すと、そのケースをエディタで開きます。COLL・ZBLL のページへは、OLL のページのリンクから行けます。</li>
+            <li>右上の丸を押すたびに、未習得 → 練習中 → 習得済み と切り替わります。</li>
+            <li>習得状況やグループで絞り込めます。PLL・OLL は「覚える順」、ZBLL は「OCLL ごと」でも並べられます。</li>
+            <li>PLL は、逆手順のケースがケース名の右に「⇄ Ub」のように出ます。</li>
+            <li>「練習する」で、表示しているケースを練習できます。</li>
+            <li>「ZIP でダウンロード」で、すべてのケースの画像をまとめて保存できます（パソコンのみ）。</li>
+            <li>「すべて未習得に戻す」で、習得状況をまとめて消せます。</li>
+          </ul>
+
+          <h2>練習</h2>
+          <ul>
+            <li>PLL・OLL・COLL・ZBLL・LL・ソルブから選びます。PLL・OLL・COLL・ZBLL は、出すケースを習得状況やグループで絞れます。</li>
+            <li>スクランブルの通りに回してから、スペースキー（スマホはタイマーをタップ）でスタートし、もう一度押して止めます。</li>
+            <li>「習得の目安」以内に解けたケースは習得済み、超えたケースは練習中になります。</li>
+            <li>「出題」を「苦手優先」にすると、遅いケースや解けなかったケースが出やすくなります。</li>
+            <li>「ヒント」で手順の最初の 3 手を見られます。ヒントを見た回は練習中になります。</li>
+            <li>解けなかったときは「解けなかった」、回し間違えたときは「中止」でやり直せます。スタート前なら「スキップ」で次のケースに進めます。</li>
+            <li>止めたあと、記録を残したくないときは「記録を取り消す」、目安以内でも揃っていなかったときは「練習中にする」を押します。「練習中にする」を押したあとは「習得済みに戻す」で戻せます。</li>
+            <li>タイマーの右上のボタンで、スクランブルとタイマーだけの画面（全画面）にできます。計測中はタイマーだけになります。× で元に戻ります。</li>
+            <li>「最近の記録」のケースを押すと、そのケースの画像・手順・最近のタイムを見られます（PLL・OLL・COLL・ZBLL）。</li>
+            <li>LL は、OLL から完成まで（OLL と PLL）を通して解きます。OLL・PLL それぞれ、習得済みのものだけか、すべてから出すかを選べます（出てくる PLL は、登録した OLL の手順で解いたときのものです）。結果には OLL・PLL とスクランブルが出ます。習得状況は変わりません。</li>
+            <li>ソルブは WCA と同じ形のスクランブルで計ります。スペースを長押しして、数字が緑になったら離すとスタートします。インスペクション（15 秒）も選べます。</li>
+          </ul>
+
+          <h2>記録</h2>
+          <ul>
+            <li>上のボタンで PLL・OLL・COLL・ZBLL・LL・ソルブを、その下のボタンで期間を選びます。</li>
+            <li>グラフは 1 回ごとのタイムです。横にドラッグするか、下の帯を動かすと前の記録を見られます。「分布」に切り替えると、タイムの分かれ方を見られます。</li>
+            <li>「ケースごと」の表で、ケースごとの回数・ベスト・平均を見られます。ケースを押すと、そのケースを練習できます。</li>
+            <li>「記録の一覧」で記録を削除できます。削除したあと「元に戻す」で取り消せます。</li>
+          </ul>
+
+          <h2>保存とログイン</h2>
+          <ul>
+            <li>ログインしなくても、データはこのブラウザに保存されます。</li>
+            <li>右上の「ログイン」から Google・Facebook・GitHub でログインすると、アカウントに保存され、ほかの端末でも使えます。アカウントは Megaminx Image Editor と共通です。</li>
+            <li>X などのアプリの中のブラウザではログインできないことがあります。そのときは Chrome や Safari で開いてください。</li>
+            <li>アカウントにデータがあるときにログインすると、このブラウザの内容はアカウントのデータに置き換わります。</li>
+            <li>ログアウトすると、このブラウザのデータを消します（アカウントには残ります）。共用の端末では、使い終わったらログアウトしてください。</li>
+            <li>保存できる記録には上限があり、超えると古いものから消えます（PLL・OLL・COLL・ZBLL それぞれ最新 5000 件、ケースごとの最近のタイムは各 10 回、ソルブ・LL はそれぞれ最新 5000 件）。詳しくは<a href="/terms">利用規約</a>と<a href="/privacy">プライバシーポリシー</a>をご覧ください。</li>
+          </ul>
+
+          <h2>困ったとき</h2>
+          <p>不具合や要望は <a href="https://github.com/roudai/VisualCubeEditor2/issues">GitHub の Issues</a> にお寄せください。</p>
+        </article>
+
+        <!-- English -->
+        <article lang="en" data-lang-block="en" hidden>
+          <h1 class="h4 mt-4">How to Use</h1>
+          <p>VisualCube Editor lets you make Rubik's Cube images, and learn and practice PLL, OLL, COLL and ZBLL.</p>
+          <ul>
+            <li><a href="/">Editor</a>: make an image from an algorithm or from colors</li>
+            <li><a href="/pll">PLL</a> / <a href="/oll">OLL</a> / <a href="/coll">COLL</a> / <a href="/zbll">ZBLL</a>: see every case in a list and track your progress</li>
+            <li><a href="/practice">Practice</a>: solve cases with a timer, or practice full solves</li>
+            <li><a href="/stats">Stats</a>: see how your times change and which cases are slowest</li>
+          </ul>
+
+          <section class="guide-tip">
+            <h2>💡 Recommended steps for learning LL</h2>
+            <ol>
+              <li>Open the <a href="/pll">PLL</a> (or <a href="/oll">OLL</a>) list, switch to "By learning order", and pick the stage (group) you want to learn next.</li>
+              <li>Click "Practice". The practice page opens and starts with the <strong>To learn</strong> cases in the stage you picked.</li>
+              <li>Cases you solve within the "Learned within" time (a setting on the practice page; 3 s for PLL and 2 s for OLL at first) become <strong>Learned</strong>; slower ones become <strong>Learning</strong>.</li>
+              <li>Once you have gone through every To learn case, practice moves on automatically to <strong>Learning</strong> (the cases you missed) and then <strong>Learned</strong> (a review of the ones you know). With the Case order setting on "Weak cases first", slower or unsolved cases come up more often.</li>
+              <li>When every case in the stage is <strong>Learned</strong>, go back to the list, pick the next stage, and repeat.</li>
+              <li>You can also choose <strong>LL</strong> on the practice page: it combines your learned OLL and PLL cases, so you go from OLL all the way to a solved cube.</li>
+            </ol>
+          </section>
+
+          <h2>Editor</h2>
+          <ul>
+            <li>Type moves into the Algorithm box and the image updates. You can also use the buttons below it.</li>
+            <li>Choose how the algorithm is used: "Solve with algorithm" (the default), "Apply algorithm", or "Set colors".</li>
+            <li>In "Set colors", pick each sticker's color from the menus below. In Plan view, you can also click a sticker on the image above.</li>
+            <li>You can also change the puzzle size (1x1x1 to 17x17x17), the view, arrows, opacity and more.</li>
+            <li>Switch between "PLL" and "OLL" and pick a case to load its algorithm (OLL also has COLL). Use "‹ Prev" and "Next ›" to step through cases.</li>
+            <li>Edit the algorithm of a selected case and click "Save" to make it your own ("Solve with algorithm" only). "Reset to default" switches back.</li>
+            <li>Set the colors and image size, then click "Download" to save a PNG.</li>
+          </ul>
+
+          <h2>Opening with URL parameters</h2>
+          <p>Add a parameter to the URL of the Editor to open it in a given state.</p>
+          <ul>
+            <li><a href="/?pll=Aa"><code>?pll=Aa</code></a>, <a href="/?oll=27"><code>?oll=27</code></a>, <a href="/?coll=21-1"><code>?coll=21-1</code></a>: open with that case selected</li>
+            <li><a href="/?case=RUR'U'"><code>?case=RUR'U'</code></a>: open with that algorithm, as "Solve with algorithm"</li>
+            <li><a href="/?alg=RUR'U'"><code>?alg=RUR'U'</code></a>: open with that algorithm, as "Apply algorithm"</li>
+          </ul>
+
+          <h2>PLL / OLL / COLL / ZBLL</h2>
+          <ul>
+            <li>Click an image to open that case in the editor. The COLL and ZBLL pages are linked from the OLL page.</li>
+            <li>Click the circle at the top right to cycle through To learn → Learning → Learned.</li>
+            <li>Filter by progress or group. PLL and OLL can also be sorted "By learning order", and ZBLL "By OCLL".</li>
+            <li>For PLL, the inverse case is shown to the right of the case name, like "⇄ Ub".</li>
+            <li>"Practice" starts a practice session with the cases shown.</li>
+            <li>"Download ZIP" saves images of all cases (computers only).</li>
+            <li>"Reset all progress" clears your progress at once.</li>
+          </ul>
+
+          <h2>Practice</h2>
+          <ul>
+            <li>Choose PLL, OLL, COLL, ZBLL, LL, or Full solve. For PLL, OLL, COLL and ZBLL, you can narrow the cases by progress or group.</li>
+            <li>Apply the scramble, press Space (on phones, tap the timer) to start, and press again to stop.</li>
+            <li>Cases solved within the "Learned within" time become Learned; slower ones become Learning.</li>
+            <li>With "Case order" set to "Weak cases first", slow and failed cases come up more often.</li>
+            <li>"Hint" shows the first 3 moves. A solve where you used the hint counts as Learning.</li>
+            <li>If you can't solve it, press "Couldn't solve"; if you made a mistake, press "Cancel" to try again. Before starting, "Skip" moves on to the next case.</li>
+            <li>After stopping, press "Discard" to discard the result, or "Mark as Learning" if you stopped within the target time but the case wasn't actually solved. After "Mark as Learning", "Back to Learned" switches it back.</li>
+            <li>The button at the top right of the timer switches to a full-screen view with only the scramble and the timer. While timing, only the timer is shown. Press × to go back.</li>
+            <li>Click a case in "Recent results" to see its image, algorithm and recent times (PLL / OLL / COLL / ZBLL).</li>
+            <li>LL goes from OLL all the way to solved (OLL, then PLL). For OLL and PLL, choose whether to get only learned cases or all cases (the PLL is the one you get after your OLL algorithm). The result shows the OLL, the PLL, and the scramble. Your progress doesn't change.</li>
+            <li>Full solves use WCA-style scrambles. Hold Space until the time turns green, then release to start. Inspection (15 seconds) is optional.</li>
+          </ul>
+
+          <h2>Stats</h2>
+          <ul>
+            <li>Use the buttons at the top to choose PLL, OLL, COLL, ZBLL, LL, or Full solve, and the buttons below them to choose the period.</li>
+            <li>The chart shows each solve. Drag it sideways or move the bar below to see earlier solves. Switch to "Distribution" to see how your times are spread.</li>
+            <li>The "By case" table shows count, best, and average for each case. Click a case to practice it.</li>
+            <li>Delete solves from the "Solves" list. "Undo" brings them back.</li>
+          </ul>
+
+          <h2>Saving and signing in</h2>
+          <ul>
+            <li>Without signing in, your data is saved in this browser.</li>
+            <li>Sign in with Google, Facebook, or GitHub from "Sign in" at the top right to save to your account and use it on other devices. The account is shared with Megaminx Image Editor.</li>
+            <li>Signing in may not work in the browser inside apps such as X. If so, open the site in Chrome or Safari.</li>
+            <li>If your account already has data, signing in replaces what is in this browser with your account's data.</li>
+            <li>Signing out clears the data in this browser (it stays in your account). On a shared device, please sign out when you are done.</li>
+            <li>There are limits on how much is kept; older records are removed first (the latest 5,000 each for PLL, OLL, COLL and ZBLL, 10 recent times per case, and the latest 5,000 each for full solves and LL). See the <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a> for details.</li>
+          </ul>
+
+          <h2>Need help?</h2>
+          <p>Please report bugs or send requests via <a href="https://github.com/roudai/VisualCubeEditor2/issues">GitHub Issues</a>.</p>
+        </article>
+      </main>
+    </div>
+
+    <script src="js/store.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/legal.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script type="module" src="js/cloud-sync.js"></script>
+  </body>
+</html>
