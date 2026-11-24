@@ -10,6 +10,7 @@
 /* ---- カード ---- */
 .case-card {
   position: relative;
+  container-type: inline-size; /* カードの幅で名前の行の並びを変える（下の @container） */
   transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
 }
 .case-card:hover {
@@ -45,6 +46,27 @@
 }
 .case-name-side.right {
   text-align: left;
+}
+/* カードが狭いとき（スマホの 1 行 3 枚・広い画面の 1 行 6 枚など）は、カスタムの札が名前の左の列に入りきらず名前に重なるので、
+   名前の下の行の真ん中に出す（名前は真ん中のまま。逆手順は名前の右のまま。カードの角に出すと画像に重なる）。
+   とても狭い画面で逆手順を名前の下の行に出すとき（下の @media）は、その下の行にする */
+@container (max-width: 170px) {
+  .case-name-text {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .case-name-side.right {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .case-name-side.left {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    text-align: center;
+  }
+  .case-name-side.left .custom-tag {
+    margin: 0;
+  }
 }
 /* 逆手順のケース（PLL）：名前の右に薄い字で「⇄ Ub」 */
 .case-inverse {
@@ -177,6 +199,7 @@
 @media (max-width: 339.98px) {
   .case-name-side.right {
     grid-column: 1 / -1;
+    grid-row: 2;
     text-align: center;
   }
   .case-name-side.right .case-inverse {
